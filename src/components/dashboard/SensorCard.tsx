@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 
 interface SensorCardProps {
@@ -28,18 +28,42 @@ export function SensorCard({ icon: Icon, label, value, status, detail }: SensorC
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-xl border p-4 transition-all ${statusStyles[status]}`}
+      className={`relative rounded-xl border p-4 transition-all duration-500 ${statusStyles[status]}`}
     >
       <div className="flex items-start justify-between">
         <div className="rounded-lg bg-secondary p-2">
           <Icon className="h-5 w-5 text-primary" />
         </div>
-        <div className={`h-2.5 w-2.5 rounded-full ${dotStyles[status]} ${status === "alert" ? "animate-pulse-glow" : ""}`} />
+        <div className={`h-2.5 w-2.5 rounded-full transition-colors duration-500 ${dotStyles[status]} ${status === "alert" ? "animate-pulse-glow" : ""}`} />
       </div>
       <div className="mt-3">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="mt-1 font-mono text-2xl font-bold text-foreground">{value}</p>
-        {detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={value}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            className="mt-1 font-mono text-2xl font-bold text-foreground"
+          >
+            {value}
+          </motion.p>
+        </AnimatePresence>
+        <AnimatePresence mode="wait">
+          {detail && (
+            <motion.p
+              key={detail}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-1 text-xs text-muted-foreground"
+            >
+              {detail}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
