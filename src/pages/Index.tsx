@@ -6,10 +6,12 @@ import { ZoneMap } from "@/components/dashboard/ZoneMap";
 import { VibrationChart } from "@/components/dashboard/VibrationChart";
 import { SystemStatus } from "@/components/dashboard/SystemStatus";
 import { Vibrate, Move, Footprints, Camera, ThermometerSun, Lock } from "lucide-react";
-import { useLiveSensorData } from "@/hooks/useLiveSensorData";
+import { useLiveSensorData, computeThreatAssessment } from "@/hooks/useLiveSensorData";
+import { useMemo } from "react";
 
 const Index = () => {
   const sensors = useLiveSensorData(2500);
+  const threat = useMemo(() => computeThreatAssessment(sensors), [sensors]);
 
   return (
     <div className="min-h-screen bg-background grid-overlay">
@@ -26,7 +28,7 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-3 space-y-4">
-            <ThreatLevel level="elevated" confidence={87} lastScan="12s ago" />
+            <ThreatLevel level={threat.level} confidence={threat.confidence} lastScan={threat.lastScan} />
             <SystemStatus />
           </div>
           <div className="lg:col-span-5 space-y-4">

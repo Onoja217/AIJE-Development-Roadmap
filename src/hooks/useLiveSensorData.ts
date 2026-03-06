@@ -1,12 +1,64 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
-interface SensorData {
-  vibration: { value: string; status: "online" | "warning" | "alert"; detail: string };
-  motion: { value: string; status: "online" | "warning" | "alert"; detail: string };
-  movement: { value: string; status: "online" | "warning" | "alert"; detail: string };
-  cameras: { value: string; status: "online" | "warning" | "alert"; detail: string };
-  environment: { value: string; status: "online" | "warning" | "alert"; detail: string };
-  access: { value: string; status: "online" | "warning" | "alert"; detail: string };
+type SensorStatus = "online" | "warning" | "alert";
+
+interface SensorReading {
+  value: string;
+  status: SensorStatus;
+  detail: string;
+}
+
+export interface SensorData {
+  vibration: SensorReading;
+  motion: SensorReading;
+  movement: SensorReading;
+  cameras: SensorReading;
+  environment: SensorReading;
+  access: SensorReading;
+}
+
+export type ThreatLevelType = "secure" | "elevated" | "high" | "critical";
+
+export interface ThreatAssessment {
+  level: ThreatLevelType;
+  confidence: number;
+  lastScan: string;
+}
+
+export function computeThreatAssessment(sensors: SensorData): ThreatAssessment {
+  const statuses = [
+    sensors.vibration.status,
+    sensors.motion.status,
+    sensors.movement.status,
+    sensors.cameras.status,
+    sensors.access.status,
+  ];
+
+  const alertCount = statuses.filter(s => s === "alert").length;
+  const warningCount = statuses.filter(s => s === "warning").length;
+
+  let level: ThreatLevelType;
+  let confidence: number;
+
+  if (alertCount >= 3) {
+    level = "critical";
+    confidence = 92 + Math.floor(Math.random() * 7);
+  } else if (alertCount >= 1) {
+    level = "high";
+    confidence = 78 + Math.floor(Math.random() * 14);
+  } else if (warningCount >= 2) {
+    level = "elevated";
+    confidence = 70 + Math.floor(Math.random() * 18);
+  } else {
+    level = "secure";
+    confidence = 90 + Math.floor(Math.random() * 10);
+  }
+
+  const now = new Date();
+  const seconds = Math.floor(Math.random() * 15) + 1;
+  const lastScan = `${seconds}s ago`;
+
+  return { level, confidence, lastScan };
 }
 
 const vibrationValues = ["2.1 Hz", "3.4 Hz", "4.2 Hz", "5.8 Hz", "1.7 Hz", "6.3 Hz", "3.9 Hz", "7.1 Hz"];
