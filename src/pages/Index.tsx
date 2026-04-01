@@ -7,7 +7,8 @@ import { VibrationChart } from "@/components/dashboard/VibrationChart";
 import { SystemStatus } from "@/components/dashboard/SystemStatus";
 import { Vibrate, Move, Footprints, Camera, ThermometerSun, Lock } from "lucide-react";
 import { useLiveSensorData, computeThreatAssessment } from "@/hooks/useLiveSensorData";
-import { useMemo } from "react";
+import { requestNotificationPermission } from "@/hooks/useAlertNotifications";
+import { useMemo, useEffect } from "react";
 
 const Index = () => {
   const sensors = useLiveSensorData(2500);
