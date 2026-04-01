@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Info, XCircle, CheckCircle2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { SensorData } from "@/hooks/useLiveSensorData";
+import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
 type Severity = "info" | "warning" | "danger" | "resolved";
 
@@ -72,6 +73,7 @@ interface AlertFeedProps {
 
 export function AlertFeed({ sensors }: AlertFeedProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const { notify } = useAlertNotifications();
   const prevSensorsRef = useRef<SensorData | undefined>();
 
   useEffect(() => {
@@ -79,7 +81,15 @@ export function AlertFeed({ sensors }: AlertFeedProps) {
     prevSensorsRef.current = sensors;
     const newAlerts = generateAlertsFromSensors(sensors);
     setAlerts(prev => [...newAlerts, ...prev].slice(0, 50));
-  }, [sensors]);
+
+    const critical = newAlerts.find(a => a.severity === "danger");
+    const warning = newAlerts.find(a => a.severity === "warning");
+    if (critical) {
+      notify(critical.message, "danger");
+    } else if (warning) {
+      notify(warning.message, "warning");
+    }
+  }, [sensors, notify]);
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
