@@ -1,5 +1,6 @@
 import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
 
 export function Header() {
@@ -39,9 +40,9 @@ export function Header() {
         <button className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
         </button>
-        <button className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Settings className="h-4 w-4 text-muted-foreground" />
-        </button>
+        </Link>
       </div>
     </motion.header>
   );
