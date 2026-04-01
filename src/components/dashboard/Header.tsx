@@ -1,5 +1,6 @@
 import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
 
 export function Header() {
