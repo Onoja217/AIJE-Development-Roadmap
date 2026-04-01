@@ -14,6 +14,10 @@ const Index = () => {
   const sensors = useLiveSensorData(2500);
   const threat = useMemo(() => computeThreatAssessment(sensors), [sensors]);
 
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background grid-overlay">
       <Header />
