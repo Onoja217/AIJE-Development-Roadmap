@@ -42,7 +42,7 @@ const statusBadge: Record<string, { label: string; className: string }> = {
 };
 
 function MiniChart({ data, warningThreshold, criticalThreshold, maxVal }: { data: number[]; warningThreshold: number; criticalThreshold: number; maxVal?: number }) {
-  const max = maxVal ?? Math.max(...data, criticalThreshold) * 1.2 || 1;
+  const max = maxVal ?? (Math.max(...data, criticalThreshold) * 1.2 || 1);
   const w = 300;
   const h = 80;
   const step = w / (data.length - 1);
