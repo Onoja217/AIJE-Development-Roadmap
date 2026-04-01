@@ -38,8 +38,7 @@ function sendBrowserNotification(title: string, body: string) {
       body,
       icon: "/placeholder.svg",
       tag: "aegis-alert",
-      renotify: true,
-    });
+    } as NotificationOptions);
   }
 }
 

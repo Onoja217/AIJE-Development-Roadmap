@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Info, XCircle, CheckCircle2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { SensorData } from "@/hooks/useLiveSensorData";
+import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
 type Severity = "info" | "warning" | "danger" | "resolved";
 
