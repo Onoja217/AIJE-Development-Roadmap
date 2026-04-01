@@ -1,5 +1,6 @@
 import { Header } from "@/components/dashboard/Header";
 import { SensorCard } from "@/components/dashboard/SensorCard";
+import { MuteProvider } from "@/hooks/useMute";
 import { ThreatLevel } from "@/components/dashboard/ThreatLevel";
 import { AlertFeed } from "@/components/dashboard/AlertFeed";
 import { ZoneMap } from "@/components/dashboard/ZoneMap";

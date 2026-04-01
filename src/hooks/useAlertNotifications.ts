@@ -68,7 +68,7 @@ export function useAlertNotifications() {
         message
       );
     }
-  }, []);
+  }, [muted]);
 
   return { notify };
 }
