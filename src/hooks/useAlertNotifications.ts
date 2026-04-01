@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { useMute } from "@/hooks/useMute";
 
 function playAlarmSound(severity: "danger" | "warning") {
   const ctx = new AudioContext();
