@@ -20,6 +20,7 @@ const Index = () => {
   }, []);
 
   return (
+    <MuteProvider>
     <div className="min-h-screen bg-background grid-overlay">
       <Header />
       <main className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
