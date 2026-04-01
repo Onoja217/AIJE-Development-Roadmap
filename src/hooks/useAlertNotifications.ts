@@ -50,15 +50,17 @@ export function requestNotificationPermission() {
 }
 
 export function useAlertNotifications() {
+  const { muted } = useMute();
   const lastAlertTimeRef = useRef(0);
 
   const notify = useCallback((message: string, severity: "danger" | "warning") => {
     const now = Date.now();
-    // Throttle to one notification per 3 seconds
     if (now - lastAlertTimeRef.current < 3000) return;
     lastAlertTimeRef.current = now;
 
-    playAlarmSound(severity);
+    if (!muted) {
+      playAlarmSound(severity);
+    }
 
     if (severity === "danger") {
       sendBrowserNotification(
