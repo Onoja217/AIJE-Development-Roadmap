@@ -36,7 +36,7 @@ const Index = () => {
             <VibrationChart />
           </div>
           <div className="lg:col-span-4">
-            <AlertFeed />
+            <AlertFeed sensors={sensors} />
           </div>
         </div>
       </main>

@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Info, XCircle, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import type { SensorData } from "@/hooks/useLiveSensorData";
 
 type Severity = "info" | "warning" | "danger" | "resolved";
 
@@ -11,15 +13,6 @@ interface Alert {
   severity: Severity;
 }
 
-const alerts: Alert[] = [
-  { id: "1", time: "00:12:04", message: "Vibration anomaly detected — pattern matches drilling signature", zone: "Zone A - North Wall", severity: "danger" },
-  { id: "2", time: "00:11:38", message: "Motion sensor triggered — unusual movement near window", zone: "Zone B - East Wing", severity: "warning" },
-  { id: "3", time: "00:10:55", message: "Perimeter sensor check completed successfully", zone: "Zone C - South Gate", severity: "resolved" },
-  { id: "4", time: "00:09:22", message: "Ground vibration spike — classified as vehicle passing", zone: "Zone A - Parking", severity: "info" },
-  { id: "5", time: "00:08:01", message: "Door tamper attempt detected — force signature identified", zone: "Zone D - Rear Entry", severity: "danger" },
-  { id: "6", time: "00:06:44", message: "Camera feed reconnected after brief interruption", zone: "Zone B - Corridor", severity: "info" },
-];
-
 const severityConfig: Record<Severity, { icon: typeof Info; color: string; border: string }> = {
   info: { icon: Info, color: "text-primary", border: "border-primary/20" },
   warning: { icon: AlertTriangle, color: "text-warning", border: "border-warning/20" },
@@ -27,7 +20,67 @@ const severityConfig: Record<Severity, { icon: typeof Info; color: string; borde
   resolved: { icon: CheckCircle2, color: "text-success", border: "border-success/20" },
 };
 
-export function AlertFeed() {
+const zones = ["Zone A - North Wall", "Zone B - East Wing", "Zone C - South Gate", "Zone D - Rear Entry", "Zone A - Parking", "Zone B - Corridor"];
+
+function formatTime(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+}
+
+function pickZone() {
+  return zones[Math.floor(Math.random() * zones.length)];
+}
+
+function generateAlertsFromSensors(sensors: SensorData): Alert[] {
+  const alerts: Alert[] = [];
+  const t = formatTime();
+
+  if (sensors.vibration.status === "alert") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Vibration anomaly detected — ${sensors.vibration.detail}`, zone: pickZone(), severity: "danger" });
+  } else if (sensors.vibration.status === "warning") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Vibration elevated at ${sensors.vibration.value}`, zone: pickZone(), severity: "warning" });
+  }
+
+  if (sensors.motion.status === "alert") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `High motion activity — ${sensors.motion.value} detected`, zone: pickZone(), severity: "danger" });
+  } else if (sensors.motion.status === "warning") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Motion sensor triggered — ${sensors.motion.detail}`, zone: pickZone(), severity: "warning" });
+  }
+
+  if (sensors.movement.status === "alert") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Perimeter breach — movement detected`, zone: pickZone(), severity: "danger" });
+  }
+
+  if (sensors.access.status === "alert") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Door tamper attempt — ${sensors.access.detail}`, zone: pickZone(), severity: "danger" });
+  }
+
+  if (sensors.cameras.status === "warning") {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: `Camera feed issue — ${sensors.cameras.detail}`, zone: pickZone(), severity: "info" });
+  }
+
+  if (alerts.length === 0) {
+    alerts.push({ id: crypto.randomUUID(), time: t, message: "All sensors nominal — routine scan completed", zone: pickZone(), severity: "resolved" });
+  }
+
+  return alerts;
+}
+
+interface AlertFeedProps {
+  sensors?: SensorData;
+}
+
+export function AlertFeed({ sensors }: AlertFeedProps) {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const prevSensorsRef = useRef<SensorData | undefined>();
+
+  useEffect(() => {
+    if (!sensors || sensors === prevSensorsRef.current) return;
+    prevSensorsRef.current = sensors;
+    const newAlerts = generateAlertsFromSensors(sensors);
+    setAlerts(prev => [...newAlerts, ...prev].slice(0, 50));
+  }, [sensors]);
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between mb-4">
@@ -38,15 +91,16 @@ export function AlertFeed() {
         </span>
       </div>
       <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-        <AnimatePresence>
-          {alerts.map((alert, i) => {
+        <AnimatePresence initial={false}>
+          {alerts.map((alert) => {
             const { icon: Icon, color, border } = severityConfig[alert.severity];
             return (
               <motion.div
                 key={alert.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
+                initial={{ opacity: 0, x: -20, height: 0 }}
+                animate={{ opacity: 1, x: 0, height: "auto" }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
                 className={`flex gap-3 rounded-lg border ${border} bg-secondary/30 p-3`}
               >
                 <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${color}`} />
