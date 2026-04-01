@@ -1,7 +1,10 @@
-import { Shield, Bell, Settings, Smartphone } from "lucide-react";
+import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
+import { useMute } from "@/hooks/useMute";
 
 export function Header() {
+  const { muted, toggleMute } = useMute();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -18,6 +21,17 @@ export function Header() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <button
+          onClick={toggleMute}
+          className={`rounded-lg p-2 transition-colors ${muted ? "bg-destructive/10 hover:bg-destructive/20" : "bg-secondary hover:bg-secondary/80"}`}
+          title={muted ? "Unmute alerts" : "Mute alerts"}
+        >
+          {muted ? (
+            <VolumeX className="h-4 w-4 text-destructive" />
+          ) : (
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
         <button className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Bell className="h-4 w-4 text-muted-foreground" />
           <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />

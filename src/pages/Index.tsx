@@ -1,5 +1,6 @@
 import { Header } from "@/components/dashboard/Header";
 import { SensorCard } from "@/components/dashboard/SensorCard";
+import { MuteProvider } from "@/hooks/useMute";
 import { ThreatLevel } from "@/components/dashboard/ThreatLevel";
 import { AlertFeed } from "@/components/dashboard/AlertFeed";
 import { ZoneMap } from "@/components/dashboard/ZoneMap";
@@ -19,6 +20,7 @@ const Index = () => {
   }, []);
 
   return (
+    <MuteProvider>
     <div className="min-h-screen bg-background grid-overlay">
       <Header />
       <main className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
@@ -46,6 +48,7 @@ const Index = () => {
         </div>
       </main>
     </div>
+    </MuteProvider>
   );
 };
 
