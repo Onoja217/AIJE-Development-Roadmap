@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useSystemState } from "@/hooks/useSystemState";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ShieldOff, ShieldCheck, ChevronLeft, Camera, Bell,
@@ -28,7 +30,8 @@ const cameras = [
 ];
 
 export default function ControlPanel() {
-  const [armState, setArmState] = useState<ArmState>("disarmed");
+  const { user } = useAuth();
+  const { armState, updateArmState } = useSystemState(user);
   const [transitioning, setTransitioning] = useState(false);
   const [notifications, setNotifications] = useState({
     push: true, sound: true, critical: true, motion: true, vibration: false, access: true,
@@ -39,7 +42,7 @@ export default function ControlPanel() {
   const handleArm = (state: ArmState) => {
     if (transitioning) return;
     setTransitioning(true);
-    setTimeout(() => { setArmState(state); setTransitioning(false); }, 1200);
+    setTimeout(() => { updateArmState(state); setTransitioning(false); }, 1200);
   };
 
   const current = armConfig[armState];

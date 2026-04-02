@@ -1,10 +1,12 @@
-import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX } from "lucide-react";
+import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Header() {
   const { muted, toggleMute } = useMute();
+  const { signOut } = useAuth();
 
   return (
     <motion.header
@@ -43,6 +45,9 @@ export function Header() {
         <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Settings className="h-4 w-4 text-muted-foreground" />
         </Link>
+        <button onClick={signOut} className="rounded-lg bg-secondary p-2 transition-colors hover:bg-destructive/10" title="Sign out">
+          <LogOut className="h-4 w-4 text-muted-foreground" />
+        </button>
       </div>
     </motion.header>
   );

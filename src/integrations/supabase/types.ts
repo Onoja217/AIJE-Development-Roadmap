@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alert_history: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sensor_type: string
+          severity: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sensor_type: string
+          severity?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sensor_type?: string
+          severity?: string
+          user_id?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sensor_configs: {
+        Row: {
+          critical_threshold: number
+          enabled: boolean
+          id: string
+          sensitivity: number
+          sensor_key: string
+          updated_at: string
+          user_id: string
+          warning_threshold: number
+        }
+        Insert: {
+          critical_threshold?: number
+          enabled?: boolean
+          id?: string
+          sensitivity?: number
+          sensor_key: string
+          updated_at?: string
+          user_id: string
+          warning_threshold?: number
+        }
+        Update: {
+          critical_threshold?: number
+          enabled?: boolean
+          id?: string
+          sensitivity?: number
+          sensor_key?: string
+          updated_at?: string
+          user_id?: string
+          warning_threshold?: number
+        }
+        Relationships: []
+      }
+      system_state: {
+        Row: {
+          arm_status: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arm_status?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arm_status?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
