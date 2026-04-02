@@ -47,7 +47,9 @@ const Index = () => {
             <AlertFeed sensors={sensors} />
           </div>
         </div>
+        <div className="h-16 md:hidden" />
       </main>
+      <BottomNav />
     </div>
     </MuteProvider>
   );
