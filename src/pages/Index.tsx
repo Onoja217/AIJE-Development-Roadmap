@@ -9,6 +9,7 @@ import { SystemStatus } from "@/components/dashboard/SystemStatus";
 import { Vibrate, Move, Footprints, Camera, ThermometerSun, Lock } from "lucide-react";
 import { useLiveSensorData, computeThreatAssessment } from "@/hooks/useLiveSensorData";
 import { requestNotificationPermission } from "@/hooks/useAlertNotifications";
+import { BottomNav } from "@/components/dashboard/BottomNav";
 import { useMemo, useEffect } from "react";
 
 const Index = () => {
@@ -46,7 +47,9 @@ const Index = () => {
             <AlertFeed sensors={sensors} />
           </div>
         </div>
+        <div className="h-16 md:hidden" />
       </main>
+      <BottomNav />
     </div>
     </MuteProvider>
   );
