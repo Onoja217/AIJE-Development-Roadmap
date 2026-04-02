@@ -1,12 +1,12 @@
-import { Shield, Activity, Bell, Settings } from "lucide-react";
+import { Shield, Activity, Bell, Smartphone } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Shield, label: "Dashboard", path: "/" },
   { icon: Activity, label: "Sensors", path: "/sensors" },
+  { icon: Smartphone, label: "Control", path: "/control" },
   { icon: Bell, label: "Alerts", path: "/#alerts" },
-  { icon: Settings, label: "Settings", path: "/sensors" },
 ];
 
 export function BottomNav() {
