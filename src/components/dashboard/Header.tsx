@@ -37,9 +37,9 @@ export function Header() {
           <Bell className="h-4 w-4 text-muted-foreground" />
           <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
         </button>
-        <button className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
-        </button>
+        </Link>
         <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
           <Settings className="h-4 w-4 text-muted-foreground" />
         </Link>
