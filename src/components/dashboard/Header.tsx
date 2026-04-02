@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function Header() {
   const { muted, toggleMute } = useMute();
+  const { signOut } = useAuth();
 
   return (
     <motion.header
