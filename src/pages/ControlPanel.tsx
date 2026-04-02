@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useSystemState } from "@/hooks/useSystemState";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ShieldOff, ShieldCheck, ChevronLeft, Camera, Bell,
