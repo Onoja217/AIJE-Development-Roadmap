@@ -94,7 +94,7 @@ export default function Auth() {
             {isForgot ? "Reset Password" : isLogin ? "Sign In" : "Create Account"}
           </h2>
 
-          {!isLogin && (
+          {!isLogin && !isForgot && (
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
