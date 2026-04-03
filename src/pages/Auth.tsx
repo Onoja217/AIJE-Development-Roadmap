@@ -150,7 +150,7 @@ export default function Auth() {
             disabled={loading}
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+            {loading ? "Please wait..." : isForgot ? "Send Reset Link" : isLogin ? "Sign In" : "Create Account"}
           </button>
 
           <div className="relative flex items-center gap-2">
