@@ -9,6 +9,7 @@ import SensorManagement from "./pages/SensorManagement";
 import ControlPanel from "./pages/ControlPanel";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
