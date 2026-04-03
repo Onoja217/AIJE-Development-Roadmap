@@ -91,7 +91,7 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold text-foreground text-center">
-            {isLogin ? "Sign In" : "Create Account"}
+            {isForgot ? "Reset Password" : isLogin ? "Sign In" : "Create Account"}
           </h2>
 
           {!isLogin && (
