@@ -1,4 +1,4 @@
-import { Shield, Activity, Bell, Smartphone } from "lucide-react";
+import { Shield, Activity, Bell, Smartphone, UserCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
