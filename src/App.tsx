@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SensorManagement from "./pages/SensorManagement";
 import ControlPanel from "./pages/ControlPanel";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/sensors" element={<ProtectedRoute><SensorManagement /></ProtectedRoute>} />
           <Route path="/control" element={<ProtectedRoute><ControlPanel /></ProtectedRoute>} />
