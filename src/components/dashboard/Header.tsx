@@ -8,6 +8,7 @@ import { useTheme } from "@/hooks/useTheme";
 export function Header() {
   const { muted, toggleMute } = useMute();
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <motion.header
