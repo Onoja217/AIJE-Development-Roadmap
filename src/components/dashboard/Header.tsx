@@ -4,11 +4,25 @@ import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useState, useEffect } from "react";
+
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 export function Header() {
   const { muted, toggleMute } = useMute();
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const now = useClock();
+
+  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
 
   return (
     <motion.header
@@ -24,8 +38,10 @@ export function Header() {
           <h1 className="text-lg font-bold tracking-tight text-foreground">AEGIS</h1>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">AI Security Command</p>
         </div>
-      </div>
-      <div className="flex items-center gap-2">
+        <div className="hidden sm:flex flex-col items-end mr-2">
+          <span className="font-mono text-sm font-semibold text-primary tabular-nums">{time}</span>
+          <span className="text-xs text-muted-foreground">{date}</span>
+        </div>
         <button
           onClick={toggleTheme}
           className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
