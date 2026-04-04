@@ -1,8 +1,9 @@
-import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle } from "lucide-react";
+import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 export function Header() {
   const { muted, toggleMute } = useMute();
