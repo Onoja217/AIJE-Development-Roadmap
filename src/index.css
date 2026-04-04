@@ -5,7 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
-  :root {
+  :root, .dark {
     --background: 220 20% 6%;
     --foreground: 190 100% 95%;
 
@@ -61,7 +61,63 @@
     --sidebar-border: 210 20% 18%;
     --sidebar-ring: 185 80% 50%;
   }
-}
+
+  .light {
+    --background: 210 20% 96%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 185 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 90%;
+    --secondary-foreground: 220 15% 35%;
+
+    --muted: 210 15% 92%;
+    --muted-foreground: 210 10% 45%;
+
+    --accent: 160 70% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 85%;
+    --input: 210 15% 85%;
+    --ring: 185 80% 40%;
+
+    --radius: 0.75rem;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 20% 12%;
+
+    --success: 145 65% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --threat-low: 145 65% 38%;
+    --threat-medium: 38 92% 50%;
+    --threat-high: 15 85% 50%;
+    --threat-critical: 0 75% 50%;
+
+    --glow-primary: 0 0 15px hsl(185 80% 40% / 0.15);
+    --glow-accent: 0 0 15px hsl(160 70% 38% / 0.15);
+    --glow-warning: 0 0 15px hsl(38 92% 50% / 0.15);
+    --glow-danger: 0 0 15px hsl(0 75% 50% / 0.15);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 15% 35%;
+    --sidebar-primary: 185 80% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 15% 92%;
+    --sidebar-accent-foreground: 220 15% 35%;
+    --sidebar-border: 210 15% 85%;
+    --sidebar-ring: 185 80% 40%;
+  }
 
 @layer base {
   * {
@@ -71,6 +127,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   code, .font-mono {

@@ -1,12 +1,14 @@
-import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle } from "lucide-react";
+import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 export function Header() {
   const { muted, toggleMute } = useMute();
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <motion.header
@@ -24,6 +26,17 @@ export function Header() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4 text-warning" />
+          ) : (
+            <Moon className="h-4 w-4 text-primary" />
+          )}
+        </button>
         <button
           onClick={toggleMute}
           className={`rounded-lg p-2 transition-colors ${muted ? "bg-destructive/10 hover:bg-destructive/20" : "bg-secondary hover:bg-secondary/80"}`}
