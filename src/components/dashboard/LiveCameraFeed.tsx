@@ -1,24 +1,47 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, CameraOff, SwitchCamera, Maximize2, Minimize2 } from "lucide-react";
+import {
+  Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
+  Circle, Square, Download, Image as ImageIcon
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface LiveCameraFeedProps {
   cameraName?: string;
   onClose?: () => void;
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function timestamp() {
+  return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+}
+
 export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCameraFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [flashEffect, setFlashEffect] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
-    // Stop existing stream
     stream?.getTracks().forEach((t) => t.stop());
-
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -41,7 +64,78 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     };
   }, [facingMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Snapshot
+  const takeSnapshot = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        downloadBlob(blob, `snapshot-${cameraName.toLowerCase().replace(/\s/g, "-")}-${timestamp()}.jpg`);
+        toast.success("Snapshot saved");
+      }
+    }, "image/jpeg", 0.92);
+
+    // Flash effect
+    setFlashEffect(true);
+    setTimeout(() => setFlashEffect(false), 200);
+  }, [cameraName]);
+
+  // Recording
+  const startRecording = useCallback(() => {
+    if (!stream) return;
+    chunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+      ? "video/webm;codecs=vp9"
+      : "video/webm";
+
+    try {
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        downloadBlob(blob, `recording-${cameraName.toLowerCase().replace(/\s/g, "-")}-${timestamp()}.webm`);
+        toast.success("Recording saved");
+      };
+      recorder.start(1000);
+      recorderRef.current = recorder;
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+    } catch {
+      toast.error("Recording not supported on this device");
+    }
+  }, [stream, cameraName]);
+
+  const stopRecording = useCallback(() => {
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    setIsRecording(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      recorderRef.current?.stop();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
   const toggleFacing = () => {
+    if (isRecording) stopRecording();
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
   };
 
@@ -62,6 +156,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
   return (
     <motion.div
       ref={containerRef}
@@ -70,6 +167,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
       exit={{ opacity: 0, scale: 0.95 }}
       className="relative aspect-video rounded-lg bg-muted border border-border overflow-hidden"
     >
+      {/* Hidden canvas for snapshots */}
+      <canvas ref={canvasRef} className="hidden" />
+
       {error ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
           <CameraOff className="h-8 w-8 text-destructive" />
@@ -92,13 +192,37 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
           />
           <div className="scan-line absolute inset-0 pointer-events-none" />
 
-          {/* Overlay UI */}
+          {/* Flash overlay */}
+          <AnimatePresence>
+            {flashEffect && (
+              <motion.div
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-white z-20 pointer-events-none"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Top-left: LIVE + camera name */}
           <div className="absolute top-2 left-2 flex items-center gap-1.5 rounded-md bg-background/70 backdrop-blur-sm px-2 py-1">
-            <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-            <span className="text-[10px] font-mono text-destructive">LIVE</span>
-            <span className="text-[10px] font-mono text-foreground ml-1">{cameraName}</span>
+            {isRecording ? (
+              <>
+                <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                <span className="text-[10px] font-mono text-destructive">REC</span>
+                <span className="text-[10px] font-mono text-destructive ml-1">{formatTime(recordingTime)}</span>
+              </>
+            ) : (
+              <>
+                <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                <span className="text-[10px] font-mono text-destructive">LIVE</span>
+                <span className="text-[10px] font-mono text-foreground ml-1">{cameraName}</span>
+              </>
+            )}
           </div>
 
+          {/* Top-right: switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
             <button
               onClick={toggleFacing}
@@ -120,10 +244,40 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
             </button>
           </div>
 
+          {/* Bottom controls: snapshot + record */}
           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
             <span className="text-[9px] font-mono text-foreground/70 bg-background/50 rounded px-1.5 py-0.5">
               {facingMode === "environment" ? "REAR CAM" : "FRONT CAM"}
             </span>
+
+            <div className="flex items-center gap-2">
+              {/* Snapshot button */}
+              <button
+                onClick={takeSnapshot}
+                className="rounded-full bg-background/70 backdrop-blur-sm p-2 hover:bg-background/90 transition-colors"
+                title="Take snapshot"
+              >
+                <ImageIcon className="h-4 w-4 text-foreground" />
+              </button>
+
+              {/* Record button */}
+              <button
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`rounded-full backdrop-blur-sm p-2 transition-colors ${
+                  isRecording
+                    ? "bg-destructive/80 hover:bg-destructive"
+                    : "bg-background/70 hover:bg-background/90"
+                }`}
+                title={isRecording ? "Stop recording" : "Start recording"}
+              >
+                {isRecording ? (
+                  <Square className="h-4 w-4 text-destructive-foreground" />
+                ) : (
+                  <Circle className="h-4 w-4 text-destructive" />
+                )}
+              </button>
+            </div>
+
             <span className="text-[9px] font-mono text-foreground/70 bg-background/50 rounded px-1.5 py-0.5">
               720p • 30fps
             </span>
@@ -134,10 +288,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
       {onClose && (
         <button
           onClick={() => {
+            if (isRecording) stopRecording();
             stream?.getTracks().forEach((t) => t.stop());
             onClose();
           }}
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-primary hover:underline bg-background/70 backdrop-blur-sm rounded-md px-3 py-1"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-primary hover:underline bg-background/70 backdrop-blur-sm rounded-md px-3 py-1"
         >
           ← Back to all cameras
         </button>
