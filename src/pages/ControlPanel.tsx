@@ -8,6 +8,7 @@ import {
   BellOff, BellRing, Smartphone, Wifi, WifiOff, Volume2, VolumeX,
   Lock, Unlock, Eye, EyeOff, RefreshCw, Signal
 } from "lucide-react";
+import { LiveCameraFeed } from "@/components/dashboard/LiveCameraFeed";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -137,22 +138,31 @@ export default function ControlPanel() {
                 key="expanded"
                 initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               >
-                <div className="relative aspect-video rounded-lg bg-muted border border-border overflow-hidden mb-3">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center space-y-2">
-                      <Camera className="h-8 w-8 text-muted-foreground mx-auto" />
-                      <p className="text-sm font-medium text-foreground">{cameras.find(c => c.id === selectedCam)?.name}</p>
-                      <div className="flex items-center gap-1.5 justify-center">
-                        <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                        <span className="text-xs font-mono text-destructive">LIVE</span>
+                {cameras.find(c => c.id === selectedCam)?.name === "Front Door" ? (
+                  <LiveCameraFeed
+                    cameraName={cameras.find(c => c.id === selectedCam)?.name}
+                    onClose={() => setSelectedCam(null)}
+                  />
+                ) : (
+                  <>
+                    <div className="relative aspect-video rounded-lg bg-muted border border-border overflow-hidden mb-3">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center space-y-2">
+                          <Camera className="h-8 w-8 text-muted-foreground mx-auto" />
+                          <p className="text-sm font-medium text-foreground">{cameras.find(c => c.id === selectedCam)?.name}</p>
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                            <span className="text-xs font-mono text-destructive">LIVE</span>
+                          </div>
+                        </div>
                       </div>
+                      <div className="scan-line absolute inset-0" />
                     </div>
-                  </div>
-                  <div className="scan-line absolute inset-0" />
-                </div>
-                <button onClick={() => setSelectedCam(null)} className="text-xs text-primary hover:underline">
-                  ← Back to all cameras
-                </button>
+                    <button onClick={() => setSelectedCam(null)} className="text-xs text-primary hover:underline">
+                      ← Back to all cameras
+                    </button>
+                  </>
+                )}
               </motion.div>
             ) : (
               <motion.div
