@@ -8,6 +8,7 @@ import {
   BellOff, BellRing, Smartphone, Wifi, WifiOff, Volume2, VolumeX,
   Lock, Unlock, Eye, EyeOff, RefreshCw, Signal
 } from "lucide-react";
+import { LiveCameraFeed } from "@/components/dashboard/LiveCameraFeed";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
