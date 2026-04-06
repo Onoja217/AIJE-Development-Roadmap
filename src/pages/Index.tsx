@@ -43,6 +43,10 @@ const Index = () => {
         <main className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
           <motion.div
             style={{ y: sensorY }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 will-change-transform"
           >
             <SensorCard icon={Vibrate} label="Vibration" {...sensors.vibration} />
@@ -57,17 +61,35 @@ const Index = () => {
             style={{ y: midY }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-4 will-change-transform"
           >
-            <div className="lg:col-span-3 space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="lg:col-span-3 space-y-4"
+            >
               <ThreatLevel level={threat.level} confidence={threat.confidence} lastScan={threat.lastScan} />
               <SystemStatus />
-            </div>
-            <div className="lg:col-span-5 space-y-4">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+              className="lg:col-span-5 space-y-4"
+            >
               <ZoneMap />
               <VibrationChart />
-            </div>
-            <div className="lg:col-span-4">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+              className="lg:col-span-4"
+            >
               <AlertFeed sensors={sensors} />
-            </div>
+            </motion.div>
           </motion.div>
           <div className="h-16 md:hidden" />
         </main>
