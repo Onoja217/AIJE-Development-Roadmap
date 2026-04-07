@@ -2,26 +2,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
-  Circle, Square, Download, Image as ImageIcon
+  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { useCameraMedia } from "@/hooks/useCameraMedia";
 
 interface LiveCameraFeedProps {
   cameraName?: string;
   onClose?: () => void;
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function timestamp() {
-  return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
 export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCameraFeedProps) {
