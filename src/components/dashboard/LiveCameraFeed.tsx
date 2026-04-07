@@ -23,12 +23,6 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const [uploading, setUploading] = useState(false);
   const [motionEnabled, setMotionEnabled] = useState(true);
 
-  const { regions, motionLevel } = useMotionDetection({
-    videoRef,
-    enabled: motionEnabled && !error,
-    sensitivity: 45,
-  });
-
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
@@ -38,6 +32,12 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const [flashEffect, setFlashEffect] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { regions, motionLevel } = useMotionDetection({
+    videoRef,
+    enabled: motionEnabled && !error,
+    sensitivity: 45,
+  });
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
