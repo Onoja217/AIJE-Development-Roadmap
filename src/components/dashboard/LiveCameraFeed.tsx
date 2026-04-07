@@ -21,6 +21,13 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const chunksRef = useRef<Blob[]>([]);
   const { uploadMedia } = useCameraMedia();
   const [uploading, setUploading] = useState(false);
+  const [motionEnabled, setMotionEnabled] = useState(true);
+
+  const { regions, motionLevel } = useMotionDetection({
+    videoRef,
+    enabled: motionEnabled && !error,
+    sensitivity: 45,
+  });
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
