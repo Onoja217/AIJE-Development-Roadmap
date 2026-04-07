@@ -2,10 +2,12 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
-  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2
+  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
+import { useMotionDetection } from "@/hooks/useMotionDetection";
+import { MotionOverlay } from "@/components/dashboard/MotionOverlay";
 
 interface LiveCameraFeedProps {
   cameraName?: string;
@@ -19,6 +21,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const chunksRef = useRef<Blob[]>([]);
   const { uploadMedia } = useCameraMedia();
   const [uploading, setUploading] = useState(false);
+  const [motionEnabled, setMotionEnabled] = useState(true);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +32,12 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const [flashEffect, setFlashEffect] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { regions, motionLevel } = useMotionDetection({
+    videoRef,
+    enabled: motionEnabled && !error,
+    sensitivity: 45,
+  });
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
@@ -185,6 +194,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
           />
           <div className="scan-line absolute inset-0 pointer-events-none" />
 
+          {/* Motion detection overlay */}
+          <MotionOverlay regions={regions} motionLevel={motionLevel} enabled={motionEnabled} />
+
           {/* Flash overlay */}
           <AnimatePresence>
             {flashEffect && (
@@ -215,8 +227,19 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
             )}
           </div>
 
-          {/* Top-right: switch camera, fullscreen */}
+          {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
+            <button
+              onClick={() => setMotionEnabled((v) => !v)}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                motionEnabled
+                  ? "bg-destructive/70 hover:bg-destructive/90"
+                  : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={motionEnabled ? "Disable motion detection" : "Enable motion detection"}
+            >
+              <Scan className={`h-4 w-4 ${motionEnabled ? "text-white" : "text-foreground"}`} />
+            </button>
             <button
               onClick={toggleFacing}
               className="rounded-md bg-background/70 backdrop-blur-sm p-1.5 hover:bg-background/90 transition-colors"
