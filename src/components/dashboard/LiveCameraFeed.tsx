@@ -2,26 +2,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
-  Circle, Square, Download, Image as ImageIcon
+  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { useCameraMedia } from "@/hooks/useCameraMedia";
 
 interface LiveCameraFeedProps {
   cameraName?: string;
   onClose?: () => void;
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function timestamp() {
-  return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
 export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCameraFeedProps) {
@@ -29,6 +17,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { uploadMedia } = useCameraMedia();
+  const [uploading, setUploading] = useState(false);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +55,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   }, [facingMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Snapshot
-  const takeSnapshot = useCallback(() => {
+  const takeSnapshot = useCallback(async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
@@ -76,17 +66,19 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0);
-    canvas.toBlob((blob) => {
-      if (blob) {
-        downloadBlob(blob, `snapshot-${cameraName.toLowerCase().replace(/\s/g, "-")}-${timestamp()}.jpg`);
-        toast.success("Snapshot saved");
-      }
-    }, "image/jpeg", 0.92);
 
     // Flash effect
     setFlashEffect(true);
     setTimeout(() => setFlashEffect(false), 200);
-  }, [cameraName]);
+
+    canvas.toBlob(async (blob) => {
+      if (blob) {
+        setUploading(true);
+        await uploadMedia(blob, cameraName, "snapshot");
+        setUploading(false);
+      }
+    }, "image/jpeg", 0.92);
+  }, [cameraName, uploadMedia]);
 
   // Recording
   const startRecording = useCallback(() => {
@@ -101,10 +93,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: mimeType });
-        downloadBlob(blob, `recording-${cameraName.toLowerCase().replace(/\s/g, "-")}-${timestamp()}.webm`);
-        toast.success("Recording saved");
+        setUploading(true);
+        await uploadMedia(blob, cameraName, "recording", recordingTime);
+        setUploading(false);
       };
       recorder.start(1000);
       recorderRef.current = recorder;
@@ -114,7 +107,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     } catch {
       toast.error("Recording not supported on this device");
     }
-  }, [stream, cameraName]);
+  }, [stream, cameraName, uploadMedia, recordingTime]);
 
   const stopRecording = useCallback(() => {
     recorderRef.current?.stop();
