@@ -194,6 +194,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
           />
           <div className="scan-line absolute inset-0 pointer-events-none" />
 
+          {/* Motion detection overlay */}
+          <MotionOverlay regions={regions} motionLevel={motionLevel} enabled={motionEnabled} />
+
           {/* Flash overlay */}
           <AnimatePresence>
             {flashEffect && (
