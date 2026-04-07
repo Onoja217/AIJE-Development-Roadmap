@@ -17,6 +17,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { uploadMedia } = useCameraMedia();
+  const [uploading, setUploading] = useState(false);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
