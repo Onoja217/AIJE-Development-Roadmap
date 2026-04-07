@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      camera_media: {
+        Row: {
+          camera_name: string
+          created_at: string
+          duration: number | null
+          file_path: string
+          file_size: number | null
+          id: string
+          media_type: string
+          user_id: string
+        }
+        Insert: {
+          camera_name: string
+          created_at?: string
+          duration?: number | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          media_type: string
+          user_id: string
+        }
+        Update: {
+          camera_name?: string
+          created_at?: string
+          duration?: number | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          media_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
