@@ -207,6 +207,15 @@ export default function ControlPanel() {
           </AnimatePresence>
         </motion.section>
 
+        {/* Saved Media */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="rounded-xl border border-border bg-card p-5"
+        >
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">Saved Media</h2>
+          <CameraGallery />
+        </motion.section>
+
         {/* Notification Settings */}
         <motion.section
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
