@@ -1,218 +1,73 @@
-# 🏢🧠 Enterprise CCTV AI System — Alert Engine (Frontend)
+# Welcome to your Lovable project
 
-A real-time AI-powered CCTV monitoring frontend designed for enterprise-grade security dashboards.
+## Project info
 
-This system processes AI-generated sensor events and converts them into:
-- Live security alerts 🚨
-- Risk scoring intelligence 🧠
-- Multi-camera monitoring 📹
-- Offline + online hybrid tracking 🌐
-- Cloud logging (Firebase-ready) ☁️
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
----
+## How can I edit this code?
 
-# 🚀 SYSTEM OVERVIEW
+There are several ways of editing your application.
 
-The Alert Engine is the **frontend intelligence layer** of a larger CCTV AI platform.
+**Use Lovable**
 
-It receives structured AI events from:
-- Object detection models (YOLO)
-- Motion sensors
-- Camera analytics systems
-- WebSocket streaming servers
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-Then it transforms them into real-time security insights.
+Changes made via Lovable will be committed automatically to this repo.
 
----
+**Use your preferred IDE**
 
-# 🧠 CORE FEATURES
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-## ⚡ Real-Time AI Alert Processing
-- Live event ingestion
-- Instant UI updates
-- Streaming-ready architecture
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-## 🧠 AI Risk Scoring Engine
-- Converts sensor inputs into a 0–100 risk score
-- Night-time risk amplification
-- Pattern-based anomaly detection
+Follow these steps:
 
-## 🔐 Smart Rule Engine
-- Filters normal movement
-- Detects repeated suspicious activity
-- Identifies high-risk anomalies
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-## 📡 Offline + Online Mode
-- Works without internet (offline mode)
-- Syncs automatically when online
-- Prevents data loss using local buffering
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-## ☁️ Cloud Integration
-- Firebase Firestore logging
-- Real-time multi-device sync
-- Scalable event storage
+# Step 3: Install the necessary dependencies.
+npm i
 
-## 🔊 Alert System
-- Browser notifications
-- Audio alerts for critical events
-- Severity-based UI highlighting
-
-## 🧾 Anti-Spam Protection
-- Duplicate alert cooldown system
-- Event deduplication engine
-
----
-
-# 🏗️ ARCHITECTURE
-
-```txt
-AI Sensors / Detection Models
-        ↓
-AlertFeed Engine (Frontend)
-        ↓
-Risk Scoring + Rule Engine
-        ↓
-Firebase / Cloud Storage
-        ↓
-Real-time Dashboard UI
-```
-```
-src/
- └── components/
-      └── AlertFeed.tsx   (MAIN ENGINE)
-```
-HOW IT WORKS
-1. Sensor Input
-
-The system receives structured AI sensor data:
-```
-SensorData 
-  motion: "alert" | "normal",
-  vibration: "alert" | "normal",
-  access: "alert" | "normal",
-  movement: "alert" | "normal",
-  cameras: "warning" | "normal"
-```
-2. AI Risk Scoring
-
-The system calculates a dynamic risk score:
-
-Motion detection increases score
-Vibration events increase risk
-Access violations raise severity
-Night-time amplifies risk levels
-Historical patterns influence anomalies
-
-3. Rule Engine
-
-Alerts are triggered when:
-
-Motion is detected at night
-Repeated suspicious activity occurs
-Risk score exceeds threshold (>70)
-Anomalous behavior patterns are detected
-
-4. Alert Generation
-
-Each alert contains:
-
-Unique ID
-Camera zone
-Timestamp
-Severity level
-Risk score
-Event message
-
-5. Data Persistence
-
-Alerts are stored in Firebase:
-```
-collection(db, "alerts")
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
-Each record includes:
+**Edit a file directly in GitHub**
 
-Full alert metadata
-Server timestamp
-Severity classification
-🚨 SEVERITY SYSTEM
-Level	Meaning	Color
-INFO	Low activity	Blue
-WARNING	Suspicious	Yellow
-DANGER	Critical event	Red
-🔊 ALERT BEHAVIOR
-🔴 DANGER → sound + notification + UI highlight
-🟡 WARNING → UI alert only
-🔵 INFO → passive logging
-📴 OFFLINE MODE
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-When offline:
+**Use GitHub Codespaces**
 
-Alerts still generated locally
-Stored in memory/local buffer
-No Firebase dependency required
-Auto-syncs when connection returns
-🌐 ONLINE MODE
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-When online:
+## What technologies are used for this project?
 
-Real-time Firestore sync
-Multi-device dashboard updates
-Centralized event tracking
-🧠 AI INTELLIGENCE LAYER
+This project is built with:
 
-The system includes:
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-Moving average anomaly detection
-Pattern recognition memory
-Time-based risk adjustment
-Spike detection engine
-🔥 USE CASES
-Smart building security systems
-Industrial monitoring dashboards
-Campus surveillance systems
-Retail security analytics
-Research AI CCTV prototypes
-⚠️ IMPORTANT NOTE
+## How can I deploy this project?
 
-This system is intended for:
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
-Educational purposes
-Authorized surveillance environments
-Smart infrastructure monitoring
-AI research and development
+## Can I connect a custom domain to my Lovable project?
 
-It must be used in compliance with local privacy and security laws.
+Yes, you can!
 
-🚀 FUTURE UPGRADES
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-This frontend is designed to integrate with:
-
-🧠 AI Backend
-YOLOv8 object detection
-Face recognition system
-Behavior prediction models
-📹 Video Streaming Layer
-RTSP camera feeds
-MediaMTX integration
-Multi-camera synchronization
-📼 Replay System
-Incident timeline playback
-Event-based forensic analysis
-☁️ Scalable Backend
-WebSocket event streaming
-Kafka / message queue pipelines
-Kubernetes deployment
-📌 STATUS
-
-✔ Production-grade frontend architecture
-✔ Real-time AI alert system
-✔ Offline + online hybrid mode
-✔ Cloud sync ready
-✔ Multi-camera compatible
-
-🏢 SUMMARY
-
-This is a production-ready enterprise CCTV AI alert engine frontend designed to act as the intelligence layer of a full surveillance platform.
-
-It is modular, scalable, and ready to connect to real AI detection systems and cloud infrastructure.
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
