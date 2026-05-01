@@ -43,6 +43,19 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     sensitivity: 45,
   });
 
+  const { user } = useAuth();
+  const { notify } = useAlertNotifications();
+  const { online } = useSmartMotionEngine({
+    user,
+    motionLevel,
+    cameraName,
+    enabled: motionEnabled && !error,
+    onAlert: (msg, sev) => {
+      notify(msg, sev);
+      toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
+    },
+  });
+
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
     try {
