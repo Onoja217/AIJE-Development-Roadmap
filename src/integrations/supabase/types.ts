@@ -137,6 +137,57 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_rule_configs: {
+        Row: {
+          baseline: Json
+          created_at: string
+          id: string
+          ignore_normal_movement: boolean
+          odd_hours_enabled: boolean
+          odd_hours_end: number
+          odd_hours_start: number
+          repeated_motion_count: number
+          repeated_motion_enabled: boolean
+          repeated_motion_window_sec: number
+          unknown_pattern_enabled: boolean
+          unknown_pattern_sensitivity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline?: Json
+          created_at?: string
+          id?: string
+          ignore_normal_movement?: boolean
+          odd_hours_enabled?: boolean
+          odd_hours_end?: number
+          odd_hours_start?: number
+          repeated_motion_count?: number
+          repeated_motion_enabled?: boolean
+          repeated_motion_window_sec?: number
+          unknown_pattern_enabled?: boolean
+          unknown_pattern_sensitivity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline?: Json
+          created_at?: string
+          id?: string
+          ignore_normal_movement?: boolean
+          odd_hours_enabled?: boolean
+          odd_hours_end?: number
+          odd_hours_start?: number
+          repeated_motion_count?: number
+          repeated_motion_enabled?: boolean
+          repeated_motion_window_sec?: number
+          unknown_pattern_enabled?: boolean
+          unknown_pattern_sensitivity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_state: {
         Row: {
           arm_status: string
