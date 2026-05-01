@@ -1,6 +1,7 @@
-import { Shield, Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon } from "lucide-react";
+import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import aegisLogo from "@/assets/aegis-logo.png";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -31,8 +32,8 @@ export function Header() {
       className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4"
     >
       <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-primary/10 p-2 glow-primary">
-          <Shield className="h-6 w-6 text-primary" />
+        <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
+          <img src={aegisLogo} alt="AEGIS logo" className="h-8 w-8 object-contain" />
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">AEGIS</h1>
