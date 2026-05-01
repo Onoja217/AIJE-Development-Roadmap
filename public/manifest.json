@@ -1,6 +1,6 @@
 {
-  "name": "Sentinel Security Dashboard",
-  "short_name": "Sentinel",
+  "name": "AEGIS Security Dashboard",
+  "short_name": "AEGIS",
   "description": "AI-powered perimeter security monitoring",
   "start_url": "/",
   "display": "standalone",
@@ -8,14 +8,16 @@
   "theme_color": "#00c2d1",
   "icons": [
     {
-      "src": "/placeholder.svg",
+      "src": "/aegis-logo.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/placeholder.svg",
+      "src": "/aegis-logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
