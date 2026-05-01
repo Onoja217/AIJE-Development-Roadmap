@@ -2,12 +2,16 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
-  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine
+  Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
+  WifiOff, Brain
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
 import { useMotionDetection } from "@/hooks/useMotionDetection";
 import { MotionOverlay } from "@/components/dashboard/MotionOverlay";
+import { useAuth } from "@/hooks/useAuth";
+import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
+import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
 interface LiveCameraFeedProps {
   cameraName?: string;
@@ -37,6 +41,19 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
     videoRef,
     enabled: motionEnabled && !error,
     sensitivity: 45,
+  });
+
+  const { user } = useAuth();
+  const { notify } = useAlertNotifications();
+  const { online } = useSmartMotionEngine({
+    user,
+    motionLevel,
+    cameraName,
+    enabled: motionEnabled && !error,
+    onAlert: (msg, sev) => {
+      notify(msg, sev);
+      toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
+    },
   });
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
@@ -196,6 +213,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
 
           {/* Motion detection overlay */}
           <MotionOverlay regions={regions} motionLevel={motionLevel} enabled={motionEnabled} />
+
+          {/* Offline / smart-engine status pill */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+            {!online && (
+              <span className="flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-warning-foreground">
+                <WifiOff className="h-3 w-3" /> OFFLINE • QUEUEING
+              </span>
+            )}
+            {motionEnabled && (
+              <span className="flex items-center gap-1 rounded-md bg-primary/70 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-primary-foreground">
+                <Brain className="h-3 w-3" /> SMART RULES
+              </span>
+            )}
+          </div>
 
           {/* Flash overlay */}
           <AnimatePresence>

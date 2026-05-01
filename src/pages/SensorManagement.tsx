@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SmartRulesCard } from "@/components/dashboard/SmartRulesCard";
 
 interface SensorConfig {
   id: string;
@@ -275,6 +276,9 @@ export default function SensorManagement() {
             <p className="text-2xl font-mono font-bold text-destructive mt-1">{alertCount}</p>
           </div>
         </div>
+
+        {/* Smart Motion Rules */}
+        <SmartRulesCard />
 
         {/* Sensor list */}
         <div className="space-y-3">
