@@ -214,6 +214,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
           {/* Motion detection overlay */}
           <MotionOverlay regions={regions} motionLevel={motionLevel} enabled={motionEnabled} />
 
+          {/* Offline / smart-engine status pill */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+            {!online && (
+              <span className="flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-warning-foreground">
+                <WifiOff className="h-3 w-3" /> OFFLINE • QUEUEING
+              </span>
+            )}
+            {motionEnabled && (
+              <span className="flex items-center gap-1 rounded-md bg-primary/70 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-primary-foreground">
+                <Brain className="h-3 w-3" /> SMART RULES
+              </span>
+            )}
+          </div>
+
           {/* Flash overlay */}
           <AnimatePresence>
             {flashEffect && (
