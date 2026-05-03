@@ -172,6 +172,7 @@ export type Database = {
       }
       smart_rule_configs: {
         Row: {
+          auto_snapshot_interval_sec: number
           baseline: Json
           created_at: string
           id: string
@@ -188,6 +189,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_snapshot_interval_sec?: number
           baseline?: Json
           created_at?: string
           id?: string
@@ -204,6 +206,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_snapshot_interval_sec?: number
           baseline?: Json
           created_at?: string
           id?: string
