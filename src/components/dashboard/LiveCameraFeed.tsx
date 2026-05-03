@@ -53,7 +53,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const { notify } = useAlertNotifications();
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
-  const { online } = useSmartMotionEngine({
+  const { online, config: smartConfig } = useSmartMotionEngine({
     user,
     motionLevel,
     cameraName,
@@ -61,9 +61,10 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     onAlert: (msg, sev) => {
       notify(msg, sev);
       toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
-      // Auto-snapshot on alert (min 15s between captures)
+      // Auto-snapshot on alert, throttled by user setting
       const now = Date.now();
-      if (now - lastAutoSnapRef.current > 15000) {
+      const intervalMs = (smartConfig.auto_snapshot_interval_sec ?? 15) * 1000;
+      if (intervalMs > 0 && now - lastAutoSnapRef.current > intervalMs) {
         lastAutoSnapRef.current = now;
         snapshotRef.current();
       }
