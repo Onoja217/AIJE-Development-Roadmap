@@ -12,6 +12,7 @@ export interface SmartRuleConfig {
   repeated_motion_window_sec: number;
   unknown_pattern_enabled: boolean;
   unknown_pattern_sensitivity: number;
+  auto_snapshot_interval_sec: number;
   baseline: Record<string, number>;
 }
 
@@ -25,6 +26,7 @@ const DEFAULTS: SmartRuleConfig = {
   repeated_motion_window_sec: 300,
   unknown_pattern_enabled: true,
   unknown_pattern_sensitivity: 70,
+  auto_snapshot_interval_sec: 15,
   baseline: {},
 };
 
