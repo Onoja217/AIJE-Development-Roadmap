@@ -183,6 +183,35 @@ export function SmartRulesCard() {
             </div>
           )}
         </div>
+
+        {/* Auto-snapshot interval */}
+        <div className="space-y-2 rounded-lg bg-secondary/30 p-3">
+          <div className="flex items-center gap-2">
+            <Camera className="h-4 w-4 text-primary" />
+            <p className="text-sm font-medium text-foreground">Auto-snapshot on alert</p>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Minimum gap between automatic camera snapshots when an alert fires.
+          </p>
+          <div className="grid grid-cols-4 gap-2 pt-1">
+            {[15, 30, 60, 120].map((sec) => {
+              const active = config.auto_snapshot_interval_sec === sec;
+              return (
+                <button
+                  key={sec}
+                  onClick={() => update({ auto_snapshot_interval_sec: sec })}
+                  className={`rounded-md border px-2 py-1.5 text-xs font-mono transition-colors ${
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {sec < 60 ? `${sec}s` : `${sec / 60}m`}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </motion.div>
   );
