@@ -56,6 +56,7 @@ export function useSmartRules(user: User | null) {
           repeated_motion_window_sec: data.repeated_motion_window_sec,
           unknown_pattern_enabled: data.unknown_pattern_enabled,
           unknown_pattern_sensitivity: data.unknown_pattern_sensitivity,
+          auto_snapshot_interval_sec: (data as { auto_snapshot_interval_sec?: number }).auto_snapshot_interval_sec ?? 15,
           baseline: (data.baseline as Record<string, number>) || {},
         });
       } else {
