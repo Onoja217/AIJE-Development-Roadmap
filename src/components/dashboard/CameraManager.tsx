@@ -29,7 +29,12 @@ export function CameraManager() {
       toast.error(parsed.error.issues[0].message);
       return;
     }
-    await addCamera({ ...parsed.data, enabled: true });
+    await addCamera({
+      name: parsed.data.name,
+      stream_url: parsed.data.stream_url,
+      stream_type: parsed.data.stream_type,
+      enabled: true,
+    });
     setName(""); setUrl(""); setType("hls"); setOpen(false);
   };
 
