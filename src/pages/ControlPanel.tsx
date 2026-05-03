@@ -36,12 +36,14 @@ const cameras = [
 export default function ControlPanel() {
   const { user } = useAuth();
   const { armState, updateArmState } = useSystemState(user);
+  const { cameras } = useCameras();
   const [transitioning, setTransitioning] = useState(false);
   const [notifications, setNotifications] = useState({
     push: true, sound: true, critical: true, motion: true, vibration: false, access: true,
   });
   const [sensitivity, setSensitivity] = useState([70]);
-  const [selectedCam, setSelectedCam] = useState<number | null>(null);
+  const [selectedCam, setSelectedCam] = useState<string | null>(null);
+  const [showDeviceCam, setShowDeviceCam] = useState(false);
 
   const handleArm = (state: ArmState) => {
     if (transitioning) return;
