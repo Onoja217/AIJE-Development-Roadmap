@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Brain, Clock, Repeat, Sparkles, WifiOff, Wifi } from "lucide-react";
+import { Brain, Camera, Clock, Repeat, Sparkles, WifiOff, Wifi } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/hooks/useAuth";
