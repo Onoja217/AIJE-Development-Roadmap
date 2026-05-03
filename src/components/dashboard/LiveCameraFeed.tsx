@@ -121,6 +121,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     }, "image/jpeg", 0.92);
   }, [cameraName, uploadMedia]);
 
+  // Keep ref in sync so smart engine can trigger auto-snapshots
+  useEffect(() => {
+    snapshotRef.current = takeSnapshot;
+  }, [takeSnapshot]);
+
   // Recording
   const startRecording = useCallback(() => {
     if (!stream) return;
