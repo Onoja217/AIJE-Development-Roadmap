@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { LiveCameraFeed } from "@/components/dashboard/LiveCameraFeed";
 import { CameraGallery } from "@/components/dashboard/CameraGallery";
+import { CameraManager } from "@/components/dashboard/CameraManager";
+import { useCameras } from "@/hooks/useCameras";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
