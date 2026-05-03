@@ -80,11 +80,12 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (isCCTV) return;
     startCamera(facingMode);
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
     };
-  }, [facingMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [facingMode, isCCTV]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Snapshot
   const takeSnapshot = useCallback(async () => {
