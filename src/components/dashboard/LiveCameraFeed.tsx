@@ -51,6 +51,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
+  const snapshotRef = useRef<() => void>(() => {});
+  const lastAutoSnapRef = useRef(0);
   const { online } = useSmartMotionEngine({
     user,
     motionLevel,
@@ -59,6 +61,12 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     onAlert: (msg, sev) => {
       notify(msg, sev);
       toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
+      // Auto-snapshot on alert (min 15s between captures)
+      const now = Date.now();
+      if (now - lastAutoSnapRef.current > 15000) {
+        lastAutoSnapRef.current = now;
+        snapshotRef.current();
+      }
     },
   });
 
