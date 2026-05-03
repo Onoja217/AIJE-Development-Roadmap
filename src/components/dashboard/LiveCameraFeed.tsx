@@ -13,12 +13,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
+import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
+import type { StreamType } from "@/hooks/useCameras";
+
 interface LiveCameraFeedProps {
   cameraName?: string;
   onClose?: () => void;
+  streamUrl?: string;
+  streamType?: StreamType;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType }: LiveCameraFeedProps) {
+  const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
