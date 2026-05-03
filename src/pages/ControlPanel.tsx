@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { LiveCameraFeed } from "@/components/dashboard/LiveCameraFeed";
 import { CameraGallery } from "@/components/dashboard/CameraGallery";
+import { CameraManager } from "@/components/dashboard/CameraManager";
+import { useCameras } from "@/hooks/useCameras";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -34,12 +36,14 @@ const cameras = [
 export default function ControlPanel() {
   const { user } = useAuth();
   const { armState, updateArmState } = useSystemState(user);
+  const { cameras } = useCameras();
   const [transitioning, setTransitioning] = useState(false);
   const [notifications, setNotifications] = useState({
     push: true, sound: true, critical: true, motion: true, vibration: false, access: true,
   });
   const [sensitivity, setSensitivity] = useState([70]);
-  const [selectedCam, setSelectedCam] = useState<number | null>(null);
+  const [selectedCam, setSelectedCam] = useState<string | null>(null);
+  const [showDeviceCam, setShowDeviceCam] = useState(false);
 
   const handleArm = (state: ArmState) => {
     if (transitioning) return;
@@ -123,47 +127,50 @@ export default function ControlPanel() {
           </div>
         </motion.section>
 
+        {/* CCTV Cameras Manager */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+          className="rounded-xl border border-border bg-card p-5"
+        >
+          <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">CCTV Cameras</h2>
+          <CameraManager />
+        </motion.section>
+
         {/* Camera Feeds */}
         <motion.section
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="rounded-xl border border-border bg-card p-5"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Camera Feeds</h2>
-            <span className="text-xs text-success font-mono">{cameras.filter(c => c.status === "online").length}/{cameras.length} Online</span>
+            <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Live Feeds</h2>
+            <span className="text-xs text-success font-mono">
+              {cameras.filter(c => c.enabled).length}/{cameras.length} Active
+            </span>
           </div>
 
           <AnimatePresence mode="wait">
-            {selectedCam !== null ? (
+            {selectedCam !== null || showDeviceCam ? (
               <motion.div
                 key="expanded"
                 initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               >
-                {cameras.find(c => c.id === selectedCam)?.name === "Front Door" ? (
+                {showDeviceCam ? (
                   <LiveCameraFeed
-                    cameraName={cameras.find(c => c.id === selectedCam)?.name}
-                    onClose={() => setSelectedCam(null)}
+                    cameraName="Device Camera"
+                    onClose={() => setShowDeviceCam(false)}
                   />
-                ) : (
-                  <>
-                    <div className="relative aspect-video rounded-lg bg-muted border border-border overflow-hidden mb-3">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center space-y-2">
-                          <Camera className="h-8 w-8 text-muted-foreground mx-auto" />
-                          <p className="text-sm font-medium text-foreground">{cameras.find(c => c.id === selectedCam)?.name}</p>
-                          <div className="flex items-center gap-1.5 justify-center">
-                            <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                            <span className="text-xs font-mono text-destructive">LIVE</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="scan-line absolute inset-0" />
-                    </div>
-                    <button onClick={() => setSelectedCam(null)} className="text-xs text-primary hover:underline">
-                      ← Back to all cameras
-                    </button>
-                  </>
-                )}
+                ) : (() => {
+                  const cam = cameras.find(c => c.id === selectedCam);
+                  if (!cam) return null;
+                  return (
+                    <LiveCameraFeed
+                      cameraName={cam.name}
+                      streamUrl={cam.stream_url}
+                      streamType={cam.stream_type}
+                      onClose={() => setSelectedCam(null)}
+                    />
+                  );
+                })()}
               </motion.div>
             ) : (
               <motion.div
@@ -171,37 +178,52 @@ export default function ControlPanel() {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="grid grid-cols-2 sm:grid-cols-3 gap-2"
               >
+                <button
+                  onClick={() => setShowDeviceCam(true)}
+                  className="relative aspect-video rounded-lg border border-border bg-muted hover:border-primary/50 cursor-pointer overflow-hidden transition-all group"
+                >
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                    <Camera className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-[10px] font-medium text-foreground">Device Camera</span>
+                    <span className="text-[9px] font-mono text-muted-foreground">PHONE / WEBCAM</span>
+                  </div>
+                </button>
                 {cameras.map((cam) => (
                   <button
                     key={cam.id}
-                    onClick={() => cam.status === "online" && setSelectedCam(cam.id)}
+                    onClick={() => cam.enabled && setSelectedCam(cam.id)}
                     className={cn(
                       "relative aspect-video rounded-lg border overflow-hidden transition-all group",
-                      cam.status === "online"
+                      cam.enabled
                         ? "border-border bg-muted hover:border-primary/50 cursor-pointer"
                         : "border-border/50 bg-muted/50 opacity-50 cursor-not-allowed"
                     )}
                   >
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                      {cam.status === "online" ? (
+                      {cam.enabled ? (
                         <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                       ) : (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                       )}
-                      <span className="text-[10px] font-medium text-foreground">{cam.name}</span>
+                      <span className="text-[10px] font-medium text-foreground truncate max-w-full px-2">{cam.name}</span>
                       <div className="flex items-center gap-1">
-                        {cam.status === "online" ? (
+                        {cam.enabled ? (
                           <Signal className="h-2.5 w-2.5 text-success" />
                         ) : (
                           <WifiOff className="h-2.5 w-2.5 text-destructive" />
                         )}
-                        <span className={cn("text-[9px] font-mono", cam.status === "online" ? "text-success" : "text-destructive")}>
-                          {cam.status.toUpperCase()}
+                        <span className={cn("text-[9px] font-mono", cam.enabled ? "text-success" : "text-muted-foreground")}>
+                          {cam.stream_type.toUpperCase()}
                         </span>
                       </div>
                     </div>
                   </button>
                 ))}
+                {cameras.length === 0 && (
+                  <p className="col-span-full text-center text-xs text-muted-foreground py-4">
+                    No CCTV cameras yet. Add one above to start streaming.
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

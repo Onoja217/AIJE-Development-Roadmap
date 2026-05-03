@@ -13,12 +13,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
+import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
+import type { StreamType } from "@/hooks/useCameras";
+
 interface LiveCameraFeedProps {
   cameraName?: string;
   onClose?: () => void;
+  streamUrl?: string;
+  streamType?: StreamType;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType }: LiveCameraFeedProps) {
+  const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -74,11 +80,12 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (isCCTV) return;
     startCamera(facingMode);
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
     };
-  }, [facingMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [facingMode, isCCTV]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Snapshot
   const takeSnapshot = useCallback(async () => {
@@ -202,13 +209,17 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose }: LiveCamer
         </div>
       ) : (
         <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {isCCTV && streamUrl ? (
+            <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
+          ) : (
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
           <div className="scan-line absolute inset-0 pointer-events-none" />
 
           {/* Motion detection overlay */}
