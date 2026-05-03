@@ -209,13 +209,17 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
         </div>
       ) : (
         <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {isCCTV && streamUrl ? (
+            <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
+          ) : (
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
           <div className="scan-line absolute inset-0 pointer-events-none" />
 
           {/* Motion detection overlay */}
