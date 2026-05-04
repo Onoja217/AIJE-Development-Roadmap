@@ -6,10 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UseSmartMotionEngineOpts {
   user: User | null;
-  effectiveMotion: number;        // 0-100 from useMotionDetection
+  motionLevel: number;        // 0-100 from useMotionDetection
   cameraName: string;
   enabled: boolean;
-  /** When set (>= 0), overrides effectiveMotion — used by the Motion Simulator. */
+  /** When set (>= 0), overrides motionLevel — used by the Motion Simulator. */
   simulatedMotionLevel?: number | null;
   onAlert?: (msg: string, severity: "danger" | "warning") => void;
 }
@@ -21,7 +21,7 @@ const ALERT_COOLDOWN_MS = 30000;  // per-rule cooldown
 
 export function useSmartMotionEngine({
   user,
-  effectiveMotion,
+  motionLevel,
   cameraName,
   enabled,
   simulatedMotionLevel,
@@ -30,7 +30,7 @@ export function useSmartMotionEngine({
   const effectiveMotion =
     simulatedMotionLevel != null && simulatedMotionLevel >= 0
       ? simulatedMotionLevel
-      : effectiveMotion;
+      : motionLevel;
   const { config, update } = useSmartRules(user);
   const { queueAlert, online } = useOfflineQueue(user);
 
