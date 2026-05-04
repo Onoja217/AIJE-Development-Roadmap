@@ -11,6 +11,7 @@ export interface Camera {
   stream_url: string;
   stream_type: StreamType;
   enabled: boolean;
+  auto_snapshot_interval_sec: number | null;
 }
 
 export function useCameras() {
@@ -23,7 +24,7 @@ export function useCameras() {
     setLoading(true);
     const { data, error } = await supabase
       .from("cameras")
-      .select("id, name, stream_url, stream_type, enabled")
+      .select("id, name, stream_url, stream_type, enabled, auto_snapshot_interval_sec")
       .order("created_at", { ascending: true });
     if (!error && data) setCameras(data as Camera[]);
     setLoading(false);
