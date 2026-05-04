@@ -79,6 +79,7 @@ export type Database = {
       }
       cameras: {
         Row: {
+          auto_snapshot_interval_sec: number | null
           created_at: string
           enabled: boolean
           id: string
@@ -89,6 +90,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_snapshot_interval_sec?: number | null
           created_at?: string
           enabled?: boolean
           id?: string
@@ -99,6 +101,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_snapshot_interval_sec?: number | null
           created_at?: string
           enabled?: boolean
           id?: string

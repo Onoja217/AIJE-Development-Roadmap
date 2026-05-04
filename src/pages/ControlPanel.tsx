@@ -167,6 +167,7 @@ export default function ControlPanel() {
                       cameraName={cam.name}
                       streamUrl={cam.stream_url}
                       streamType={cam.stream_type}
+                      autoSnapshotIntervalOverrideSec={cam.auto_snapshot_interval_sec}
                       onClose={() => setSelectedCam(null)}
                     />
                   );

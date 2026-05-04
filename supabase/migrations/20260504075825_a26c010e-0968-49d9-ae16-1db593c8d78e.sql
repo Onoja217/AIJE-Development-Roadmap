@@ -1,0 +1,1 @@
+ALTER TABLE public.cameras ADD COLUMN auto_snapshot_interval_sec integer;
