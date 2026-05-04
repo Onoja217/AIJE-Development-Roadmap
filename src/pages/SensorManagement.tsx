@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SmartRulesCard } from "@/components/dashboard/SmartRulesCard";
+import { MotionSimulator } from "@/components/dashboard/MotionSimulator";
 
 interface SensorConfig {
   id: string;
@@ -279,6 +280,9 @@ export default function SensorManagement() {
 
         {/* Smart Motion Rules */}
         <SmartRulesCard />
+
+        {/* Motion Simulator */}
+        <MotionSimulator />
 
         {/* Sensor list */}
         <div className="space-y-3">
