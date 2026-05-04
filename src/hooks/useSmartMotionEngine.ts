@@ -9,6 +9,8 @@ interface UseSmartMotionEngineOpts {
   motionLevel: number;        // 0-100 from useMotionDetection
   cameraName: string;
   enabled: boolean;
+  /** When set (>= 0), overrides motionLevel — used by the Motion Simulator. */
+  simulatedMotionLevel?: number | null;
   onAlert?: (msg: string, severity: "danger" | "warning") => void;
 }
 
@@ -22,8 +24,13 @@ export function useSmartMotionEngine({
   motionLevel,
   cameraName,
   enabled,
+  simulatedMotionLevel,
   onAlert,
 }: UseSmartMotionEngineOpts) {
+  const effectiveMotion =
+    simulatedMotionLevel != null && simulatedMotionLevel >= 0
+      ? simulatedMotionLevel
+      : motionLevel;
   const { config, update } = useSmartRules(user);
   const { queueAlert, online } = useOfflineQueue(user);
 
