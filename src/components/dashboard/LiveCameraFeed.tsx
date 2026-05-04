@@ -21,9 +21,10 @@ interface LiveCameraFeedProps {
   onClose?: () => void;
   streamUrl?: string;
   streamType?: StreamType;
+  autoSnapshotIntervalOverrideSec?: number | null;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec }: LiveCameraFeedProps) {
   const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,9 +62,13 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     onAlert: (msg, sev) => {
       notify(msg, sev);
       toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
-      // Auto-snapshot on alert, throttled by user setting
+      // Auto-snapshot on alert, throttled by per-camera override or global setting
       const now = Date.now();
-      const intervalMs = (smartConfig.auto_snapshot_interval_sec ?? 15) * 1000;
+      const effectiveSec =
+        autoSnapshotIntervalOverrideSec != null
+          ? autoSnapshotIntervalOverrideSec
+          : (smartConfig.auto_snapshot_interval_sec ?? 15);
+      const intervalMs = effectiveSec * 1000;
       if (intervalMs > 0 && now - lastAutoSnapRef.current > intervalMs) {
         lastAutoSnapRef.current = now;
         snapshotRef.current();
