@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Video, Power, PowerOff } from "lucide-react";
+import { Plus, Trash2, Video, Power, PowerOff, Camera as CameraIcon } from "lucide-react";
 import { z } from "zod";
 import { useCameras, type StreamType } from "@/hooks/useCameras";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,19 @@ const schema = z.object({
   stream_type: z.enum(["hls", "mjpeg", "http"]),
 });
 
+// Sentinel value used in <Select> for "use global setting" (Select doesn't allow empty strings)
+const GLOBAL = "__global__";
+const INTERVAL_OPTIONS = [15, 30, 60, 120, 300] as const;
+
+const formatInterval = (sec: number) => (sec < 60 ? `${sec}s` : `${sec / 60}m`);
+
 export function CameraManager() {
   const { cameras, addCamera, updateCamera, deleteCamera } = useCameras();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [type, setType] = useState<StreamType>("hls");
+  const [intervalOverride, setIntervalOverride] = useState<string>(GLOBAL);
 
   const handleAdd = async () => {
     const parsed = schema.safeParse({ name, stream_url: url, stream_type: type });
@@ -34,8 +41,9 @@ export function CameraManager() {
       stream_url: parsed.data.stream_url,
       stream_type: parsed.data.stream_type,
       enabled: true,
+      auto_snapshot_interval_sec: intervalOverride === GLOBAL ? null : parseInt(intervalOverride, 10),
     });
-    setName(""); setUrl(""); setType("hls"); setOpen(false);
+    setName(""); setUrl(""); setType("hls"); setIntervalOverride(GLOBAL); setOpen(false);
   };
 
   return (
@@ -79,6 +87,23 @@ export function CameraManager() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs flex items-center gap-1.5">
+              <CameraIcon className="h-3 w-3" /> Auto-snapshot interval
+            </Label>
+            <Select value={intervalOverride} onValueChange={setIntervalOverride}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={GLOBAL}>Use global setting</SelectItem>
+                {INTERVAL_OPTIONS.map((s) => (
+                  <SelectItem key={s} value={String(s)}>{formatInterval(s)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              Override the global minimum gap between auto-snapshots for this camera only.
+            </p>
+          </div>
           <div className="flex gap-2 justify-end">
             <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button size="sm" onClick={handleAdd}>Save camera</Button>
@@ -89,13 +114,34 @@ export function CameraManager() {
       {cameras.length > 0 && (
         <ul className="divide-y divide-border rounded-lg border border-border">
           {cameras.map((cam) => (
-            <li key={cam.id} className="flex items-center gap-3 p-3">
+            <li key={cam.id} className="flex flex-wrap items-center gap-3 p-3">
               <Video className={`h-4 w-4 ${cam.enabled ? "text-primary" : "text-muted-foreground"}`} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{cam.name}</p>
                 <p className="text-[10px] font-mono text-muted-foreground truncate">
                   {cam.stream_type.toUpperCase()} • {cam.stream_url}
                 </p>
+              </div>
+              <div className="flex items-center gap-1.5" title="Auto-snapshot interval">
+                <CameraIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                <Select
+                  value={cam.auto_snapshot_interval_sec == null ? GLOBAL : String(cam.auto_snapshot_interval_sec)}
+                  onValueChange={(v) =>
+                    updateCamera(cam.id, {
+                      auto_snapshot_interval_sec: v === GLOBAL ? null : parseInt(v, 10),
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-7 w-[110px] text-xs font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={GLOBAL}>Global</SelectItem>
+                    {INTERVAL_OPTIONS.map((s) => (
+                      <SelectItem key={s} value={String(s)}>{formatInterval(s)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <button
                 onClick={() => updateCamera(cam.id, { enabled: !cam.enabled })}
