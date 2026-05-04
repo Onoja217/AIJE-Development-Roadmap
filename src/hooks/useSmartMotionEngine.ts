@@ -9,6 +9,8 @@ interface UseSmartMotionEngineOpts {
   motionLevel: number;        // 0-100 from useMotionDetection
   cameraName: string;
   enabled: boolean;
+  /** When set (>= 0), overrides motionLevel — used by the Motion Simulator. */
+  simulatedMotionLevel?: number | null;
   onAlert?: (msg: string, severity: "danger" | "warning") => void;
 }
 
@@ -22,8 +24,13 @@ export function useSmartMotionEngine({
   motionLevel,
   cameraName,
   enabled,
+  simulatedMotionLevel,
   onAlert,
 }: UseSmartMotionEngineOpts) {
+  const effectiveMotion =
+    simulatedMotionLevel != null && simulatedMotionLevel >= 0
+      ? simulatedMotionLevel
+      : motionLevel;
   const { config, update } = useSmartRules(user);
   const { queueAlert, online } = useOfflineQueue(user);
 
@@ -42,10 +49,10 @@ export function useSmartMotionEngine({
         sensor_type: "motion",
         severity: severity === "danger" ? "critical" : "warning",
         message,
-        value: motionLevel,
+        value: effectiveMotion,
       });
     },
-    [onAlert, queueAlert, motionLevel]
+    [onAlert, queueAlert, effectiveMotion]
   );
 
   // Process motion-level updates
@@ -55,15 +62,15 @@ export function useSmartMotionEngine({
     const hour = new Date().getHours();
 
     // Update baseline buffer (always, even if ignored)
-    baselineBufferRef.current.push({ hour, level: motionLevel });
+    baselineBufferRef.current.push({ hour, level: effectiveMotion });
     if (baselineBufferRef.current.length > 200) baselineBufferRef.current.shift();
 
     // Ignore "normal" baseline motion
-    if (config.ignore_normal_movement && motionLevel < NORMAL_THRESHOLD) return;
+    if (config.ignore_normal_movement && effectiveMotion < NORMAL_THRESHOLD) return;
 
     // Discrete event detection
     const isEvent =
-      motionLevel >= EVENT_THRESHOLD && now - lastEventRef.current > EVENT_DEBOUNCE_MS;
+      effectiveMotion >= EVENT_THRESHOLD && now - lastEventRef.current > EVENT_DEBOUNCE_MS;
     if (isEvent) {
       lastEventRef.current = now;
       eventsRef.current.push(now);
@@ -100,11 +107,11 @@ export function useSmartMotionEngine({
         if (baseline !== undefined && baseline > 0) {
           // higher sensitivity = smaller deviation triggers
           const tolerance = (110 - config.unknown_pattern_sensitivity) / 100; // 0.1..1.0
-          const deviation = (motionLevel - baseline) / Math.max(baseline, 1);
-          if (deviation > tolerance && motionLevel > baseline + 10) {
+          const deviation = (effectiveMotion - baseline) / Math.max(baseline, 1);
+          if (deviation > tolerance && effectiveMotion > baseline + 10) {
             fireAlert(
               "unknown",
-              `${cameraName}: unusual activity (${Math.round(motionLevel)}% vs typical ${Math.round(
+              `${cameraName}: unusual activity (${Math.round(effectiveMotion)}% vs typical ${Math.round(
                 baseline
               )}%)`,
               "warning"
@@ -113,7 +120,7 @@ export function useSmartMotionEngine({
         }
       }
     }
-  }, [motionLevel, enabled, user, config, cameraName, fireAlert]);
+  }, [effectiveMotion, enabled, user, config, cameraName, fireAlert]);
 
   // Periodically learn baseline (rolling avg per hour) every 60s
   useEffect(() => {

@@ -22,9 +22,10 @@ interface LiveCameraFeedProps {
   streamUrl?: string;
   streamType?: StreamType;
   autoSnapshotIntervalOverrideSec?: number | null;
+  simulatedMotionLevel?: number | null;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, simulatedMotionLevel }: LiveCameraFeedProps) {
   const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -55,6 +56,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
   const { online, config: smartConfig } = useSmartMotionEngine({
+    simulatedMotionLevel,
     user,
     motionLevel,
     cameraName,
