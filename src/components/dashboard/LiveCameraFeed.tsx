@@ -258,6 +258,15 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
           {/* Motion detection overlay */}
           <MotionOverlay regions={regions} motionLevel={motionLevel} enabled={motionEnabled} />
 
+          {/* Person/object detection overlay */}
+          {personDetectEnabled && videoRef.current && (
+            <PersonDetectionOverlay
+              detections={detections}
+              videoWidth={videoRef.current.videoWidth}
+              videoHeight={videoRef.current.videoHeight}
+            />
+          )}
+
           {/* Offline / smart-engine status pill */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
             {!online && (
@@ -270,7 +279,14 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                 <Brain className="h-3 w-3" /> SMART RULES
               </span>
             )}
+            {personDetectEnabled && (
+              <span className="flex items-center gap-1 rounded-md bg-destructive/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-destructive-foreground">
+                <UserSearch className="h-3 w-3" />
+                {modelLoading ? "LOADING AI…" : `AI • ${personCount} PERSON${personCount === 1 ? "" : "S"}`}
+              </span>
+            )}
           </div>
+
 
           {/* Flash overlay */}
           <AnimatePresence>
@@ -304,6 +320,17 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
           {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
+            <button
+              onClick={() => setPersonDetectEnabled((v) => !v)}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                personDetectEnabled
+                  ? "bg-destructive/70 hover:bg-destructive/90"
+                  : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={personDetectEnabled ? "Disable person detection (AI)" : "Enable person detection (AI)"}
+            >
+              <UserSearch className={`h-4 w-4 ${personDetectEnabled ? "text-white" : "text-foreground"}`} />
+            </button>
             <button
               onClick={() => setMotionEnabled((v) => !v)}
               className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
