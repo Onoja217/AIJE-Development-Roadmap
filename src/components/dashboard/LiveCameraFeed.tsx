@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
   Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
-  WifiOff, Brain, UserSearch
+  WifiOff, Brain, UserSearch, ShieldAlert, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
@@ -11,9 +11,11 @@ import { useMotionDetection } from "@/hooks/useMotionDetection";
 import { MotionOverlay } from "@/components/dashboard/MotionOverlay";
 import { usePersonDetection } from "@/hooks/usePersonDetection";
 import { PersonDetectionOverlay } from "@/components/dashboard/PersonDetectionOverlay";
+import { RestrictedZoneEditor, loadZone, saveZone, type Zone } from "@/components/dashboard/RestrictedZoneEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 
 import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
 import type { StreamType } from "@/hooks/useCameras";
@@ -37,6 +39,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [uploading, setUploading] = useState(false);
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [personDetectEnabled, setPersonDetectEnabled] = useState(false);
+  const [zoneEnabled, setZoneEnabled] = useState(false);
+  const [zoneEditing, setZoneEditing] = useState(false);
+  const [zone, setZone] = useState<Zone>(() => loadZone(cameraName));
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,8 +70,10 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
+  const { queueAlert } = useOfflineQueue(user);
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
+  const lastZoneAlertRef = useRef(0);
   const { online, config: smartConfig } = useSmartMotionEngine({
     simulatedMotionLevel,
     user,
@@ -76,7 +83,6 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     onAlert: (msg, sev) => {
       notify(msg, sev);
       toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
-      // Auto-snapshot on alert, throttled by per-camera override or global setting
       const now = Date.now();
       const effectiveSec =
         autoSnapshotIntervalOverrideSec != null
@@ -89,6 +95,47 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       }
     },
   });
+
+  // Restricted-zone intrusion: alert when a person bbox center enters the zone
+  useEffect(() => {
+    if (!zoneEnabled || !personDetectEnabled || personCount === 0) return;
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const inside = detections.some((d) => {
+      if (d.class !== "person") return false;
+      const [x, y, w, h] = d.bbox;
+      const cx = (x + w / 2) / vw;
+      const cy = (y + h / 2) / vh;
+      return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
+    });
+    if (!inside) return;
+
+    const now = Date.now();
+    if (now - lastZoneAlertRef.current < 30_000) return;
+    lastZoneAlertRef.current = now;
+
+    const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
+    notify(msg, "danger");
+    toast("⚠️ Intrusion detected", { description: msg });
+    queueAlert({
+      sensor_type: "person_zone",
+      severity: "danger",
+      message: msg,
+      value: personCount,
+    });
+
+    const effectiveSec =
+      autoSnapshotIntervalOverrideSec != null
+        ? autoSnapshotIntervalOverrideSec
+        : (smartConfig.auto_snapshot_interval_sec ?? 15);
+    const intervalMs = effectiveSec * 1000;
+    if (intervalMs > 0 && now - lastAutoSnapRef.current > intervalMs) {
+      lastAutoSnapRef.current = now;
+      snapshotRef.current();
+    }
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
@@ -267,6 +314,16 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
             />
           )}
 
+          {/* Restricted zone */}
+          {zoneEnabled && (
+            <RestrictedZoneEditor
+              cameraName={cameraName}
+              editing={zoneEditing}
+              zone={zone}
+              onChange={setZone}
+            />
+          )}
+
           {/* Offline / smart-engine status pill */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
             {!online && (
@@ -283,6 +340,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
               <span className="flex items-center gap-1 rounded-md bg-destructive/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-destructive-foreground">
                 <UserSearch className="h-3 w-3" />
                 {modelLoading ? "LOADING AI…" : `AI • ${personCount} PERSON${personCount === 1 ? "" : "S"}`}
+              </span>
+            )}
+            {zoneEnabled && (
+              <span className="flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-warning-foreground">
+                <ShieldAlert className="h-3 w-3" /> ZONE ARMED
               </span>
             )}
           </div>
@@ -320,6 +382,38 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
           {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
+            <button
+              onClick={() => {
+                setZoneEnabled((v) => {
+                  const next = !v;
+                  if (next && !personDetectEnabled) setPersonDetectEnabled(true);
+                  if (!next) setZoneEditing(false);
+                  return next;
+                });
+              }}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                zoneEnabled ? "bg-warning/80 hover:bg-warning" : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={zoneEnabled ? "Disable restricted zone" : "Enable restricted zone"}
+            >
+              <ShieldAlert className={`h-4 w-4 ${zoneEnabled ? "text-warning-foreground" : "text-foreground"}`} />
+            </button>
+            {zoneEnabled && (
+              <button
+                onClick={() => {
+                  setZoneEditing((v) => {
+                    if (v) saveZone(cameraName, zone);
+                    return !v;
+                  });
+                }}
+                className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                  zoneEditing ? "bg-primary/80 hover:bg-primary" : "bg-background/70 hover:bg-background/90"
+                }`}
+                title={zoneEditing ? "Done editing zone" : "Edit zone"}
+              >
+                <Pencil className={`h-4 w-4 ${zoneEditing ? "text-primary-foreground" : "text-foreground"}`} />
+              </button>
+            )}
             <button
               onClick={() => setPersonDetectEnabled((v) => !v)}
               className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
