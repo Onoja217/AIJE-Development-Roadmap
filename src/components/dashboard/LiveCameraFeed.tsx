@@ -314,6 +314,16 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
             />
           )}
 
+          {/* Restricted zone */}
+          {zoneEnabled && (
+            <RestrictedZoneEditor
+              cameraName={cameraName}
+              editing={zoneEditing}
+              zone={zone}
+              onChange={setZone}
+            />
+          )}
+
           {/* Offline / smart-engine status pill */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
             {!online && (
@@ -330,6 +340,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
               <span className="flex items-center gap-1 rounded-md bg-destructive/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-destructive-foreground">
                 <UserSearch className="h-3 w-3" />
                 {modelLoading ? "LOADING AI…" : `AI • ${personCount} PERSON${personCount === 1 ? "" : "S"}`}
+              </span>
+            )}
+            {zoneEnabled && (
+              <span className="flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-warning-foreground">
+                <ShieldAlert className="h-3 w-3" /> ZONE ARMED
               </span>
             )}
           </div>
