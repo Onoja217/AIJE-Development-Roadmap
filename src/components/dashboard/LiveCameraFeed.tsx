@@ -383,6 +383,38 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
           {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
             <button
+              onClick={() => {
+                setZoneEnabled((v) => {
+                  const next = !v;
+                  if (next && !personDetectEnabled) setPersonDetectEnabled(true);
+                  if (!next) setZoneEditing(false);
+                  return next;
+                });
+              }}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                zoneEnabled ? "bg-warning/80 hover:bg-warning" : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={zoneEnabled ? "Disable restricted zone" : "Enable restricted zone"}
+            >
+              <ShieldAlert className={`h-4 w-4 ${zoneEnabled ? "text-warning-foreground" : "text-foreground"}`} />
+            </button>
+            {zoneEnabled && (
+              <button
+                onClick={() => {
+                  setZoneEditing((v) => {
+                    if (v) saveZone(cameraName, zone);
+                    return !v;
+                  });
+                }}
+                className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                  zoneEditing ? "bg-primary/80 hover:bg-primary" : "bg-background/70 hover:bg-background/90"
+                }`}
+                title={zoneEditing ? "Done editing zone" : "Edit zone"}
+              >
+                <Pencil className={`h-4 w-4 ${zoneEditing ? "text-primary-foreground" : "text-foreground"}`} />
+              </button>
+            )}
+            <button
               onClick={() => setPersonDetectEnabled((v) => !v)}
               className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
                 personDetectEnabled
