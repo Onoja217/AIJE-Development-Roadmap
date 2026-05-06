@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
   Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
-  WifiOff, Brain, UserSearch
+  WifiOff, Brain, UserSearch, ShieldAlert, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
@@ -11,9 +11,11 @@ import { useMotionDetection } from "@/hooks/useMotionDetection";
 import { MotionOverlay } from "@/components/dashboard/MotionOverlay";
 import { usePersonDetection } from "@/hooks/usePersonDetection";
 import { PersonDetectionOverlay } from "@/components/dashboard/PersonDetectionOverlay";
+import { RestrictedZoneEditor, loadZone, saveZone, type Zone } from "@/components/dashboard/RestrictedZoneEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 
 import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
 import type { StreamType } from "@/hooks/useCameras";
@@ -37,6 +39,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [uploading, setUploading] = useState(false);
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [personDetectEnabled, setPersonDetectEnabled] = useState(false);
+  const [zoneEnabled, setZoneEnabled] = useState(false);
+  const [zoneEditing, setZoneEditing] = useState(false);
+  const [zone, setZone] = useState<Zone>(() => loadZone(cameraName));
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
