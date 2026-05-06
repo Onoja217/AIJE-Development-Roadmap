@@ -70,8 +70,10 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
+  const { queueAlert } = useOfflineQueue(user);
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
+  const lastZoneAlertRef = useRef(0);
   const { online, config: smartConfig } = useSmartMotionEngine({
     simulatedMotionLevel,
     user,
@@ -81,7 +83,6 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     onAlert: (msg, sev) => {
       notify(msg, sev);
       toast(sev === "danger" ? "⚠️ Critical alert" : "Smart alert", { description: msg });
-      // Auto-snapshot on alert, throttled by per-camera override or global setting
       const now = Date.now();
       const effectiveSec =
         autoSnapshotIntervalOverrideSec != null
@@ -94,6 +95,47 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       }
     },
   });
+
+  // Restricted-zone intrusion: alert when a person bbox center enters the zone
+  useEffect(() => {
+    if (!zoneEnabled || !personDetectEnabled || personCount === 0) return;
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const inside = detections.some((d) => {
+      if (d.class !== "person") return false;
+      const [x, y, w, h] = d.bbox;
+      const cx = (x + w / 2) / vw;
+      const cy = (y + h / 2) / vh;
+      return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
+    });
+    if (!inside) return;
+
+    const now = Date.now();
+    if (now - lastZoneAlertRef.current < 30_000) return;
+    lastZoneAlertRef.current = now;
+
+    const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
+    notify(msg, "danger");
+    toast("⚠️ Intrusion detected", { description: msg });
+    queueAlert({
+      sensor_type: "person_zone",
+      severity: "danger",
+      message: msg,
+      value: personCount,
+    });
+
+    const effectiveSec =
+      autoSnapshotIntervalOverrideSec != null
+        ? autoSnapshotIntervalOverrideSec
+        : (smartConfig.auto_snapshot_interval_sec ?? 15);
+    const intervalMs = effectiveSec * 1000;
+    if (intervalMs > 0 && now - lastAutoSnapRef.current > intervalMs) {
+      lastAutoSnapRef.current = now;
+      snapshotRef.current();
+    }
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
