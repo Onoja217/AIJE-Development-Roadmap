@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
   Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
-  WifiOff, Brain
+  WifiOff, Brain, UserSearch
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
 import { useMotionDetection } from "@/hooks/useMotionDetection";
 import { MotionOverlay } from "@/components/dashboard/MotionOverlay";
+import { usePersonDetection } from "@/hooks/usePersonDetection";
+import { PersonDetectionOverlay } from "@/components/dashboard/PersonDetectionOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
@@ -34,6 +36,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const { uploadMedia } = useCameraMedia();
   const [uploading, setUploading] = useState(false);
   const [motionEnabled, setMotionEnabled] = useState(true);
+  const [personDetectEnabled, setPersonDetectEnabled] = useState(false);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +53,15 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     enabled: motionEnabled && !error,
     sensitivity: 45,
   });
+
+  const { detections, loading: modelLoading } = usePersonDetection({
+    videoRef,
+    enabled: personDetectEnabled && !error,
+    fps: 6,
+    personOnly: false,
+    minScore: 0.55,
+  });
+  const personCount = detections.filter((d) => d.class === "person").length;
 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
