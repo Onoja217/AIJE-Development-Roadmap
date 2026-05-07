@@ -88,6 +88,8 @@ export type Database = {
           stream_url: string
           updated_at: string
           user_id: string
+          zone_alert_severity: string | null
+          zone_cooldown_sec: number | null
         }
         Insert: {
           auto_snapshot_interval_sec?: number | null
@@ -99,6 +101,8 @@ export type Database = {
           stream_url: string
           updated_at?: string
           user_id: string
+          zone_alert_severity?: string | null
+          zone_cooldown_sec?: number | null
         }
         Update: {
           auto_snapshot_interval_sec?: number | null
@@ -110,6 +114,8 @@ export type Database = {
           stream_url?: string
           updated_at?: string
           user_id?: string
+          zone_alert_severity?: string | null
+          zone_cooldown_sec?: number | null
         }
         Relationships: []
       }
