@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export type StreamType = "hls" | "mjpeg" | "http";
+export type ZoneAlertSeverity = "info" | "warning" | "danger";
 
 export interface Camera {
   id: string;
@@ -12,6 +13,8 @@ export interface Camera {
   stream_type: StreamType;
   enabled: boolean;
   auto_snapshot_interval_sec: number | null;
+  zone_cooldown_sec: number | null;
+  zone_alert_severity: ZoneAlertSeverity | null;
 }
 
 export function useCameras() {
@@ -24,7 +27,7 @@ export function useCameras() {
     setLoading(true);
     const { data, error } = await supabase
       .from("cameras")
-      .select("id, name, stream_url, stream_type, enabled, auto_snapshot_interval_sec")
+      .select("id, name, stream_url, stream_type, enabled, auto_snapshot_interval_sec, zone_cooldown_sec, zone_alert_severity")
       .order("created_at", { ascending: true });
     if (!error && data) setCameras(data as Camera[]);
     setLoading(false);
