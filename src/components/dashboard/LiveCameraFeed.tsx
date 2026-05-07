@@ -29,9 +29,10 @@ interface LiveCameraFeedProps {
   zoneCooldownSec?: number | null;
   zoneAlertSeverity?: "info" | "warning" | "danger" | null;
   simulatedMotionLevel?: number | null;
+  simulatedZoneIntrusion?: boolean;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, zoneCooldownSec, zoneAlertSeverity, simulatedMotionLevel }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, zoneCooldownSec, zoneAlertSeverity, simulatedMotionLevel, simulatedZoneIntrusion }: LiveCameraFeedProps) {
   const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
