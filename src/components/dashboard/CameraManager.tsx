@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Plus, Trash2, Video, Power, PowerOff, Camera as CameraIcon } from "lucide-react";
+import { Plus, Trash2, Video, Power, PowerOff, Camera as CameraIcon, ShieldAlert, Timer } from "lucide-react";
 import { z } from "zod";
-import { useCameras, type StreamType } from "@/hooks/useCameras";
+import { useCameras, type StreamType, type ZoneAlertSeverity } from "@/hooks/useCameras";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ const schema = z.object({
 // Sentinel value used in <Select> for "use global setting" (Select doesn't allow empty strings)
 const GLOBAL = "__global__";
 const INTERVAL_OPTIONS = [15, 30, 60, 120, 300] as const;
+const ZONE_COOLDOWN_OPTIONS = [10, 30, 60, 120, 300] as const;
+const SEVERITY_OPTIONS: ZoneAlertSeverity[] = ["info", "warning", "danger"];
 
 const formatInterval = (sec: number) => (sec < 60 ? `${sec}s` : `${sec / 60}m`);
 
@@ -42,6 +44,8 @@ export function CameraManager() {
       stream_type: parsed.data.stream_type,
       enabled: true,
       auto_snapshot_interval_sec: intervalOverride === GLOBAL ? null : parseInt(intervalOverride, 10),
+      zone_cooldown_sec: null,
+      zone_alert_severity: null,
     });
     setName(""); setUrl(""); setType("hls"); setIntervalOverride(GLOBAL); setOpen(false);
   };
