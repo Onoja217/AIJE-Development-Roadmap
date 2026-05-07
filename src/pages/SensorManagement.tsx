@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SmartRulesCard } from "@/components/dashboard/SmartRulesCard";
 import { MotionSimulator } from "@/components/dashboard/MotionSimulator";
+import { RestrictedZoneSimulator } from "@/components/dashboard/RestrictedZoneSimulator";
 
 interface SensorConfig {
   id: string;
@@ -283,6 +284,7 @@ export default function SensorManagement() {
 
         {/* Motion Simulator */}
         <MotionSimulator />
+        <RestrictedZoneSimulator />
 
         {/* Sensor list */}
         <div className="space-y-3">

@@ -29,9 +29,10 @@ interface LiveCameraFeedProps {
   zoneCooldownSec?: number | null;
   zoneAlertSeverity?: "info" | "warning" | "danger" | null;
   simulatedMotionLevel?: number | null;
+  simulatedZoneIntrusion?: boolean;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, zoneCooldownSec, zoneAlertSeverity, simulatedMotionLevel }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, zoneCooldownSec, zoneAlertSeverity, simulatedMotionLevel, simulatedZoneIntrusion }: LiveCameraFeedProps) {
   const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,6 +45,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [zoneEnabled, setZoneEnabled] = useState(false);
   const [zoneEditing, setZoneEditing] = useState(false);
   const [zone, setZone] = useState<Zone>(() => loadZone(cameraName));
+
+  // Auto-enable zone arming whenever a simulator is driving this feed
+  useEffect(() => {
+    if (simulatedZoneIntrusion !== undefined) setZoneEnabled(true);
+  }, [simulatedZoneIntrusion]);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -100,18 +106,24 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   // Restricted-zone intrusion: alert when a person bbox center enters the zone
   useEffect(() => {
-    if (!zoneEnabled || !personDetectEnabled || personCount === 0) return;
-    const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
-    const vw = video.videoWidth;
-    const vh = video.videoHeight;
-    const inside = detections.some((d) => {
-      if (d.class !== "person") return false;
-      const [x, y, w, h] = d.bbox;
-      const cx = (x + w / 2) / vw;
-      const cy = (y + h / 2) / vh;
-      return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
-    });
+    if (!zoneEnabled) return;
+    let inside = false;
+    if (simulatedZoneIntrusion) {
+      inside = true;
+    } else {
+      if (!personDetectEnabled || personCount === 0) return;
+      const video = videoRef.current;
+      if (!video || !video.videoWidth) return;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      inside = detections.some((d) => {
+        if (d.class !== "person") return false;
+        const [x, y, w, h] = d.bbox;
+        const cx = (x + w / 2) / vw;
+        const cy = (y + h / 2) / vh;
+        return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
+      });
+    }
     if (!inside) return;
 
     const now = Date.now();
@@ -143,7 +155,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       lastAutoSnapRef.current = now;
       snapshotRef.current();
     }
-  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity]);
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
