@@ -101,18 +101,24 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   // Restricted-zone intrusion: alert when a person bbox center enters the zone
   useEffect(() => {
-    if (!zoneEnabled || !personDetectEnabled || personCount === 0) return;
-    const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
-    const vw = video.videoWidth;
-    const vh = video.videoHeight;
-    const inside = detections.some((d) => {
-      if (d.class !== "person") return false;
-      const [x, y, w, h] = d.bbox;
-      const cx = (x + w / 2) / vw;
-      const cy = (y + h / 2) / vh;
-      return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
-    });
+    if (!zoneEnabled) return;
+    let inside = false;
+    if (simulatedZoneIntrusion) {
+      inside = true;
+    } else {
+      if (!personDetectEnabled || personCount === 0) return;
+      const video = videoRef.current;
+      if (!video || !video.videoWidth) return;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      inside = detections.some((d) => {
+        if (d.class !== "person") return false;
+        const [x, y, w, h] = d.bbox;
+        const cx = (x + w / 2) / vw;
+        const cy = (y + h / 2) / vh;
+        return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
+      });
+    }
     if (!inside) return;
 
     const now = Date.now();
