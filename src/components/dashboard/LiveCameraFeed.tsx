@@ -26,10 +26,12 @@ interface LiveCameraFeedProps {
   streamUrl?: string;
   streamType?: StreamType;
   autoSnapshotIntervalOverrideSec?: number | null;
+  zoneCooldownSec?: number | null;
+  zoneAlertSeverity?: "info" | "warning" | "danger" | null;
   simulatedMotionLevel?: number | null;
 }
 
-export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, simulatedMotionLevel }: LiveCameraFeedProps) {
+export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, streamType, autoSnapshotIntervalOverrideSec, zoneCooldownSec, zoneAlertSeverity, simulatedMotionLevel }: LiveCameraFeedProps) {
   const isCCTV = !!streamUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -113,15 +115,21 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     if (!inside) return;
 
     const now = Date.now();
-    if (now - lastZoneAlertRef.current < 30_000) return;
+    const cooldownMs = (zoneCooldownSec ?? 30) * 1000;
+    if (now - lastZoneAlertRef.current < cooldownMs) return;
     lastZoneAlertRef.current = now;
 
+    const severity = zoneAlertSeverity ?? "danger";
     const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
-    notify(msg, "danger");
-    toast("⚠️ Intrusion detected", { description: msg });
+    notify(msg, severity === "danger" ? "danger" : "warning");
+    const toastTitle =
+      severity === "danger" ? "⚠️ Intrusion detected"
+      : severity === "warning" ? "Zone activity"
+      : "Zone notice";
+    toast(toastTitle, { description: msg });
     queueAlert({
       sensor_type: "person_zone",
-      severity: "danger",
+      severity,
       message: msg,
       value: personCount,
     });
@@ -135,7 +143,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       lastAutoSnapRef.current = now;
       snapshotRef.current();
     }
-  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec]);
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());

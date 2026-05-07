@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Plus, Trash2, Video, Power, PowerOff, Camera as CameraIcon } from "lucide-react";
+import { Plus, Trash2, Video, Power, PowerOff, Camera as CameraIcon, ShieldAlert, Timer } from "lucide-react";
 import { z } from "zod";
-import { useCameras, type StreamType } from "@/hooks/useCameras";
+import { useCameras, type StreamType, type ZoneAlertSeverity } from "@/hooks/useCameras";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ const schema = z.object({
 // Sentinel value used in <Select> for "use global setting" (Select doesn't allow empty strings)
 const GLOBAL = "__global__";
 const INTERVAL_OPTIONS = [15, 30, 60, 120, 300] as const;
+const ZONE_COOLDOWN_OPTIONS = [10, 30, 60, 120, 300] as const;
+const SEVERITY_OPTIONS: ZoneAlertSeverity[] = ["info", "warning", "danger"];
 
 const formatInterval = (sec: number) => (sec < 60 ? `${sec}s` : `${sec / 60}m`);
 
@@ -42,6 +44,8 @@ export function CameraManager() {
       stream_type: parsed.data.stream_type,
       enabled: true,
       auto_snapshot_interval_sec: intervalOverride === GLOBAL ? null : parseInt(intervalOverride, 10),
+      zone_cooldown_sec: null,
+      zone_alert_severity: null,
     });
     setName(""); setUrl(""); setType("hls"); setIntervalOverride(GLOBAL); setOpen(false);
   };
@@ -121,27 +125,73 @@ export function CameraManager() {
                 <p className="text-[10px] font-mono text-muted-foreground truncate">
                   {cam.stream_type.toUpperCase()} • {cam.stream_url}
                 </p>
-              </div>
-              <div className="flex items-center gap-1.5" title="Auto-snapshot interval">
-                <CameraIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                <Select
-                  value={cam.auto_snapshot_interval_sec == null ? GLOBAL : String(cam.auto_snapshot_interval_sec)}
-                  onValueChange={(v) =>
-                    updateCamera(cam.id, {
-                      auto_snapshot_interval_sec: v === GLOBAL ? null : parseInt(v, 10),
-                    })
-                  }
-                >
-                  <SelectTrigger className="h-7 w-[110px] text-xs font-mono">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={GLOBAL}>Global</SelectItem>
-                    {INTERVAL_OPTIONS.map((s) => (
-                      <SelectItem key={s} value={String(s)}>{formatInterval(s)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <div className="flex items-center gap-1.5" title="Auto-snapshot interval">
+                    <CameraIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Select
+                      value={cam.auto_snapshot_interval_sec == null ? GLOBAL : String(cam.auto_snapshot_interval_sec)}
+                      onValueChange={(v) =>
+                        updateCamera(cam.id, {
+                          auto_snapshot_interval_sec: v === GLOBAL ? null : parseInt(v, 10),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-[110px] text-xs font-mono">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={GLOBAL}>Snap: Global</SelectItem>
+                        {INTERVAL_OPTIONS.map((s) => (
+                          <SelectItem key={s} value={String(s)}>Snap: {formatInterval(s)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5" title="Restricted zone cooldown">
+                    <Timer className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Select
+                      value={cam.zone_cooldown_sec == null ? GLOBAL : String(cam.zone_cooldown_sec)}
+                      onValueChange={(v) =>
+                        updateCamera(cam.id, {
+                          zone_cooldown_sec: v === GLOBAL ? null : parseInt(v, 10),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-[120px] text-xs font-mono">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={GLOBAL}>Zone: 30s</SelectItem>
+                        {ZONE_COOLDOWN_OPTIONS.map((s) => (
+                          <SelectItem key={s} value={String(s)}>Zone: {formatInterval(s)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5" title="Zone alert severity">
+                    <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Select
+                      value={cam.zone_alert_severity ?? GLOBAL}
+                      onValueChange={(v) =>
+                        updateCamera(cam.id, {
+                          zone_alert_severity: v === GLOBAL ? null : (v as ZoneAlertSeverity),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-[120px] text-xs font-mono">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={GLOBAL}>Sev: Danger</SelectItem>
+                        {SEVERITY_OPTIONS.map((s) => (
+                          <SelectItem key={s} value={s}>Sev: {s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <button
                 onClick={() => updateCamera(cam.id, { enabled: !cam.enabled })}

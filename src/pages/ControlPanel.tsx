@@ -168,6 +168,8 @@ export default function ControlPanel() {
                       streamUrl={cam.stream_url}
                       streamType={cam.stream_type}
                       autoSnapshotIntervalOverrideSec={cam.auto_snapshot_interval_sec}
+                      zoneCooldownSec={cam.zone_cooldown_sec}
+                      zoneAlertSeverity={cam.zone_alert_severity}
                       onClose={() => setSelectedCam(null)}
                     />
                   );
