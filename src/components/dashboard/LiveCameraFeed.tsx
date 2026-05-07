@@ -46,6 +46,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [zoneEditing, setZoneEditing] = useState(false);
   const [zone, setZone] = useState<Zone>(() => loadZone(cameraName));
 
+  // Auto-enable zone arming whenever a simulator is driving this feed
+  useEffect(() => {
+    if (simulatedZoneIntrusion !== undefined) setZoneEnabled(true);
+  }, [simulatedZoneIntrusion]);
+
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
