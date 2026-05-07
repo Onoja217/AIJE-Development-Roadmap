@@ -150,7 +150,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       lastAutoSnapRef.current = now;
       snapshotRef.current();
     }
-  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity]);
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
