@@ -121,7 +121,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
     const severity = zoneAlertSeverity ?? "danger";
     const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
-    notify(msg, severity);
+    notify(msg, severity === "danger" ? "danger" : "warning");
     const toastTitle =
       severity === "danger" ? "⚠️ Intrusion detected"
       : severity === "warning" ? "Zone activity"
