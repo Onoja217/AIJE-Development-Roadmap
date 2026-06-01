@@ -77,6 +77,40 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   });
   const personCount = detections.filter((d) => d.class === "person").length;
 
+  // Telemetry → Detection Manager (rolling fps from detection batches)
+  const detectTimestampsRef = useRef<number[]>([]);
+  useEffect(() => {
+    if (!personDetectEnabled) return;
+    const now = performance.now();
+    const arr = detectTimestampsRef.current;
+    arr.push(now);
+    while (arr.length > 30 || (arr.length && now - arr[0] > 5000)) arr.shift();
+    const fps =
+      arr.length > 1 ? (arr.length - 1) / ((arr[arr.length - 1] - arr[0]) / 1000) : 0;
+    updateDetectionStat(cameraName, {
+      enabled: true,
+      personCount,
+      fps: Math.round(fps * 10) / 10,
+      lastDetectionAt: Date.now(),
+      zoneArmed: zoneEnabled,
+      modelLoading,
+    });
+  }, [detections, personCount, personDetectEnabled, cameraName, zoneEnabled, modelLoading]);
+
+  useEffect(() => {
+    updateDetectionStat(cameraName, {
+      enabled: personDetectEnabled,
+      zoneArmed: zoneEnabled,
+      modelLoading,
+    });
+  }, [personDetectEnabled, zoneEnabled, modelLoading, cameraName]);
+
+  useEffect(() => {
+    return () => {
+      removeDetectionStat(cameraName);
+    };
+  }, [cameraName]);
+
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
   const { queueAlert } = useOfflineQueue(user);
