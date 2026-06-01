@@ -62,6 +62,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Per-camera global pause flag set from Detection Manager
+  const [globallyPaused, setGloballyPaused] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(`aije.detection.paused.${cameraName}`) === "1",
+  );
+  useEffect(() => {
+    const key = `aije.detection.paused.${cameraName}`;
+    const sync = () => setGloballyPaused(localStorage.getItem(key) === "1");
+    sync();
+    const onStorage = (e: StorageEvent) => { if (e.key === key) sync(); };
+    window.addEventListener("storage", onStorage);
+    const id = setInterval(sync, 1500); // pick up same-tab toggles
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(id); };
+  }, [cameraName]);
+
   const { regions, motionLevel } = useMotionDetection({
     videoRef,
     enabled: motionEnabled && !error,
@@ -70,7 +84,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   const { detections, loading: modelLoading } = usePersonDetection({
     videoRef,
-    enabled: personDetectEnabled && !error,
+    enabled: personDetectEnabled && !error && !globallyPaused,
     fps: 6,
     personOnly: false,
     minScore: 0.55,
