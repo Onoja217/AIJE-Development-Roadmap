@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { updateDetectionStat, removeDetectionStat } from "@/lib/detectionStats";
 
 import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
 import type { StreamType } from "@/hooks/useCameras";
@@ -61,6 +62,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Per-camera global pause flag set from Detection Manager
+  const [globallyPaused, setGloballyPaused] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(`aije.detection.paused.${cameraName}`) === "1",
+  );
+  useEffect(() => {
+    const key = `aije.detection.paused.${cameraName}`;
+    const sync = () => setGloballyPaused(localStorage.getItem(key) === "1");
+    sync();
+    const onStorage = (e: StorageEvent) => { if (e.key === key) sync(); };
+    window.addEventListener("storage", onStorage);
+    const id = setInterval(sync, 1500); // pick up same-tab toggles
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(id); };
+  }, [cameraName]);
+
   const { regions, motionLevel } = useMotionDetection({
     videoRef,
     enabled: motionEnabled && !error,
@@ -69,12 +84,46 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   const { detections, loading: modelLoading } = usePersonDetection({
     videoRef,
-    enabled: personDetectEnabled && !error,
+    enabled: personDetectEnabled && !error && !globallyPaused,
     fps: 6,
     personOnly: false,
     minScore: 0.55,
   });
   const personCount = detections.filter((d) => d.class === "person").length;
+
+  // Telemetry → Detection Manager (rolling fps from detection batches)
+  const detectTimestampsRef = useRef<number[]>([]);
+  useEffect(() => {
+    if (!personDetectEnabled) return;
+    const now = performance.now();
+    const arr = detectTimestampsRef.current;
+    arr.push(now);
+    while (arr.length > 30 || (arr.length && now - arr[0] > 5000)) arr.shift();
+    const fps =
+      arr.length > 1 ? (arr.length - 1) / ((arr[arr.length - 1] - arr[0]) / 1000) : 0;
+    updateDetectionStat(cameraName, {
+      enabled: true,
+      personCount,
+      fps: Math.round(fps * 10) / 10,
+      lastDetectionAt: Date.now(),
+      zoneArmed: zoneEnabled,
+      modelLoading,
+    });
+  }, [detections, personCount, personDetectEnabled, cameraName, zoneEnabled, modelLoading]);
+
+  useEffect(() => {
+    updateDetectionStat(cameraName, {
+      enabled: personDetectEnabled,
+      zoneArmed: zoneEnabled,
+      modelLoading,
+    });
+  }, [personDetectEnabled, zoneEnabled, modelLoading, cameraName]);
+
+  useEffect(() => {
+    return () => {
+      removeDetectionStat(cameraName);
+    };
+  }, [cameraName]);
 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();

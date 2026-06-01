@@ -64,7 +64,7 @@ export function useAlertNotifications() {
 
     if (severity === "danger") {
       sendBrowserNotification(
-        "⚠️ AEGIS Critical Alert",
+        "⚠️ AIJE Critical Alert",
         message
       );
     }

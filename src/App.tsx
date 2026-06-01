@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import SensorManagement from "./pages/SensorManagement";
 import ControlPanel from "./pages/ControlPanel";
+import DetectionManager from "./pages/DetectionManager";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/sensors" element={<ProtectedRoute><SensorManagement /></ProtectedRoute>} />
             <Route path="/control" element={<ProtectedRoute><ControlPanel /></ProtectedRoute>} />
+            <Route path="/detection" element={<ProtectedRoute><DetectionManager /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

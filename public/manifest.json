@@ -1,20 +1,20 @@
 {
-  "name": "AEGIS Security Dashboard",
-  "short_name": "AEGIS",
-  "description": "AI-powered perimeter security monitoring",
+  "name": "AIJE — AI Security Command",
+  "short_name": "AIJE",
+  "description": "AIJE — The eyes have seen, the secret is known.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0e14",
   "theme_color": "#00c2d1",
   "icons": [
     {
-      "src": "/aegis-logo.png",
+      "src": "/aije-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/aegis-logo.png",
+      "src": "/aije-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
