@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
-import "@tensorflow/tfjs";
+import { detectInWorker, waitForWorkerReady } from "@/lib/detectionWorkerClient";
 
 export interface Detection {
   bbox: [number, number, number, number]; // x, y, w, h in video pixels
@@ -16,6 +15,11 @@ interface Options {
   minScore?: number;
 }
 
+/**
+ * Runs COCO-SSD person/object detection off the main thread.
+ * The actual TensorFlow.js model lives in a shared Web Worker so that
+ * multiple cameras don't each reload the model and don't block the UI.
+ */
 export function usePersonDetection({
   videoRef,
   enabled,
@@ -23,66 +27,62 @@ export function usePersonDetection({
   personOnly = true,
   minScore = 0.55,
 }: Options) {
-  const modelRef = useRef<cocoSsd.ObjectDetection | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef(0);
+  const inFlightRef = useRef(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
+  // Warm up worker once (kicks off model load if not already loaded)
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    cocoSsd
-      .load({ base: "lite_mobilenet_v2" })
-      .then((m) => {
-        if (cancelled) return;
-        modelRef.current = m;
-        setLoading(false);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e?.message || "Failed to load model");
-        setLoading(false);
-      });
+    waitForWorkerReady().then(() => {
+      if (!cancelled) setLoading(false);
+    });
     return () => {
       cancelled = true;
     };
   }, []);
 
   useEffect(() => {
-    if (!enabled || loading || !modelRef.current) {
+    if (!enabled || loading) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       setDetections([]);
       return;
     }
 
+    const supportsBitmap = typeof createImageBitmap === "function";
+
     const tick = async () => {
       const video = videoRef.current;
-      const model = modelRef.current;
-      if (!video || !model || video.readyState < 2) {
+      if (!video || video.readyState < 2 || video.videoWidth === 0) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
       const now = performance.now();
-      if (now - lastRef.current < 1000 / fps) {
+      if (now - lastRef.current < 1000 / fps || inFlightRef.current) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
       lastRef.current = now;
+      inFlightRef.current = true;
 
       try {
-        const preds = await model.detect(video, 20);
-        const filtered: Detection[] = preds
-          .filter((p) => p.score >= minScore && (!personOnly || p.class === "person"))
-          .map((p) => ({
-            bbox: p.bbox as [number, number, number, number],
-            score: p.score,
-            class: p.class,
-          }));
+        if (!supportsBitmap) {
+          // Fallback: skip if browser lacks createImageBitmap
+          inFlightRef.current = false;
+          rafRef.current = requestAnimationFrame(tick);
+          return;
+        }
+        const bitmap = await createImageBitmap(video);
+        const preds = await detectInWorker(bitmap, minScore);
+        const filtered = personOnly ? preds.filter((p) => p.class === "person") : preds;
         setDetections(filtered);
       } catch {
-        /* swallow */
+        /* swallow per-frame errors */
+      } finally {
+        inFlightRef.current = false;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
