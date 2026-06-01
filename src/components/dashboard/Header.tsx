@@ -1,7 +1,7 @@
-import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon } from "lucide-react";
+import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import aegisLogo from "@/assets/aegis-logo.png";
+import aijeLogo from "@/assets/aije-logo.png";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -33,11 +33,11 @@ export function Header() {
     >
       <div className="flex items-center gap-3">
         <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
-          <img src={aegisLogo} alt="AEGIS logo" className="h-8 w-8 object-contain" />
+          <img src={aijeLogo} alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
         </div>
         <div>
-          <h1 className="text-lg font-bold tracking-tight text-foreground">AEGIS</h1>
-          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">AI Security Command</p>
+          <h1 className="text-lg font-bold tracking-tight text-foreground">AIJE</h1>
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">The eyes have seen</p>
         </div>
         <div className="hidden sm:flex flex-col items-end mr-2">
           <span className="font-mono text-sm font-semibold text-primary tabular-nums">{time}</span>
@@ -69,10 +69,13 @@ export function Header() {
           <Bell className="h-4 w-4 text-muted-foreground" />
           <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
         </button>
-        <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Control Panel">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
         </Link>
-        <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link to="/detection" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Detection Manager">
+          <ScanEye className="h-4 w-4 text-muted-foreground" />
+        </Link>
+        <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Sensor Settings">
           <Settings className="h-4 w-4 text-muted-foreground" />
         </Link>
         <Link to="/profile" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Profile">

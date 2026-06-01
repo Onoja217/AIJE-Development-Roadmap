@@ -115,7 +115,7 @@ export function MotionSimulator() {
     setPhase("idle");
   };
 
-  // Live validation against the four AEGIS criteria
+  // Live validation against the four AIJE criteria
   const elapsedMs = running ? Date.now() : 0;
   const checks: CheckRow[] = (() => {
     if (phase === "normal") {

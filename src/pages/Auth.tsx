@@ -84,7 +84,7 @@ export default function Auth() {
             <Shield className="h-8 w-8 text-primary" />
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold text-foreground">AEGIS</h1>
+            <h1 className="text-xl font-bold text-foreground">AIJE</h1>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">AI Security Command</p>
           </div>
         </div>
