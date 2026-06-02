@@ -17,6 +17,8 @@ import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { updateDetectionStat, removeDetectionStat } from "@/lib/detectionStats";
+import { useFaceRecognition } from "@/hooks/useFaceRecognition";
+import { useFaceMatcher } from "@/hooks/useFaceMatcher";
 
 import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
 import type { StreamType } from "@/hooks/useCameras";
@@ -131,6 +133,17 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
   const lastZoneAlertRef = useRef(0);
+
+  // ─── Face recognition (on-device; only active after consent + master toggle) ───
+  const fr = useFaceRecognition();
+  const faceActive = fr.isActive && !globallyPaused && !error;
+  const { lastMatch } = useFaceMatcher({
+    videoRef,
+    enabled: faceActive && !isCCTV, // descriptor extraction needs frame access
+    enrollments: fr.enrollments,
+    threshold: fr.settings?.match_threshold ?? 0.55,
+    intervalMs: 1500,
+  });
   const { online, config: smartConfig } = useSmartMotionEngine({
     simulatedMotionLevel,
     user,
@@ -180,6 +193,25 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     if (now - lastZoneAlertRef.current < cooldownMs) return;
     lastZoneAlertRef.current = now;
 
+    // ── Face recognition gate: if a trusted face was just matched, suppress ──
+    const recentTrusted =
+      faceActive &&
+      fr.settings?.suppress_alerts_for_trusted &&
+      lastMatch &&
+      now - lastMatch.at < 3000;
+
+    if (recentTrusted && lastMatch) {
+      fr.logAudit({
+        camera_name: cameraName,
+        match_enrollment_id: lastMatch.enrollmentId,
+        match_label: lastMatch.label,
+        confidence: lastMatch.distance,
+        outcome: "suppressed_alert",
+      });
+      toast(`Trusted: ${lastMatch.label}`, { description: `Alert suppressed in ${cameraName}` });
+      return;
+    }
+
     const severity = zoneAlertSeverity ?? "danger";
     const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
     notify(msg, severity === "danger" ? "danger" : "warning");
@@ -195,6 +227,21 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       value: personCount,
     });
 
+    // Audit log: matched-but-not-suppressed, or unknown
+    if (faceActive) {
+      if (lastMatch && now - lastMatch.at < 3000) {
+        fr.logAudit({
+          camera_name: cameraName,
+          match_enrollment_id: lastMatch.enrollmentId,
+          match_label: lastMatch.label,
+          confidence: lastMatch.distance,
+          outcome: "matched_trusted",
+        });
+      } else if (fr.settings?.log_unknowns) {
+        fr.logAudit({ camera_name: cameraName, outcome: "unknown" });
+      }
+    }
+
     const effectiveSec =
       autoSnapshotIntervalOverrideSec != null
         ? autoSnapshotIntervalOverrideSec
@@ -204,7 +251,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       lastAutoSnapRef.current = now;
       snapshotRef.current();
     }
-  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion]);
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion, faceActive, fr, lastMatch]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
