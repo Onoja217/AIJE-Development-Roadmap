@@ -119,6 +119,150 @@ export type Database = {
         }
         Relationships: []
       }
+      face_consent: {
+        Row: {
+          accepted: boolean
+          accepted_at: string | null
+          created_at: string
+          id: string
+          legal_basis: string | null
+          region: string | null
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted?: boolean
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          legal_basis?: string | null
+          region?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted?: boolean
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          legal_basis?: string | null
+          region?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      face_enrollments: {
+        Row: {
+          consent_subject_acknowledged: boolean
+          created_at: string
+          descriptor: number[]
+          id: string
+          label: string
+          notes: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_subject_acknowledged?: boolean
+          created_at?: string
+          descriptor: number[]
+          id?: string
+          label: string
+          notes?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consent_subject_acknowledged?: boolean
+          created_at?: string
+          descriptor?: number[]
+          id?: string
+          label?: string
+          notes?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      face_privacy_settings: {
+        Row: {
+          audit_retention_days: number
+          created_at: string
+          embedding_retention_days: number
+          fr_enabled: boolean
+          id: string
+          log_unknowns: boolean
+          match_threshold: number
+          suppress_alerts_for_trusted: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audit_retention_days?: number
+          created_at?: string
+          embedding_retention_days?: number
+          fr_enabled?: boolean
+          id?: string
+          log_unknowns?: boolean
+          match_threshold?: number
+          suppress_alerts_for_trusted?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audit_retention_days?: number
+          created_at?: string
+          embedding_retention_days?: number
+          fr_enabled?: boolean
+          id?: string
+          log_unknowns?: boolean
+          match_threshold?: number
+          suppress_alerts_for_trusted?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      face_recognition_audit: {
+        Row: {
+          camera_name: string | null
+          confidence: number | null
+          created_at: string
+          id: string
+          match_enrollment_id: string | null
+          match_label: string | null
+          outcome: string
+          user_id: string
+        }
+        Insert: {
+          camera_name?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          match_enrollment_id?: string | null
+          match_label?: string | null
+          outcome: string
+          user_id: string
+        }
+        Update: {
+          camera_name?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          match_enrollment_id?: string | null
+          match_label?: string | null
+          outcome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -259,7 +403,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      purge_face_audit: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
