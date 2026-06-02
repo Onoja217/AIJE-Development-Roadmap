@@ -193,6 +193,25 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     if (now - lastZoneAlertRef.current < cooldownMs) return;
     lastZoneAlertRef.current = now;
 
+    // ── Face recognition gate: if a trusted face was just matched, suppress ──
+    const recentTrusted =
+      faceActive &&
+      fr.settings?.suppress_alerts_for_trusted &&
+      lastMatch &&
+      now - lastMatch.at < 3000;
+
+    if (recentTrusted && lastMatch) {
+      fr.logAudit({
+        camera_name: cameraName,
+        match_enrollment_id: lastMatch.enrollmentId,
+        match_label: lastMatch.label,
+        confidence: lastMatch.distance,
+        outcome: "suppressed_alert",
+      });
+      toast(`Trusted: ${lastMatch.label}`, { description: `Alert suppressed in ${cameraName}` });
+      return;
+    }
+
     const severity = zoneAlertSeverity ?? "danger";
     const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
     notify(msg, severity === "danger" ? "danger" : "warning");
@@ -208,6 +227,21 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       value: personCount,
     });
 
+    // Audit log: matched-but-not-suppressed, or unknown
+    if (faceActive) {
+      if (lastMatch && now - lastMatch.at < 3000) {
+        fr.logAudit({
+          camera_name: cameraName,
+          match_enrollment_id: lastMatch.enrollmentId,
+          match_label: lastMatch.label,
+          confidence: lastMatch.distance,
+          outcome: "matched_trusted",
+        });
+      } else if (fr.settings?.log_unknowns) {
+        fr.logAudit({ camera_name: cameraName, outcome: "unknown" });
+      }
+    }
+
     const effectiveSec =
       autoSnapshotIntervalOverrideSec != null
         ? autoSnapshotIntervalOverrideSec
@@ -217,7 +251,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       lastAutoSnapRef.current = now;
       snapshotRef.current();
     }
-  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion]);
+  }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion, faceActive, fr, lastMatch]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     stream?.getTracks().forEach((t) => t.stop());
