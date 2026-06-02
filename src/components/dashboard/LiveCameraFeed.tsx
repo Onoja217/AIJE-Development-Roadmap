@@ -17,6 +17,8 @@ import { useSmartMotionEngine } from "@/hooks/useSmartMotionEngine";
 import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { updateDetectionStat, removeDetectionStat } from "@/lib/detectionStats";
+import { useFaceRecognition } from "@/hooks/useFaceRecognition";
+import { useFaceMatcher } from "@/hooks/useFaceMatcher";
 
 import { CCTVPlayer } from "@/components/dashboard/CCTVPlayer";
 import type { StreamType } from "@/hooks/useCameras";
