@@ -133,6 +133,17 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const snapshotRef = useRef<() => void>(() => {});
   const lastAutoSnapRef = useRef(0);
   const lastZoneAlertRef = useRef(0);
+
+  // ─── Face recognition (on-device; only active after consent + master toggle) ───
+  const fr = useFaceRecognition();
+  const faceActive = fr.isActive && !globallyPaused && !error;
+  const { lastMatch } = useFaceMatcher({
+    videoRef,
+    enabled: faceActive && !isCCTV, // descriptor extraction needs frame access
+    enrollments: fr.enrollments,
+    threshold: fr.settings?.match_threshold ?? 0.55,
+    intervalMs: 1500,
+  });
   const { online, config: smartConfig } = useSmartMotionEngine({
     simulatedMotionLevel,
     user,
