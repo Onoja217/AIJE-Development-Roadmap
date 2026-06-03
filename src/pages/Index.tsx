@@ -10,18 +10,22 @@ import { Vibrate, Move, Footprints, Camera, ThermometerSun, Lock } from "lucide-
 import { useLiveSensorData, computeThreatAssessment } from "@/hooks/useLiveSensorData";
 import { requestNotificationPermission } from "@/hooks/useAlertNotifications";
 import { BottomNav } from "@/components/dashboard/BottomNav";
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const sensors = useLiveSensorData(2500);
   const threat = useMemo(() => computeThreatAssessment(sensors), [sensors]);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: containerRef });
+  const isMobile = useIsMobile();
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const sensorY = useTransform(scrollYProgress, [0, 0.3], [0, -15]);
-  const midY = useTransform(scrollYProgress, [0.2, 0.6], [0, -10]);
+  // Disable parallax on mobile — nested transforms + scan-line overlay
+  // cause GPU compositing corruption on some Android Chrome builds.
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", isMobile ? "0%" : "30%"]);
+  const sensorY = useTransform(scrollYProgress, [0, 0.3], [0, isMobile ? 0 : -15]);
+  const midY = useTransform(scrollYProgress, [0.2, 0.6], [0, isMobile ? 0 : -10]);
 
   useEffect(() => {
     requestNotificationPermission();
@@ -30,12 +34,13 @@ const Index = () => {
   return (
     <MuteProvider>
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Parallax background layer */}
+      {/* Parallax background layer (static on mobile) */}
       <motion.div
         style={{ y: bgY }}
-        className="absolute inset-0 grid-overlay pointer-events-none will-change-transform"
+        className="absolute inset-0 grid-overlay pointer-events-none"
       />
-      <div className="absolute inset-0 scan-line pointer-events-none" />
+      {/* Scan-line only on larger viewports — known to cause compositing artifacts on mobile */}
+      {!isMobile && <div className="absolute inset-0 scan-line pointer-events-none" />}
 
       {/* Scrollable content */}
       <div ref={containerRef} className="relative z-10 h-screen overflow-y-auto">
@@ -47,7 +52,7 @@ const Index = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 will-change-transform"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
           >
             <SensorCard icon={Vibrate} label="Vibration" {...sensors.vibration} />
             <SensorCard icon={Move} label="Motion" {...sensors.motion} />
@@ -59,7 +64,7 @@ const Index = () => {
 
           <motion.div
             style={{ y: midY }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-4 will-change-transform"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-4"
           >
             <motion.div
               initial={{ opacity: 0, x: -30 }}
