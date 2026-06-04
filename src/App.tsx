@@ -13,6 +13,9 @@ import FaceRecognition from "./pages/FaceRecognition";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
+import Pricing from "./pages/Pricing";
+import Deployments from "./pages/Deployments";
+import BillingCallback from "./pages/BillingCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
             <Route path="/detection" element={<ProtectedRoute><DetectionManager /></ProtectedRoute>} />
             <Route path="/faces" element={<ProtectedRoute><FaceRecognition /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+            <Route path="/deployments" element={<ProtectedRoute><Deployments /></ProtectedRoute>} />
+            <Route path="/billing/callback" element={<ProtectedRoute><BillingCallback /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
