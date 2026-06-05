@@ -1,9 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { createHmac } from "node:crypto";
+import { processPaystackEvent } from "../_shared/paystack-handler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-paystack-signature",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-paystack-signature",
 };
 
 Deno.serve(async (req) => {
@@ -12,56 +14,68 @@ Deno.serve(async (req) => {
   const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
   if (!PAYSTACK_SECRET_KEY) return new Response("missing secret", { status: 500 });
 
-  const raw = await req.text();
-  const sig = req.headers.get("x-paystack-signature") ?? "";
-  const computed = createHmac("sha512", PAYSTACK_SECRET_KEY).update(raw).digest("hex");
-  if (computed !== sig) return new Response("invalid signature", { status: 401 });
-
-  const evt = JSON.parse(raw);
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey);
 
-  const meta = evt?.data?.metadata ?? {};
-  const userId = meta.user_id;
-  const planId = meta.plan_id;
+  const raw = await req.text();
+  const sig = req.headers.get("x-paystack-signature") ?? "";
+  const computed = createHmac("sha512", PAYSTACK_SECRET_KEY).update(raw).digest("hex");
 
-  try {
-    if (evt.event === "charge.success" && userId && planId) {
-      const periodEnd = new Date();
-      periodEnd.setDate(periodEnd.getDate() + 30);
-      await admin.from("subscriptions").upsert(
-        {
-          user_id: userId,
-          plan_id: planId,
-          status: "active",
-          paystack_customer_code: evt.data?.customer?.customer_code,
-          current_period_end: periodEnd.toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
-    } else if (evt.event === "subscription.disable" || evt.event === "subscription.not_renew") {
-      const code = evt.data?.subscription_code;
-      if (code) {
-        await admin
-          .from("subscriptions")
-          .update({ status: "canceled", cancel_at_period_end: true })
-          .eq("paystack_subscription_code", code);
-      }
-    } else if (evt.event === "invoice.payment_failed") {
-      if (userId) await admin.from("subscriptions").update({ status: "past_due" }).eq("user_id", userId);
-    }
-
-    await admin.from("payment_events").insert({
-      user_id: userId ?? null,
-      event_type: evt.event,
-      reference: evt.data?.reference ?? null,
-      paystack_event_id: evt.data?.id ? String(evt.data.id) : null,
-      payload: evt,
+  if (computed !== sig) {
+    // Log rejected delivery so we can audit suspicious traffic, but don't retry.
+    await admin.from("webhook_dead_letter").insert({
+      source: "paystack",
+      event_type: null,
+      reference: null,
+      payload: safeJson(raw),
+      signature: sig,
+      error: "invalid signature",
+      status: "abandoned",
+      attempts: 1,
+      last_attempt_at: new Date().toISOString(),
     });
-  } catch (e) {
-    console.error("webhook handler error", e);
+    return new Response("invalid signature", { status: 401 });
   }
 
-  return new Response("ok", { headers: corsHeaders });
+  let evt: any;
+  try {
+    evt = JSON.parse(raw);
+  } catch {
+    return new Response("invalid json", { status: 400 });
+  }
+
+  try {
+    await processPaystackEvent(admin, evt);
+    return new Response("ok", { headers: corsHeaders });
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    console.error("paystack-webhook handler error:", msg);
+
+    // Dead-letter so the retry worker can take another swing even if Paystack stops retrying.
+    const nextRetry = new Date(Date.now() + 60_000).toISOString(); // first retry in 1 min
+    await admin.from("webhook_dead_letter").insert({
+      source: "paystack",
+      event_type: evt?.event ?? null,
+      reference: evt?.data?.reference ?? null,
+      payload: evt,
+      signature: sig,
+      error: msg,
+      status: "pending",
+      attempts: 1,
+      last_attempt_at: new Date().toISOString(),
+      next_retry_at: nextRetry,
+    });
+
+    // Return 500 so Paystack also retries on its own schedule.
+    return new Response("queued for retry", { status: 500, headers: corsHeaders });
+  }
 });
+
+function safeJson(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return { raw: s.slice(0, 4000) };
+  }
+}

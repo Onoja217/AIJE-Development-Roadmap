@@ -574,6 +574,57 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_dead_letter: {
+        Row: {
+          attempts: number
+          created_at: string
+          error: string | null
+          event_type: string | null
+          id: string
+          last_attempt_at: string | null
+          max_attempts: number
+          next_retry_at: string
+          payload: Json
+          reference: string | null
+          signature: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          next_retry_at?: string
+          payload: Json
+          reference?: string | null
+          signature?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          next_retry_at?: string
+          payload?: Json
+          reference?: string | null
+          signature?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
