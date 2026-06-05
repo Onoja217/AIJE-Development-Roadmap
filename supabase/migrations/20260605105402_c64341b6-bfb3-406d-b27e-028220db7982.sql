@@ -1,0 +1,1 @@
+DELETE FROM public.subscriptions WHERE user_id='2f54fe76-96f5-4932-97e8-6721e8cb2426' AND paystack_customer_code='CUS_test'; DELETE FROM public.payment_events WHERE reference LIKE 'TEST_REF_%';
