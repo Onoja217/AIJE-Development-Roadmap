@@ -574,6 +574,75 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_alert_settings: {
+        Row: {
+          cooldown_minutes: number
+          created_at: string
+          dead_letter_threshold: number
+          enabled: boolean
+          latency_p95_threshold_ms: number
+          updated_at: string
+          user_id: string
+          window_minutes: number
+        }
+        Insert: {
+          cooldown_minutes?: number
+          created_at?: string
+          dead_letter_threshold?: number
+          enabled?: boolean
+          latency_p95_threshold_ms?: number
+          updated_at?: string
+          user_id: string
+          window_minutes?: number
+        }
+        Update: {
+          cooldown_minutes?: number
+          created_at?: string
+          dead_letter_threshold?: number
+          enabled?: boolean
+          latency_p95_threshold_ms?: number
+          updated_at?: string
+          user_id?: string
+          window_minutes?: number
+        }
+        Relationships: []
+      }
+      webhook_alerts: {
+        Row: {
+          acknowledged: boolean
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          threshold: number
+          user_id: string
+          value: number
+          window_minutes: number
+        }
+        Insert: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          threshold: number
+          user_id: string
+          value: number
+          window_minutes: number
+        }
+        Update: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          threshold?: number
+          user_id?: string
+          value?: number
+          window_minutes?: number
+        }
+        Relationships: []
+      }
       webhook_dead_letter: {
         Row: {
           attempts: number

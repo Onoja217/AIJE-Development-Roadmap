@@ -6,3 +6,7 @@ verify_jwt = false
 [functions.paystack-webhook-retry]
 verify_jwt = false
 
+[functions.webhook-alerts-monitor]
+verify_jwt = false
+
+

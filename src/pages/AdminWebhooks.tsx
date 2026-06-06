@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Activity, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { WebhookAlertsPanel } from "@/components/admin/WebhookAlertsPanel";
 
 type Delivery = {
   id: string;
@@ -157,6 +158,7 @@ export default function AdminWebhooks() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <WebhookAlertsPanel />
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Stat label="Deliveries" value={totals.total} icon={<Activity className="h-4 w-4" />} />
           <Stat label="Avg latency" value={`${totals.avgLatency}ms`} icon={<Activity className="h-4 w-4" />} />
