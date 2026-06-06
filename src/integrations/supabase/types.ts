@@ -625,6 +625,45 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_deliveries: {
+        Row: {
+          attempt: number
+          created_at: string
+          delivered_at: string
+          error: string | null
+          event_type: string | null
+          id: string
+          latency_ms: number
+          reference: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          latency_ms?: number
+          reference?: string | null
+          source: string
+          status: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          latency_ms?: number
+          reference?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
