@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Pricing from "./pages/Pricing";
 import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
+import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
             <Route path="/deployments" element={<ProtectedRoute><Deployments /></ProtectedRoute>} />
             <Route path="/billing/callback" element={<ProtectedRoute><BillingCallback /></ProtectedRoute>} />
+            <Route path="/admin/webhooks" element={<ProtectedRoute><AdminWebhooks /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
