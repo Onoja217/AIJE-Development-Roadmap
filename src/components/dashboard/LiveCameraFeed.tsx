@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
   Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
-  WifiOff, Brain, UserSearch, ShieldAlert, Pencil
+  WifiOff, Brain, UserSearch, ShieldAlert, Pencil, Moon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
