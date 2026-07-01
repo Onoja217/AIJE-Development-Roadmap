@@ -485,6 +485,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                 <ShieldAlert className="h-3 w-3" /> ZONE ARMED
               </span>
             )}
+            {nightVision && (
+              <span className="flex items-center gap-1 rounded-md bg-success/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-success-foreground">
+                <Moon className="h-3 w-3" /> NIGHT VISION
+              </span>
+            )}
           </div>
 
 
