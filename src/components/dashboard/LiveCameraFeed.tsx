@@ -61,6 +61,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [flashEffect, setFlashEffect] = useState(false);
+  const [nightVision, setNightVision] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
