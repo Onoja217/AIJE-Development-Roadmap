@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, CameraOff, SwitchCamera, Maximize2, Minimize2,
   Circle, Square, Download, Image as ImageIcon, Cloud, Loader2, Scan, ScanLine,
-  WifiOff, Brain, UserSearch, ShieldAlert, Pencil
+  WifiOff, Brain, UserSearch, ShieldAlert, Pencil, Moon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCameraMedia } from "@/hooks/useCameraMedia";
@@ -61,6 +61,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [flashEffect, setFlashEffect] = useState(false);
+  const [nightVision, setNightVision] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -405,15 +406,36 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
         </div>
       ) : (
         <>
-          {isCCTV && streamUrl ? (
-            <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
+          <div
+            className="absolute inset-0"
+            style={
+              nightVision
+                ? {
+                    filter:
+                      "grayscale(1) brightness(1.6) contrast(1.4) sepia(1) hue-rotate(60deg) saturate(6)",
+                  }
+                : undefined
+            }
+          >
+            {isCCTV && streamUrl ? (
+              <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </div>
+          {nightVision && (
+            <div
+              className="absolute inset-0 pointer-events-none mix-blend-overlay"
+              style={{
+                background:
+                  "radial-gradient(circle at center, rgba(0,255,120,0.05), rgba(0,0,0,0.35) 80%)",
+              }}
             />
           )}
           <div className="scan-line absolute inset-0 pointer-events-none" />
@@ -463,6 +485,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                 <ShieldAlert className="h-3 w-3" /> ZONE ARMED
               </span>
             )}
+            {nightVision && (
+              <span className="flex items-center gap-1 rounded-md bg-success/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-success-foreground">
+                <Moon className="h-3 w-3" /> NIGHT VISION
+              </span>
+            )}
           </div>
 
 
@@ -498,6 +525,15 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
           {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
+            <button
+              onClick={() => setNightVision((v) => !v)}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                nightVision ? "bg-success/80 hover:bg-success" : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={nightVision ? "Disable night vision" : "Enable night vision"}
+            >
+              <Moon className={`h-4 w-4 ${nightVision ? "text-success-foreground" : "text-foreground"}`} />
+            </button>
             <button
               onClick={() => {
                 setZoneEnabled((v) => {
