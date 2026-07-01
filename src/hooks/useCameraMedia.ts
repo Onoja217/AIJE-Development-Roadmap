@@ -34,12 +34,14 @@ export function useCameraMedia() {
       return;
     }
 
-    const items: CameraMediaItem[] = (data || []).map((row: any) => {
-      const { data: urlData } = supabase.storage
-        .from("camera-media")
-        .getPublicUrl(row.file_path);
-      return { ...row, url: urlData.publicUrl };
-    });
+    const items: CameraMediaItem[] = await Promise.all(
+      (data || []).map(async (row: any) => {
+        const { data: signed } = await supabase.storage
+          .from("camera-media")
+          .createSignedUrl(row.file_path, 60 * 60);
+        return { ...row, url: signed?.signedUrl ?? "" };
+      })
+    );
 
     setMedia(items);
     setLoading(false);
