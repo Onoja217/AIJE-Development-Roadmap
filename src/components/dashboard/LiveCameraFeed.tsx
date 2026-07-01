@@ -406,15 +406,36 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
         </div>
       ) : (
         <>
-          {isCCTV && streamUrl ? (
-            <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
+          <div
+            className="absolute inset-0"
+            style={
+              nightVision
+                ? {
+                    filter:
+                      "grayscale(1) brightness(1.6) contrast(1.4) sepia(1) hue-rotate(60deg) saturate(6)",
+                  }
+                : undefined
+            }
+          >
+            {isCCTV && streamUrl ? (
+              <CCTVPlayer url={streamUrl} type={streamType ?? "hls"} videoRef={videoRef} />
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </div>
+          {nightVision && (
+            <div
+              className="absolute inset-0 pointer-events-none mix-blend-overlay"
+              style={{
+                background:
+                  "radial-gradient(circle at center, rgba(0,255,120,0.05), rgba(0,0,0,0.35) 80%)",
+              }}
             />
           )}
           <div className="scan-line absolute inset-0 pointer-events-none" />
