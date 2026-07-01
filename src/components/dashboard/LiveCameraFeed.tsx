@@ -521,6 +521,15 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
           {/* Top-right: motion toggle, switch camera, fullscreen */}
           <div className="absolute top-2 right-2 flex gap-1.5">
             <button
+              onClick={() => setNightVision((v) => !v)}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
+                nightVision ? "bg-success/80 hover:bg-success" : "bg-background/70 hover:bg-background/90"
+              }`}
+              title={nightVision ? "Disable night vision" : "Enable night vision"}
+            >
+              <Moon className={`h-4 w-4 ${nightVision ? "text-success-foreground" : "text-foreground"}`} />
+            </button>
+            <button
               onClick={() => {
                 setZoneEnabled((v) => {
                   const next = !v;
