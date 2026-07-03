@@ -18,6 +18,14 @@ export default function Profile() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const signAvatar = async (path: string) => {
+    if (!path) return null;
+    // Backward compat: legacy public URLs stored directly
+    if (path.startsWith("http")) return path;
+    const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60);
+    return data?.signedUrl ?? null;
+  };
+
   useEffect(() => {
     if (!user) return;
     const fetchProfile = async () => {
@@ -28,7 +36,7 @@ export default function Profile() {
         .single();
       if (data) {
         setDisplayName(data.display_name || "");
-        setAvatarUrl(data.avatar_url);
+        setAvatarUrl(await signAvatar(data.avatar_url || ""));
       }
       setLoadingProfile(false);
     };
@@ -58,17 +66,13 @@ export default function Profile() {
         .upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-
-      const url = `${publicUrl}?t=${Date.now()}`;
-      setAvatarUrl(url);
-
       await supabase
         .from("profiles")
-        .update({ avatar_url: url })
+        .update({ avatar_url: filePath })
         .eq("user_id", user.id);
+
+      const signed = await signAvatar(filePath);
+      setAvatarUrl(signed ? `${signed}#t=${Date.now()}` : null);
 
       toast({ title: "Avatar updated", description: "Your profile picture has been updated." });
     } catch (error: any) {
@@ -77,6 +81,7 @@ export default function Profile() {
       setUploading(false);
     }
   };
+
 
   const handleSave = async () => {
     if (!user) return;
