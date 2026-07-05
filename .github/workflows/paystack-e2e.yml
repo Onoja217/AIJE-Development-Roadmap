@@ -1,0 +1,62 @@
+name: Paystack E2E
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/paystack-**"
+      - ".github/workflows/paystack-e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  paystack-verify-e2e:
+    name: paystack-verify end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v1.x
+
+      - name: Verify required secrets are configured
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+        run: |
+          missing=0
+          for name in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY PAYSTACK_SECRET_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing repository secret: $name"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Run paystack-verify e2e test
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+        run: |
+          deno test \
+            --allow-net \
+            --allow-env \
+            --allow-read \
+            --no-check \
+            supabase/functions/paystack-verify/e2e_test.ts
+
+      - name: Report result
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "### ✅ Paystack E2E passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Paystack E2E failed" >> $GITHUB_STEP_SUMMARY
+            echo "See the \`Run paystack-verify e2e test\` step above for details." >> $GITHUB_STEP_SUMMARY
+          fi
