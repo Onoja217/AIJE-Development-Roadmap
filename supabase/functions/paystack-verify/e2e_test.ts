@@ -24,7 +24,12 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const PAYSTACK = Deno.env.get("PAYSTACK_SECRET_KEY")!;
 const FN_BASE = `${SUPABASE_URL}/functions/v1`;
 
-Deno.test("paystack billing flow: init → webhook → active subscription → callback verify", async () => {
+Deno.test({
+  name: "paystack billing flow: init → webhook → active subscription → callback verify",
+  // Supabase client keeps internal intervals (realtime/auth refresh) alive; safe to ignore here.
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
   assert(SUPABASE_URL && ANON && SERVICE && PAYSTACK, "env vars must be set");
 
   const admin = createClient(SUPABASE_URL, SERVICE);
@@ -152,4 +157,5 @@ Deno.test("paystack billing flow: init → webhook → active subscription → c
     await admin.from("subscriptions").delete().eq("user_id", userId);
     await admin.auth.admin.deleteUser(userId);
   }
+  },
 });
