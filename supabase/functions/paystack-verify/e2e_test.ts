@@ -157,4 +157,5 @@ Deno.test({
     await admin.from("subscriptions").delete().eq("user_id", userId);
     await admin.auth.admin.deleteUser(userId);
   }
+  },
 });
