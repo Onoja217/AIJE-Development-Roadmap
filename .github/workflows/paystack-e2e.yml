@@ -51,12 +51,27 @@ jobs:
             --no-check \
             supabase/functions/paystack-verify/e2e_test.ts
 
+      - name: Run paystack-webhook-retry e2e test
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+        run: |
+          deno test \
+            --allow-net \
+            --allow-env \
+            --allow-read \
+            --no-check \
+            supabase/functions/paystack-webhook-retry/e2e_test.ts
+
       - name: Report result
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            echo "### ✅ Paystack E2E passed" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Paystack E2E passed (verify + webhook-retry)" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Paystack E2E failed" >> $GITHUB_STEP_SUMMARY
-            echo "See the \`Run paystack-verify e2e test\` step above for details." >> $GITHUB_STEP_SUMMARY
+            echo "See the failing test step above for details." >> $GITHUB_STEP_SUMMARY
           fi
+
