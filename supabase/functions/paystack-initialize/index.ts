@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { loadPaystackSecretKey, logPaystackMode } from "../_shared/paystack-key.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +10,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
-    if (!PAYSTACK_SECRET_KEY) throw new Error("PAYSTACK_SECRET_KEY not configured");
+    const keyInfo = loadPaystackSecretKey();
+    logPaystackMode("paystack-initialize", keyInfo);
+    const PAYSTACK_SECRET_KEY = keyInfo.key;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -66,6 +68,7 @@ Deno.serve(async (req) => {
         authorization_url: psJson.data.authorization_url,
         reference: psJson.data.reference,
         access_code: psJson.data.access_code,
+        mode: keyInfo.mode,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

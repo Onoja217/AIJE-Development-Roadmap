@@ -43,6 +43,11 @@ export default function Pricing() {
       });
       if (error) throw error;
       if (!data?.authorization_url) throw new Error("No checkout URL returned");
+      // Non-secret: surfaces whether the backend initialized checkout in live or test mode.
+      console.info(`[Paystack] checkout mode: ${data.mode ?? "unknown"}`);
+      if (data.mode === "test") {
+        toast.warning("Checkout is running in TEST mode — no real charge will be made.");
+      }
       window.location.href = data.authorization_url;
     } catch (e: any) {
       toast.error(e.message ?? "Could not start checkout");
