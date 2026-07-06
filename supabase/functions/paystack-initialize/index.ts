@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
         authorization_url: psJson.data.authorization_url,
         reference: psJson.data.reference,
         access_code: psJson.data.access_code,
+        mode: keyInfo.mode,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
