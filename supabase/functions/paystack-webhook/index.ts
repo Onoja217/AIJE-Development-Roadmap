@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { createHmac } from "node:crypto";
 import { processPaystackEvent } from "../_shared/paystack-handler.ts";
 import { logJson, recordDelivery } from "../_shared/structured-log.ts";
+import { loadPaystackSecretKey, logPaystackMode } from "../_shared/paystack-key.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,8 +14,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const started = Date.now();
-  const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
-  if (!PAYSTACK_SECRET_KEY) return new Response("missing secret", { status: 500 });
+  let keyInfo;
+  try {
+    keyInfo = loadPaystackSecretKey();
+    logPaystackMode("paystack-webhook", keyInfo);
+  } catch (e) {
+    logJson("error", "paystack.webhook.key_error", { error: (e as Error).message });
+    return new Response("missing or invalid PAYSTACK_SECRET_KEY", { status: 500 });
+  }
+  const PAYSTACK_SECRET_KEY = keyInfo.key;
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
