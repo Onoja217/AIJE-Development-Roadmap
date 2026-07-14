@@ -44,6 +44,180 @@ export type Database = {
         }
         Relationships: []
       }
+      community_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          message: string
+          priority: string
+          channel: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          message: string
+          priority: string
+          channel: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          message?: string
+          priority?: string
+          channel?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_reports: {
+        Row: {
+          created_at: string
+          id: string
+          category: string
+          location: string | null
+          details: string
+          contact_phone: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          category: string
+          location?: string | null
+          details: string
+          contact_phone?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          category?: string
+          location?: string | null
+          details?: string
+          contact_phone?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_watch_groups: {
+        Row: {
+          created_at: string
+          id: string
+          group_name: string
+          area: string | null
+          members_count: number
+          contact_phone: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          group_name: string
+          area?: string | null
+          members_count?: number
+          contact_phone?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          group_name?: string
+          area?: string | null
+          members_count?: number
+          contact_phone?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resource_locations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          resource_type: string
+          description: string | null
+          address: string | null
+          contact_phone: string | null
+          is_safe: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          resource_type: string
+          description?: string | null
+          address?: string | null
+          contact_phone?: string | null
+          is_safe?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          resource_type?: string
+          description?: string | null
+          address?: string | null
+          contact_phone?: string | null
+          is_safe?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      family_reunifications: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          relation: string | null
+          last_seen_location: string | null
+          last_seen_date: string | null
+          contact_phone: string | null
+          status: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          relation?: string | null
+          last_seen_location?: string | null
+          last_seen_date?: string | null
+          contact_phone?: string | null
+          status?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          relation?: string | null
+          last_seen_location?: string | null
+          last_seen_date?: string | null
+          contact_phone?: string | null
+          status?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       camera_media: {
         Row: {
           camera_name: string

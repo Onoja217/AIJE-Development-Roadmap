@@ -17,6 +17,7 @@ import Pricing from "./pages/Pricing";
 import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
+import CommunityResponse from "./pages/CommunityResponse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/control" element={<ProtectedRoute><ControlPanel /></ProtectedRoute>} />
             <Route path="/detection" element={<ProtectedRoute><DetectionManager /></ProtectedRoute>} />
             <Route path="/faces" element={<ProtectedRoute><FaceRecognition /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><CommunityResponse /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
             <Route path="/deployments" element={<ProtectedRoute><Deployments /></ProtectedRoute>} />

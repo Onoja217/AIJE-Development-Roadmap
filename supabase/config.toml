@@ -9,4 +9,7 @@ verify_jwt = false
 [functions.webhook-alerts-monitor]
 verify_jwt = false
 
+[functions.community-sms]
+verify_jwt = false
+
 

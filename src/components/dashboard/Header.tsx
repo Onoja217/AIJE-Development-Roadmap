@@ -1,4 +1,4 @@
-import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye } from "lucide-react";
+import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import aijeLogo from "@/assets/aije-logo.png";
@@ -74,6 +74,9 @@ export function Header() {
         </Link>
         <Link to="/detection" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Detection Manager">
           <ScanEye className="h-4 w-4 text-muted-foreground" />
+        </Link>
+        <Link to="/community" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Community Response">
+          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
         </Link>
         <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Sensor Settings">
           <Settings className="h-4 w-4 text-muted-foreground" />
