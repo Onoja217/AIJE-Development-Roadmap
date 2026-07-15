@@ -55,7 +55,7 @@ export function PersonDetectionOverlay({ detections, videoWidth, videoHeight }: 
                   fontFamily="monospace"
                   fontWeight={700}
                 >
-                  {d.class.toUpperCase()} {Math.round(d.score * 100)}%
+                  {d.class.toUpperCase()} {d.trackId != null ? `#${d.trackId} ` : ""}{Math.round(d.score * 100)}%
                 </text>
               </motion.g>
             );
