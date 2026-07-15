@@ -42,7 +42,8 @@ export function useCameras() {
       if (!user) return;
       const { error } = await supabase.from("cameras").insert({ ...input, user_id: user.id });
       if (error) {
-        toast.error("Failed to add camera");
+        console.error("Failed to add camera:", error);
+        toast.error(`Failed to add camera: ${error.message}`);
         return;
       }
       toast.success("Camera added");

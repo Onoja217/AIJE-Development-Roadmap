@@ -62,6 +62,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const [recordingTime, setRecordingTime] = useState(0);
   const [flashEffect, setFlashEffect] = useState(false);
   const [nightVision, setNightVision] = useState(false);
+  const [threatScore, setThreatScore] = useState<number>(0);
+  const [zoneIntrusionActive, setZoneIntrusionActive] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -85,14 +87,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     sensitivity: 45,
   });
 
+  // Motion-gate: only run expensive AI inference when there is active motion.
+  // If motion detection is disabled by the user, fall back to always-on AI.
+  const hasActiveMotion = motionLevel > 1.5;
+  const shouldProcessAI = !motionEnabled || hasActiveMotion;
+
   const { detections, loading: modelLoading } = usePersonDetection({
     videoRef,
     enabled: personDetectEnabled && !error && !globallyPaused,
     fps: 6,
     personOnly: false,
     minScore: 0.55,
+    shouldProcess: shouldProcessAI,
   });
-  const personCount = detections.filter((d) => d.class === "person").length;
+  const personCount = detections.filter((d) => d.class === "person" && (d.seenCount ?? 0) >= 3).length;
 
   // Telemetry → Detection Manager (rolling fps from detection batches)
   const detectTimestampsRef = useRef<number[]>([]);
@@ -131,9 +139,10 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   const { user } = useAuth();
   const { notify } = useAlertNotifications();
   const { queueAlert } = useOfflineQueue(user);
-  const snapshotRef = useRef<() => void>(() => {});
+  const snapshotRef = useRef<() => void>(() => { });
   const lastAutoSnapRef = useRef(0);
   const lastZoneAlertRef = useRef(0);
+  const alertedTrackIdsRef = useRef<Record<number, number>>({});
 
   // ─── Face recognition (on-device; only active after consent + master toggle) ───
   const fr = useFaceRecognition();
@@ -169,30 +178,82 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
 
   // Restricted-zone intrusion: alert when a person bbox center enters the zone
   useEffect(() => {
-    if (!zoneEnabled) return;
+    if (!zoneEnabled) {
+      setZoneIntrusionActive(false);
+      setThreatScore(0);
+      return;
+    }
     let inside = false;
+    let maxConfidence = 0.70;
+    let maxSeenCount = 0;
+
     if (simulatedZoneIntrusion) {
       inside = true;
+      maxConfidence = 0.85;
+      maxSeenCount = 10;
     } else {
-      if (!personDetectEnabled || personCount === 0) return;
+      if (!personDetectEnabled || personCount === 0) {
+        setZoneIntrusionActive(false);
+        setThreatScore(0);
+        return;
+      }
       const video = videoRef.current;
-      if (!video || !video.videoWidth) return;
+      if (!video || !video.videoWidth) {
+        setZoneIntrusionActive(false);
+        setThreatScore(0);
+        return;
+      }
       const vw = video.videoWidth;
       const vh = video.videoHeight;
-      inside = detections.some((d) => {
+      const inZone = detections.filter((d) => {
         if (d.class !== "person") return false;
+        // Gate: Must be seen for at least 3 frames to avoid transient false alarms
+        if (d.seenCount && d.seenCount < 3) return false;
         const [x, y, w, h] = d.bbox;
         const cx = (x + w / 2) / vw;
         const cy = (y + h / 2) / vh;
         return cx >= zone.x && cx <= zone.x + zone.w && cy >= zone.y && cy <= zone.y + zone.h;
       });
+
+      inside = inZone.length > 0;
+      if (inside) {
+        maxConfidence = inZone.reduce((max, d) => Math.max(max, d.score), 0);
+        maxSeenCount = inZone.reduce((max, d) => Math.max(max, d.seenCount ?? 0), 0);
+      }
     }
-    if (!inside) return;
+
+    if (!inside) {
+      setZoneIntrusionActive(false);
+      setThreatScore(0);
+      return;
+    }
 
     const now = Date.now();
+    const hasFaceMatch = faceActive && lastMatch && (now - lastMatch.at < 3000);
+    const faceMatchInfo = hasFaceMatch ? { isTrusted: true } : null;
+
+    const computedScore = calculateThreatScore({
+      maxConfidence,
+      maxSeenCount,
+      zoneSeverity: zoneAlertSeverity ?? "danger",
+      faceMatch: faceMatchInfo,
+    });
+
+    setZoneIntrusionActive(true);
+    setThreatScore(computedScore);
+
     const cooldownMs = (zoneCooldownSec ?? 30) * 1000;
-    if (now - lastZoneAlertRef.current < cooldownMs) return;
-    lastZoneAlertRef.current = now;
+    
+    // Filter intruders to only evaluate targets not currently in cooldown
+    const targetsToAlert = simulatedZoneIntrusion
+      ? [{ trackId: -1 }]
+      : inZone.filter((p) => {
+          if (p.trackId === undefined) return true;
+          const lastAlertTime = alertedTrackIdsRef.current[p.trackId];
+          return !lastAlertTime || (now - lastAlertTime >= cooldownMs);
+        });
+
+    if (targetsToAlert.length === 0) return;
 
     // ── Face recognition gate: if a trusted face was just matched, suppress ──
     const recentTrusted =
@@ -213,19 +274,38 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       return;
     }
 
-    const severity = zoneAlertSeverity ?? "danger";
-    const msg = `Intrusion: person detected in restricted zone (${cameraName})`;
+    // Dynamic severity mapping based on threat score
+    let severity: "info" | "warning" | "danger" = "warning";
+    if (computedScore > 75) {
+      severity = "danger";
+    } else if (computedScore < 40) {
+      severity = "info";
+    }
+
+    const idsString = targetsToAlert
+      .map((t) => (t.trackId === -1 ? "simulation" : `#${t.trackId}`))
+      .join(", ");
+    const msg = `Intrusion: person ${idsString} detected in restricted zone (${cameraName}) [Threat Score: ${computedScore}%]`;
+    
     notify(msg, severity === "danger" ? "danger" : "warning");
     const toastTitle =
       severity === "danger" ? "⚠️ Intrusion detected"
-      : severity === "warning" ? "Zone activity"
-      : "Zone notice";
+        : severity === "warning" ? "Zone activity"
+          : "Zone notice";
     toast(toastTitle, { description: msg });
+    
     queueAlert({
       sensor_type: "person_zone",
       severity,
       message: msg,
-      value: personCount,
+      value: computedScore,
+    });
+
+    // Mark targets as alerted in cooldown tracker
+    targetsToAlert.forEach((t) => {
+      if (t.trackId !== undefined) {
+        alertedTrackIdsRef.current[t.trackId] = now;
+      }
     });
 
     // Audit log: matched-but-not-suppressed, or unknown
@@ -411,9 +491,9 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
             style={
               nightVision
                 ? {
-                    filter:
-                      "grayscale(1) brightness(1.6) contrast(1.4) sepia(1) hue-rotate(60deg) saturate(6)",
-                  }
+                  filter:
+                    "grayscale(1) brightness(1.6) contrast(1.4) sepia(1) hue-rotate(60deg) saturate(6)",
+                }
                 : undefined
             }
           >
@@ -485,6 +565,11 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                 <ShieldAlert className="h-3 w-3" /> ZONE ARMED
               </span>
             )}
+            {zoneIntrusionActive && (
+              <span className="flex items-center gap-1 rounded-md bg-destructive animate-pulse px-2 py-0.5 text-[9px] font-mono text-destructive-foreground">
+                <ShieldAlert className="h-3 w-3" /> THREAT: {threatScore}%
+              </span>
+            )}
             {nightVision && (
               <span className="flex items-center gap-1 rounded-md bg-success/80 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono text-success-foreground">
                 <Moon className="h-3 w-3" /> NIGHT VISION
@@ -527,9 +612,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
           <div className="absolute top-2 right-2 flex gap-1.5">
             <button
               onClick={() => setNightVision((v) => !v)}
-              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
-                nightVision ? "bg-success/80 hover:bg-success" : "bg-background/70 hover:bg-background/90"
-              }`}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${nightVision ? "bg-success/80 hover:bg-success" : "bg-background/70 hover:bg-background/90"
+                }`}
               title={nightVision ? "Disable night vision" : "Enable night vision"}
             >
               <Moon className={`h-4 w-4 ${nightVision ? "text-success-foreground" : "text-foreground"}`} />
@@ -543,9 +627,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                   return next;
                 });
               }}
-              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
-                zoneEnabled ? "bg-warning/80 hover:bg-warning" : "bg-background/70 hover:bg-background/90"
-              }`}
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${zoneEnabled ? "bg-warning/80 hover:bg-warning" : "bg-background/70 hover:bg-background/90"
+                }`}
               title={zoneEnabled ? "Disable restricted zone" : "Enable restricted zone"}
             >
               <ShieldAlert className={`h-4 w-4 ${zoneEnabled ? "text-warning-foreground" : "text-foreground"}`} />
@@ -558,9 +641,8 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
                     return !v;
                   });
                 }}
-                className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
-                  zoneEditing ? "bg-primary/80 hover:bg-primary" : "bg-background/70 hover:bg-background/90"
-                }`}
+                className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${zoneEditing ? "bg-primary/80 hover:bg-primary" : "bg-background/70 hover:bg-background/90"
+                  }`}
                 title={zoneEditing ? "Done editing zone" : "Edit zone"}
               >
                 <Pencil className={`h-4 w-4 ${zoneEditing ? "text-primary-foreground" : "text-foreground"}`} />
@@ -568,22 +650,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
             )}
             <button
               onClick={() => setPersonDetectEnabled((v) => !v)}
-              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
-                personDetectEnabled
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${personDetectEnabled
                   ? "bg-destructive/70 hover:bg-destructive/90"
                   : "bg-background/70 hover:bg-background/90"
-              }`}
+                }`}
               title={personDetectEnabled ? "Disable person detection (AI)" : "Enable person detection (AI)"}
             >
               <UserSearch className={`h-4 w-4 ${personDetectEnabled ? "text-white" : "text-foreground"}`} />
             </button>
             <button
               onClick={() => setMotionEnabled((v) => !v)}
-              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${
-                motionEnabled
+              className={`rounded-md backdrop-blur-sm p-1.5 transition-colors ${motionEnabled
                   ? "bg-destructive/70 hover:bg-destructive/90"
                   : "bg-background/70 hover:bg-background/90"
-              }`}
+                }`}
               title={motionEnabled ? "Disable motion detection" : "Enable motion detection"}
             >
               <Scan className={`h-4 w-4 ${motionEnabled ? "text-white" : "text-foreground"}`} />
@@ -627,11 +707,10 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
               {/* Record button */}
               <button
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`rounded-full backdrop-blur-sm p-2 transition-colors ${
-                  isRecording
+                className={`rounded-full backdrop-blur-sm p-2 transition-colors ${isRecording
                     ? "bg-destructive/80 hover:bg-destructive"
                     : "bg-background/70 hover:bg-background/90"
-                }`}
+                  }`}
                 title={isRecording ? "Stop recording" : "Start recording"}
               >
                 {isRecording ? (
@@ -663,4 +742,40 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       )}
     </motion.div>
   );
+}
+
+interface ThreatScoreInput {
+  maxConfidence: number;      // highest confidence of detections in zone (0.70 to 1.00)
+  maxSeenCount: number;       // highest frames target has been present
+  zoneSeverity: "info" | "warning" | "danger";
+  faceMatch?: { isTrusted: boolean } | null;
+}
+
+function calculateThreatScore(input: ThreatScoreInput): number {
+  let score = 0;
+
+  // 1. Detection confidence contribution (up to 40 pts)
+  score += input.maxConfidence * 40;
+
+  // 2. Presence duration contribution (up to 30 pts)
+  // Cap at 30 frames (~5 seconds of lingering)
+  score += Math.min(30, input.maxSeenCount) * 1.0;
+
+  // 3. Zone configuration priority (up to 20 pts)
+  if (input.zoneSeverity === "danger") {
+    score += 20;
+  } else if (input.zoneSeverity === "warning") {
+    score += 10;
+  }
+
+  // 4. Face recognition override (trusted faces deduct 50 pts)
+  if (input.faceMatch) {
+    if (input.faceMatch.isTrusted) {
+      score = Math.max(5, score - 50); // Suppress but keep low baseline
+    } else {
+      score = Math.min(100, score + 10); // Unrecognized faces add threat
+    }
+  }
+
+  return Math.min(100, Math.round(score));
 }

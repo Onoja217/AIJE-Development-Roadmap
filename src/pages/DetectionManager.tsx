@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { ScanEye, UserSearch, ShieldAlert, Cpu, Activity, WifiOff, Pause, Play } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
+import { Slider } from "@/components/ui/slider";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { useCameras } from "@/hooks/useCameras";
 import { useAuth } from "@/hooks/useAuth";
@@ -198,6 +199,17 @@ function CameraOpsCard({
   const isDetecting = !!live?.enabled;
   const stale = live && Date.now() - live.lastDetectionAt > 5000;
 
+  const [confidence, setConfidence] = useState<number>(() => {
+    const val = localStorage.getItem(`aije.detection.confidence.${cam.name}`);
+    return val ? parseFloat(val) : 0.70;
+  });
+
+  const handleConfidenceChange = (val: number[]) => {
+    const newVal = val[0];
+    setConfidence(newVal);
+    localStorage.setItem(`aije.detection.confidence.${cam.name}`, newVal.toString());
+  };
+
   return (
     <div className="rounded-lg border border-border bg-card/60 backdrop-blur-sm p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
@@ -241,6 +253,21 @@ function CameraOpsCard({
         <Metric label="Persons" value={isLive ? String(live.personCount) : "—"} />
         <Metric label="AI FPS" value={isLive ? live.fps.toFixed(1) : "—"} />
         <Metric label="Zone" value={live?.zoneArmed ? "ARMED" : "off"} />
+      </div>
+
+      <div className="pt-2 border-t border-border/40 space-y-1.5">
+        <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+          <span>Confidence Threshold</span>
+          <span className="text-primary font-bold">{Math.round(confidence * 100)}%</span>
+        </div>
+        <Slider
+          value={[confidence]}
+          onValueChange={handleConfidenceChange}
+          min={0.50}
+          max={0.95}
+          step={0.05}
+          className="py-1"
+        />
       </div>
 
       {live?.modelLoading && (
