@@ -18,6 +18,7 @@ import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
+import { CommunityDashboard } from "@/components/CommunityDashboard";
 
 const queryClient = new QueryClient();
 
