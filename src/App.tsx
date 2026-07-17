@@ -18,6 +18,8 @@ import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
+import { EmergencyResourceMap } from "@/components/EmergencyResourceMap";
+
 
 const queryClient = new QueryClient();
 
