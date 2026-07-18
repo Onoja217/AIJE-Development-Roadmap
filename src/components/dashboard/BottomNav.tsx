@@ -1,9 +1,10 @@
-import { Shield, Activity, Smartphone, UserCircle, ScanEye, ScanFace, Server } from "lucide-react";
+import { Shield, Activity, Smartphone, UserCircle, ScanEye, ScanFace, Server, Video } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Shield, label: "Dashboard", path: "/" },
+  { icon: Video, label: "Cameras", path: "/cameras" },
   { icon: ScanEye, label: "Detection", path: "/detection" },
   { icon: ScanFace, label: "Faces", path: "/faces" },
   { icon: Activity, label: "Sensors", path: "/sensors" },

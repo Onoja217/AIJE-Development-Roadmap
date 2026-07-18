@@ -17,6 +17,7 @@ import Pricing from "./pages/Pricing";
 import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
+import CameraManagement from "./pages/CameraManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/deployments" element={<ProtectedRoute><Deployments /></ProtectedRoute>} />
             <Route path="/billing/callback" element={<ProtectedRoute><BillingCallback /></ProtectedRoute>} />
             <Route path="/admin/webhooks" element={<ProtectedRoute><AdminWebhooks /></ProtectedRoute>} />
+            <Route path="/cameras" element={<ProtectedRoute><CameraManagement /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
