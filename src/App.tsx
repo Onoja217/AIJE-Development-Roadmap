@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Navigate, Route, BrowserRouter, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ThemeProvider } from "@/hooks/useTheme";
@@ -24,7 +24,6 @@ import Pricing from "./pages/Pricing";
 import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
-import CameraManagement from "./pages/CameraManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +41,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         <div
           className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
           aria-label="Loading"
+          role="status"
         />
       </div>
     );
@@ -108,15 +108,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <FaceRecognition />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/cameras"
-                element={
-                  <ProtectedRoute>
-                    <CameraManagement />
                   </ProtectedRoute>
                 }
               />
