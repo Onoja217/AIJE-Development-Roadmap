@@ -7,7 +7,7 @@ export interface EmergencyCategory {
   icon: string;
   description: string;
 }
-
+//emergencyCategories
 export const EMERGENCY_CATEGORIES: EmergencyCategory[] = [
   { id: "attack", label: "Attack", icon: "🔴", description: "Armed attack, raid, or violent incident in progress" },
   { id: "kidnapping", label: "Kidnapping", icon: "🚨", description: "Abduction or forced disappearance" },
