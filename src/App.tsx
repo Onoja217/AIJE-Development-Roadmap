@@ -25,6 +25,7 @@ import Deployments from "./pages/Deployments";
 import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
+import CameraManagement from "./pages/CameraManagement";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+  path="/cameras"
+  element={
+    <ProtectedRoute>
+      <CameraManagement />
+    </ProtectedRoute>
+  }
+/>
 
               <Route
                 path="/detection"
