@@ -27,6 +27,9 @@ import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
 import CameraManagement from "./pages/CameraManagement";
 import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
+import CommunityAlerts from "./pages/CommunityAlerts";
+import { LanguageProvider } from "@/hooks/useLanguage";
+import { GlobalControls } from "@/components/GlobalControls";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +61,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
 function App() {
   return (
+    <LanguageProvider>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -65,6 +69,7 @@ function App() {
           <Sonner />
 
           <BrowserRouter>
+            <GlobalControls />
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
@@ -193,12 +198,14 @@ function App() {
                 }
               />
 
+              <Route path="/community-alerts" element={<ProtectedRoute><CommunityAlerts /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye } from "lucide-react";
+import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye, Siren } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import aijeLogo from "@/assets/aije-logo.png";
@@ -71,6 +71,9 @@ export function Header() {
         </button>
         <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Control Panel">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
+        </Link>
+        <Link to="/community-alerts" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Community Alerts">
+          <Siren className="h-4 w-4 text-destructive" />
         </Link>
         <Link to="/detection" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Detection Manager">
           <ScanEye className="h-4 w-4 text-muted-foreground" />

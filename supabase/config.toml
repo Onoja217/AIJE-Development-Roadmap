@@ -9,4 +9,9 @@ verify_jwt = false
 [functions.webhook-alerts-monitor]
 verify_jwt = false
 
+[functions.dispatch-community-alert]
+verify_jwt = true
+
+[functions.escalate-community-alerts]
+verify_jwt = false
 

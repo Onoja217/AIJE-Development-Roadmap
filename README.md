@@ -1,4 +1,9 @@
-# Welcome to your Lovable project
+# AIJE Community Shield
+
+The Community Alert System is available at `/community-alerts`. It provides
+targeted SMS and WhatsApp alerts, watch-group and emergency-contact management,
+offline queuing, localized messaging, delivery auditing and automatic escalation.
+See [COMMUNITY_ALERTS.md](./COMMUNITY_ALERTS.md) for local and production setup.
 
 ## Project info
 

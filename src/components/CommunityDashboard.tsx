@@ -11,8 +11,10 @@ import { CommunityMap } from "./CommunityMap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { Incident, IncidentFilters } from "../types/incident";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function CommunityDashboard() {
+  const { t } = useLanguage();
   const { incidents, isLoading, updateIncidentStatus, assignResponder } = useIncidents();
   const [filters, setFilters] = useState<IncidentFilters>({});
   const [selected, setSelected] = useState<Incident | null>(null);
@@ -28,7 +30,7 @@ export function CommunityDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-4">
-      <h1 className="text-xl font-bold">Community Emergency Dashboard</h1>
+      <h1 className="text-xl font-bold">{t("communityDashboard")}</h1>
 
       <EmergencyStatusBoard stats={stats} isLoading={isLoading} />
 
@@ -36,8 +38,8 @@ export function CommunityDashboard() {
         <div className="space-y-4">
           <Tabs defaultValue="feed">
             <TabsList>
-              <TabsTrigger value="feed">Alert Feed</TabsTrigger>
-              <TabsTrigger value="map">Live Map</TabsTrigger>
+              <TabsTrigger value="feed">{t("alertFeed")}</TabsTrigger>
+              <TabsTrigger value="map">{t("liveMap")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="feed" className="space-y-3">

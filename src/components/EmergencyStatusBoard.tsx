@@ -1,6 +1,7 @@
 // components/EmergencyStatusBoard.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import type { DashboardStats } from "../types/incident";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface EmergencyStatusBoardProps {
   stats: DashboardStats;
@@ -16,6 +17,7 @@ const STAT_ITEMS: Array<{ key: keyof DashboardStats; label: string; icon: string
 ];
 
 export function EmergencyStatusBoard({ stats, isLoading }: EmergencyStatusBoardProps) {
+  const { t } = useLanguage();
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {STAT_ITEMS.map((item) => (
@@ -25,7 +27,7 @@ export function EmergencyStatusBoard({ stats, isLoading }: EmergencyStatusBoardP
             <span className={`text-2xl font-bold ${item.tone}`}>
               {isLoading ? "—" : stats[item.key]}
             </span>
-            <span className="text-xs text-muted-foreground">{item.label}</span>
+            <span className="text-xs text-muted-foreground">{item.key === "totalActive" ? t("activeIncidents") : item.key === "resolvedToday" ? t("resolved") : item.label}</span>
           </CardContent>
         </Card>
       ))}
