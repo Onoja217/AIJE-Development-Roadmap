@@ -43,7 +43,14 @@ const modules: ModuleItem[] = [
     icon: Users,
     status: "Active",
   },
-  
+  {
+  title: "Community Alert System",
+  description:
+    "Send emergency alerts to community members, watch groups, responders, and emergency contacts.",
+  path: "/community-alerts",
+  icon: Megaphone,
+  status: "Active",
+},
   {
     title: "Citizen Incident Reporting",
     description:
