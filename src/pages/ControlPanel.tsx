@@ -7,6 +7,7 @@ import {
   Database,
   FileWarning,
   MapPinned,
+  Megaphone,
   RadioTower,
   ScanFace,
   Settings,
@@ -42,6 +43,7 @@ const modules: ModuleItem[] = [
     icon: Users,
     status: "Active",
   },
+  
   {
     title: "Citizen Incident Reporting",
     description:
@@ -99,13 +101,13 @@ const modules: ModuleItem[] = [
     status: "Active",
   },
   {
-  title: "Administration",
-  description:
-    "Manage users, roles, integrations, webhooks, platform settings, audit logs, and system configuration.",
-  path: "/admin",
-  icon: Settings,
-  status: "Active",
-},
+    title: "Administration",
+    description:
+      "Manage users, roles, integrations, webhooks, platform settings, audit logs, and system configuration.",
+    path: "/admin",
+    icon: Settings,
+    status: "Active",
+  },
   {
     title: "Notifications",
     description:
@@ -125,7 +127,6 @@ export default function ControlPanel() {
         <section className="space-y-2">
           <div className="flex items-center gap-2 text-primary">
             <Activity className="h-4 w-4" aria-hidden="true" />
-
             <p className="text-sm font-medium uppercase tracking-[0.18em]">
               AIJE Operations
             </p>
@@ -181,7 +182,7 @@ export default function ControlPanel() {
 
                   {isActive ? (
                     <Button asChild className="w-full">
-                      <Link to={module.path}>Open module</Link>
+                      <Link to={module.path}>Open Module</Link>
                     </Button>
                   ) : (
                     <Button
@@ -190,7 +191,7 @@ export default function ControlPanel() {
                       disabled
                       aria-disabled="true"
                     >
-                      Coming soon
+                      Coming Soon
                     </Button>
                   )}
                 </CardContent>
