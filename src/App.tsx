@@ -26,6 +26,7 @@ import BillingCallback from "./pages/BillingCallback";
 import AdminWebhooks from "./pages/AdminWebhooks";
 import NotFound from "./pages/NotFound";
 import CameraManagement from "./pages/CameraManagement";
+import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+    path="/incident-report"
+    element={
+        <ProtectedRoute>
+            <CitizenIncidentReporting />
+        </ProtectedRoute>
+    }
+/>
 
               <Route
                 path="/sensors"
