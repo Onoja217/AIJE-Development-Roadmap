@@ -1,14 +1,26 @@
 // components/ResourceMap.tsx
 import { Card, CardContent } from "@/components/ui/card";
-import { ResourceMarkers, computeBounds } from "./ResourceMarkers";
+import { GoogleResourceMap } from "./GoogleResourceMap";
 import type { EmergencyResource } from "../types/resource";
+
+interface UserLocation {
+  lat: number;
+  lng: number;
+}
 
 interface ResourceMapProps {
   resources: EmergencyResource[];
+  selectedId?: string;
+  userLocation?: UserLocation | null;
   onSelect: (resource: EmergencyResource) => void;
 }
 
-export function ResourceMap({ resources, onSelect }: ResourceMapProps) {
+export function ResourceMap({
+  resources,
+  selectedId,
+  userLocation,
+  onSelect,
+}: ResourceMapProps) {
   if (resources.length === 0) {
     return (
       <Card>
@@ -19,16 +31,19 @@ export function ResourceMap({ resources, onSelect }: ResourceMapProps) {
     );
   }
 
-  const bounds = computeBounds(resources);
-
   return (
     <Card>
       <CardContent className="p-0">
-        <div className="relative w-full h-80 bg-muted rounded-md overflow-hidden">
-          <ResourceMarkers resources={resources} bounds={bounds} onSelect={onSelect} />
-        </div>
-        <p className="text-xs text-muted-foreground p-2">
-          Placeholder map — swap for react-leaflet/Mapbox once the team agrees on a map library.
+        <GoogleResourceMap
+          resources={resources}
+          selectedId={selectedId}
+          userLocation={userLocation}
+          onSelect={onSelect}
+        />
+
+        <p className="p-2 text-xs text-muted-foreground">
+          Select a marker to view the corresponding emergency
+          resource.
         </p>
       </CardContent>
     </Card>
