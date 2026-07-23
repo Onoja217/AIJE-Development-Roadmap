@@ -8,6 +8,7 @@ import { ResourceList } from "./ResourceList";
 import { ResourceMap } from "./ResourceMap";
 import { ResourceStats } from "./ResourceStats";
 import { Button } from "@/components/ui/button";
+import { ResourceDetails } from "./ResourceDetails";
 import {
   Tabs,
   TabsList,
@@ -112,6 +113,10 @@ export function EmergencyResourceMap() {
         </TabsContent>
 
       </Tabs>
+      <ResourceDetails
+  resource={selected}
+  onClose={() => setSelected(null)}
+/>
 
       {locationStatus === "denied" && (
         <p className="text-xs text-muted-foreground">
