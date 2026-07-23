@@ -6,7 +6,7 @@ import {
   Camera,
   Database,
   FileWarning,
-  MapPinned,
+  Hospital,
   Megaphone,
   RadioTower,
   ScanFace,
@@ -38,33 +38,33 @@ const modules: ModuleItem[] = [
   {
     title: "Community Dashboard",
     description:
-      "View community incidents, emergency reports, response tracking, and live status updates.",
+      "View community incidents, emergency reports, response tracking, nearby resources, and live operational updates.",
     path: "/community-dashboard",
     icon: Users,
     status: "Active",
   },
   {
-  title: "Community Alert System",
-  description:
-    "Send emergency alerts to community members, watch groups, responders, and emergency contacts.",
-  path: "/community-alerts",
-  icon: Megaphone,
-  status: "Active",
-},
+    title: "Community Alert System",
+    description:
+      "Send emergency alerts to community members, watch groups, responders, and registered emergency contacts.",
+    path: "/community-alerts",
+    icon: Megaphone,
+    status: "Active",
+  },
+  {
+    title: "Emergency Resources",
+    description:
+      "Locate and review hospitals, police stations, shelters, fire services, emergency offices, relief centres, and IDP camps.",
+    path: "/resources",
+    icon: Hospital,
+    status: "Active",
+  },
   {
     title: "Citizen Incident Reporting",
     description:
       "Allow community members to report attacks, kidnappings, fires, floods, accidents, medical emergencies, and other threats.",
     path: "/incident-report",
     icon: FileWarning,
-    status: "Active",
-  },
-  {
-    title: "Emergency Resource Map",
-    description:
-      "Find hospitals, police stations, shelters, fire services, emergency offices, and IDP camps.",
-    path: "/resources",
-    icon: MapPinned,
     status: "Active",
   },
   {
@@ -134,6 +134,7 @@ export default function ControlPanel() {
         <section className="space-y-2">
           <div className="flex items-center gap-2 text-primary">
             <Activity className="h-4 w-4" aria-hidden="true" />
+
             <p className="text-sm font-medium uppercase tracking-[0.18em]">
               AIJE Operations
             </p>
@@ -189,7 +190,12 @@ export default function ControlPanel() {
 
                   {isActive ? (
                     <Button asChild className="w-full">
-                      <Link to={module.path}>Open Module</Link>
+                      <Link
+                        to={module.path}
+                        aria-label={`Open ${module.title}`}
+                      >
+                        Open Module
+                      </Link>
                     </Button>
                   ) : (
                     <Button
