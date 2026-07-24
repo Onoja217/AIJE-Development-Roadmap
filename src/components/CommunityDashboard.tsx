@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 
+import { useLanguage } from "@/hooks/useLanguage";
 import { useIncidents } from "../hooks/useIncidents";
+import { useResources } from "../hooks/useResources";
+
 import {
   computeStats,
   filterIncidents,
@@ -14,7 +17,8 @@ import { AlertFeed } from "./AlertFeed";
 import { AlertFilters } from "./AlertFilters";
 import { IncidentTimeline } from "./IncidentTimeline";
 import { ResponseTracking } from "./ResponseTracking";
-import { CommunityMap } from "./CommunityMap";
+import { UnifiedOperationsMap } from "./UnifiedOperationsMap";
+import { ResourceDetails } from "./ResourceDetails";
 import { NearbyResources } from "./NearbyResources";
 
 import {
@@ -31,8 +35,12 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import type { Incident, IncidentFilters } from "../types/incident";
-import { useLanguage } from "@/hooks/useLanguage";
+import type {
+  Incident,
+  IncidentFilters,
+} from "../types/incident";
+
+import type { EmergencyResource } from "../types/resource";
 
 export function CommunityDashboard() {
   const { t } = useLanguage();
@@ -44,11 +52,24 @@ export function CommunityDashboard() {
     assignResponder,
   } = useIncidents();
 
-  const [filters, setFilters] = useState<IncidentFilters>({});
-  const [selected, setSelected] = useState<Incident | null>(null);
+  const {
+    resources,
+    isLoading: resourcesLoading,
+  } = useResources();
 
-  const filtered = useMemo(
-    () => sortByMostRecent(filterIncidents(incidents, filters)),
+  const [filters, setFilters] = useState<IncidentFilters>({});
+
+  const [selectedIncident, setSelectedIncident] =
+    useState<Incident | null>(null);
+
+  const [selectedResource, setSelectedResource] =
+    useState<EmergencyResource | null>(null);
+
+  const filteredIncidents = useMemo(
+    () =>
+      sortByMostRecent(
+        filterIncidents(incidents, filters)
+      ),
     [incidents, filters]
   );
 
@@ -57,9 +78,35 @@ export function CommunityDashboard() {
     [incidents]
   );
 
-  const selectedLive = selected
-    ? incidents.find((incident) => incident.id === selected.id) ?? null
+  // Keep the selected incident synchronized with live updates.
+  const selectedLiveIncident = selectedIncident
+    ? incidents.find(
+        (incident) => incident.id === selectedIncident.id
+      ) ?? null
     : null;
+
+  // Keep the selected resource synchronized with live updates.
+  const selectedLiveResource = selectedResource
+    ? resources.find(
+        (resource) => resource.id === selectedResource.id
+      ) ?? null
+    : null;
+
+  const handleSelectIncident = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setSelectedResource(null);
+  };
+
+  const handleSelectResource = (
+    resource: EmergencyResource
+  ) => {
+    setSelectedResource(resource);
+    setSelectedIncident(null);
+  };
+
+  const handleCloseResourceDetails = () => {
+    setSelectedResource(null);
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4">
@@ -73,7 +120,6 @@ export function CommunityDashboard() {
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-
         {/* LEFT COLUMN */}
         <div className="space-y-4">
           <Tabs defaultValue="feed">
@@ -87,88 +133,100 @@ export function CommunityDashboard() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="feed" className="space-y-3">
+            <TabsContent
+              value="feed"
+              className="space-y-3"
+            >
               <AlertFilters
                 filters={filters}
                 onChange={setFilters}
               />
 
               <AlertFeed
-                incidents={filtered}
-                selectedId={selectedLive?.id}
-                onSelect={setSelected}
+                incidents={filteredIncidents}
+                selectedId={selectedLiveIncident?.id}
+                onSelect={handleSelectIncident}
               />
             </TabsContent>
 
             <TabsContent value="map">
-              <CommunityMap
-                incidents={filtered}
-                onSelect={setSelected}
-              />
+              {resourcesLoading ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                    Loading emergency operations map...
+                  </CardContent>
+                </Card>
+              ) : (
+                <UnifiedOperationsMap
+                  incidents={filteredIncidents}
+                  resources={resources}
+                  onSelectIncident={handleSelectIncident}
+                  onSelectResource={handleSelectResource}
+                />
+              )}
             </TabsContent>
           </Tabs>
         </div>
 
         {/* RIGHT COLUMN */}
         <div className="space-y-4">
-
-          {/* Emergency Resources */}
           <NearbyResources />
 
-          {/* Incident Details */}
-          <Card>
-            {selectedLive ? (
-              <>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {selectedLive.title}
-                  </CardTitle>
+          {selectedLiveIncident ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {selectedLiveIncident.title}
+                </CardTitle>
 
-                  <p className="text-xs text-muted-foreground">
-                    {selectedLive.location.address ??
-                      selectedLive.location.manualEntry ??
-                      "Location pending"}
-                  </p>
-                </CardHeader>
+                <p className="text-xs text-muted-foreground">
+                  {selectedLiveIncident.location.address ??
+                    selectedLiveIncident.location.manualEntry ??
+                    "Location pending"}
+                </p>
+              </CardHeader>
 
-                <CardContent className="space-y-5">
+              <CardContent className="space-y-5">
+                <p className="text-sm">
+                  {selectedLiveIncident.description}
+                </p>
 
-                  <p className="text-sm">
-                    {selectedLive.description}
-                  </p>
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">
+                    Timeline
+                  </h3>
 
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold">
-                      Timeline
-                    </h3>
+                  <IncidentTimeline
+                    incident={selectedLiveIncident}
+                  />
+                </div>
 
-                    <IncidentTimeline
-                      incident={selectedLive}
-                    />
-                  </div>
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">
+                    Response
+                  </h3>
 
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold">
-                      Response
-                    </h3>
-
-                    <ResponseTracking
-                      incident={selectedLive}
-                      onUpdateStatus={updateIncidentStatus}
-                      onAssignResponder={assignResponder}
-                    />
-                  </div>
-
-                </CardContent>
-              </>
-            ) : (
-              <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                Select an incident from the feed or map to view
-                details and manage the response.
+                  <ResponseTracking
+                    incident={selectedLiveIncident}
+                    onUpdateStatus={updateIncidentStatus}
+                    onAssignResponder={assignResponder}
+                  />
+                </div>
               </CardContent>
-            )}
-          </Card>
-
+            </Card>
+          ) : selectedLiveResource ? (
+            <ResourceDetails
+              resource={selectedLiveResource}
+              onClose={handleCloseResourceDetails}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                Select an incident from the feed or map, or select an
+                emergency resource on the map to view its details.
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
