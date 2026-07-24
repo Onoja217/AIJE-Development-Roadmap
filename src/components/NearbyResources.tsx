@@ -1,0 +1,177 @@
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import {
+  Building2,
+  Hospital,
+  MapPin,
+  Navigation,
+  Shield,
+  TentTree,
+} from "lucide-react";
+
+import { useResources, useUserLocation } from "@/hooks/useResources";
+import { sortByDistance } from "@/lib/resourceUtils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type {
+  EmergencyResource,
+  ResourceCategory,
+} from "@/types/resource";
+
+const categoryIcons: Partial<Record<ResourceCategory, typeof Hospital>> = {
+  hospital: Hospital,
+  clinic: Hospital,
+  police_station: Shield,
+  safe_shelter: TentTree,
+  idp_camp: TentTree,
+  community_hall: Building2,
+  lg_emergency_office: Building2,
+  command_centre: Building2,
+};
+
+function getDistanceLabel(distance: number) {
+  if (distance < 1) {
+    return `${Math.round(distance * 1000)} m away`;
+  }
+
+  return `${distance.toFixed(1)} km away`;
+}
+
+export function NearbyResources() {
+  const { resources, isLoading } = useResources();
+  const {
+    location,
+    status: locationStatus,
+    requestLocation,
+  } = useUserLocation();
+
+  const nearbyResources = useMemo(() => {
+    const eligibleResources = resources.filter(
+      (resource) =>
+        resource.status === "active" &&
+        resource.verificationStatus === "verified"
+    );
+
+    if (!location) {
+      return [];
+    }
+
+    return sortByDistance(
+      eligibleResources,
+      location.lat,
+      location.lng
+    ).slice(0, 5);
+  }, [resources, location]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="text-base">
+            Nearby Emergency Resources
+          </CardTitle>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+            Closest verified and active emergency facilities.
+          </p>
+        </div>
+
+        <Button asChild size="sm" variant="outline">
+          <Link to="/resources">View All</Link>
+        </Button>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Loading emergency resources...
+          </p>
+        ) : !location ? (
+          <div className="space-y-3 py-5 text-center">
+            <Navigation className="mx-auto h-5 w-5 text-muted-foreground" />
+
+            <div>
+              <p className="text-sm font-medium">
+                Location access required
+              </p>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                Enable location access to find the closest emergency
+                resources.
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={requestLocation}
+              disabled={locationStatus === "requesting"}
+            >
+              {locationStatus === "requesting"
+                ? "Getting Location..."
+                : locationStatus === "denied"
+                  ? "Try Again"
+                  : "Use My Location"}
+            </Button>
+          </div>
+        ) : nearbyResources.length === 0 ? (
+          <div className="py-6 text-center">
+            <MapPin className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+
+            <p className="text-sm text-muted-foreground">
+              No verified active emergency resources are currently available.
+            </p>
+          </div>
+        ) : (
+          nearbyResources.map((resource) => {
+            const Icon =
+              categoryIcons[resource.category] ?? MapPin;
+
+            return (
+              <div
+                key={resource.id}
+                className="flex items-start gap-3 rounded-lg border border-border p-3"
+              >
+                <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
+                    {resource.name}
+                  </p>
+
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Navigation className="h-3 w-3" aria-hidden="true" />
+                    {getDistanceLabel(resource.distanceKm)}
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-[11px] font-medium text-green-600 dark:text-green-400">
+                      Active
+                    </span>
+
+                    {resource.availableCapacity !== undefined && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                        {resource.availableCapacity} available
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <Button asChild size="sm" variant="ghost">
+                  <Link to="/resources">Open</Link>
+                </Button>
+              </div>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
+  );
+}
