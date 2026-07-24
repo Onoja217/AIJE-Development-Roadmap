@@ -15,6 +15,7 @@ import type { Incident } from "@/types/incident";
 import type { EmergencyResource } from "@/types/resource";
 
 import { IncidentLayer } from "./IncidentLayer";
+import { ResourceLayer } from "./ResourceLayer";
 
 const BENUE_STATE_CENTER: LatLngExpression = [7.3369, 8.7404];
 
@@ -37,9 +38,7 @@ function FitMapBounds({ bounds }: FitMapBoundsProps) {
   const map = useMap();
 
   useEffect(() => {
-    if (!bounds) {
-      return;
-    }
+    if (!bounds) return;
 
     map.fitBounds(bounds, {
       padding: [32, 32],
@@ -60,10 +59,6 @@ export function LeafletMap({
   onSelectIncident,
   onSelectResource,
 }: LeafletMapProps) {
-  // Resources will be rendered during the next migration phase.
-  void resources;
-  void onSelectResource;
-
   return (
     <div
       className={[
@@ -79,16 +74,25 @@ export function LeafletMap({
         scrollWheelZoom
         className="h-full w-full"
       >
+        {/* Base Map */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        {/* Incident Markers */}
         <IncidentLayer
           incidents={incidents}
           onSelect={onSelectIncident}
         />
 
+        {/* Emergency Resources */}
+        <ResourceLayer
+          resources={resources}
+          onSelect={onSelectResource}
+        />
+
+        {/* Auto Zoom */}
         <FitMapBounds bounds={bounds} />
       </MapContainer>
     </div>
