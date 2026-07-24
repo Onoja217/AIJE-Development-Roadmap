@@ -3,13 +3,16 @@
 import { useMemo, useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  countResourcesByLayer,
+  getResourceLayer,
+} from "@/lib/resourceLayers";
 
 import { IncidentMarkers } from "./IncidentMarkers";
 import {
   ResourceMarkers,
   computeBounds,
 } from "./ResourceMarkers";
-
 import {
   MapLayerControls,
   type LayerState,
@@ -40,120 +43,81 @@ export function UnifiedOperationsMap({
     warehouses: true,
   });
 
-  const locatedIncidents = incidents.filter(
-    (incident) =>
-      incident.location.lat !== undefined &&
-      incident.location.lng !== undefined
+  const locatedIncidents = useMemo(
+    () =>
+      incidents.filter(
+        (incident) =>
+          incident.location.lat !== undefined &&
+          incident.location.lng !== undefined
+      ),
+    [incidents]
+  );
+
+  const visibleIncidents = useMemo(
+    () => (layers.incidents ? locatedIncidents : []),
+    [layers.incidents, locatedIncidents]
   );
 
   const visibleResources = useMemo(() => {
     return resources.filter((resource) => {
-      switch (resource.category) {
-        case "hospital":
-        case "clinic":
-        case "blood_bank":
-        case "pharmacy":
-        case "ambulance_service":
-          return layers.hospitals;
+      const layer = getResourceLayer(resource.category);
 
-        case "police_station":
-        case "military_base":
-        case "civil_defence":
-        case "watch_group_base":
-        case "command_centre":
-          return layers.police;
-
-        case "fire_service":
-        case "rescue_station":
-          return layers.fire;
-
-        case "safe_shelter":
-        case "idp_camp":
-        case "community_hall":
-        case "evacuation_point":
-          return layers.shelters;
-
-        case "relief_warehouse":
-        case "food_distribution":
-        case "water_point":
-        case "lg_emergency_office":
-          return layers.warehouses;
-
-        default:
-          return true;
+      if (!layer) {
+        return false;
       }
+
+      return layers[layer];
     });
   }, [resources, layers]);
 
-  const points = [
-    ...locatedIncidents.map((incident) => ({
-      lat: incident.location.lat!,
-      lng: incident.location.lng!,
-    })),
+  const resourceCounts = useMemo(
+    () => countResourcesByLayer(resources),
+    [resources]
+  );
 
-    ...visibleResources.map((resource) => ({
-      lat: resource.lat,
-      lng: resource.lng,
-    })),
-  ];
+  const counts = useMemo(
+    () => ({
+      incidents: locatedIncidents.length,
+      ...resourceCounts,
+    }),
+    [locatedIncidents.length, resourceCounts]
+  );
+
+  const points = useMemo(
+    () => [
+      ...visibleIncidents.map((incident) => ({
+        lat: incident.location.lat!,
+        lng: incident.location.lng!,
+      })),
+
+      ...visibleResources.map((resource) => ({
+        lat: resource.lat,
+        lng: resource.lng,
+      })),
+    ],
+    [visibleIncidents, visibleResources]
+  );
 
   if (points.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6 text-center text-sm text-muted-foreground">
-          No incidents or emergency resources with GPS coordinates to display.
+        <CardContent className="space-y-4 p-4">
+          <MapLayerControls
+            layers={layers}
+            onChange={setLayers}
+            counts={counts}
+          />
+
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            No visible incidents or emergency resources with GPS coordinates to
+            display.
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   const bounds = computeBounds(points);
-
-  const counts = {
-    incidents: locatedIncidents.length,
-
-    hospitals: resources.filter((r) =>
-      [
-        "hospital",
-        "clinic",
-        "blood_bank",
-        "pharmacy",
-        "ambulance_service",
-      ].includes(r.category)
-    ).length,
-
-    police: resources.filter((r) =>
-      [
-        "police_station",
-        "military_base",
-        "civil_defence",
-        "watch_group_base",
-        "command_centre",
-      ].includes(r.category)
-    ).length,
-
-    fire: resources.filter((r) =>
-      ["fire_service", "rescue_station"].includes(r.category)
-    ).length,
-
-    shelters: resources.filter((r) =>
-      [
-        "safe_shelter",
-        "idp_camp",
-        "community_hall",
-        "evacuation_point",
-      ].includes(r.category)
-    ).length,
-
-    warehouses: resources.filter((r) =>
-      [
-        "relief_warehouse",
-        "food_distribution",
-        "water_point",
-        "lg_emergency_office",
-      ].includes(r.category)
-    ).length,
-  };
 
   return (
     <Card>
@@ -167,7 +131,7 @@ export function UnifiedOperationsMap({
         <div className="relative h-80 w-full overflow-hidden rounded-md bg-muted">
           {layers.incidents && (
             <IncidentMarkers
-              incidents={locatedIncidents}
+              incidents={visibleIncidents}
               bounds={bounds}
               onSelect={onSelectIncident}
             />
@@ -193,9 +157,7 @@ export function UnifiedOperationsMap({
             Emergency Resources
           </span>
 
-          <span className="ml-auto">
-            Layer Controls Enabled
-          </span>
+          <span className="ml-auto">Layer Controls Enabled</span>
         </div>
       </CardContent>
     </Card>
