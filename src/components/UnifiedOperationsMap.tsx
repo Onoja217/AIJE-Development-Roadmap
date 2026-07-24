@@ -7,16 +7,17 @@ import {
 } from "@/lib/resourceLayers";
 
 import { computeBounds } from "./ResourceMarkers";
-
 import {
   MapLayerControls,
   type LayerState,
 } from "./MapLayerControls";
 
+import { DEFAULT_LAYERS } from "./map/layerConfig";
 import { LeafletMap } from "./map/LeafletMap";
 
 import type { Incident } from "../types/incident";
 import type { EmergencyResource } from "../types/resource";
+import type { LayerId } from "./map/layerTypes";
 
 interface UnifiedOperationsMapProps {
   incidents: Incident[];
@@ -25,20 +26,20 @@ interface UnifiedOperationsMapProps {
   onSelectResource: (resource: EmergencyResource) => void;
 }
 
+const createInitialLayerState = (): LayerState =>
+  Object.fromEntries(
+    DEFAULT_LAYERS.map((layer) => [layer.id, layer.visible])
+  ) as LayerState;
+
 export function UnifiedOperationsMap({
   incidents,
   resources,
   onSelectIncident,
   onSelectResource,
 }: UnifiedOperationsMapProps) {
-  const [layers, setLayers] = useState<LayerState>({
-    incidents: true,
-    hospitals: true,
-    police: true,
-    fire: true,
-    shelters: true,
-    warehouses: true,
-  });
+  const [layers, setLayers] = useState<LayerState>(
+    createInitialLayerState
+  );
 
   const locatedIncidents = useMemo(
     () =>
@@ -55,25 +56,34 @@ export function UnifiedOperationsMap({
     [layers.incidents, locatedIncidents]
   );
 
-  const visibleResources = useMemo(() => {
-    return resources.filter((resource) => {
-      const layer = getResourceLayer(resource.category);
+  const visibleResources = useMemo(
+    () =>
+      resources.filter((resource) => {
+        const layer = getResourceLayer(resource.category);
 
-      if (!layer) return false;
+        if (!layer) {
+          return false;
+        }
 
-      return layers[layer];
-    });
-  }, [resources, layers]);
+        return layers[layer];
+      }),
+    [resources, layers]
+  );
 
   const resourceCounts = useMemo(
     () => countResourcesByLayer(resources),
     [resources]
   );
 
-  const counts = useMemo(
+  const counts = useMemo<Partial<Record<LayerId, number>>>(
     () => ({
       incidents: locatedIncidents.length,
       ...resourceCounts,
+      weather: 0,
+      safeBenue: 0,
+      aiDetections: 0,
+      osiris: 0,
+      drones: 0,
     }),
     [locatedIncidents.length, resourceCounts]
   );
@@ -92,15 +102,19 @@ export function UnifiedOperationsMap({
     [visibleIncidents, visibleResources]
   );
 
+  const layerControls = (
+    <MapLayerControls
+      layers={layers}
+      onChange={setLayers}
+      counts={counts}
+    />
+  );
+
   if (points.length === 0) {
     return (
       <Card>
         <CardContent className="space-y-4 p-4">
-          <MapLayerControls
-            layers={layers}
-            onChange={setLayers}
-            counts={counts}
-          />
+          {layerControls}
 
           <div className="p-6 text-center text-sm text-muted-foreground">
             No visible incidents or emergency resources with GPS coordinates
@@ -116,11 +130,7 @@ export function UnifiedOperationsMap({
   return (
     <Card>
       <CardContent className="space-y-4 p-4">
-        <MapLayerControls
-          layers={layers}
-          onChange={setLayers}
-          counts={counts}
-        />
+        {layerControls}
 
         <LeafletMap
           incidents={visibleIncidents}
@@ -134,17 +144,23 @@ export function UnifiedOperationsMap({
         />
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full border-2 border-white bg-destructive shadow" />
-            Incidents
-          </span>
+          {DEFAULT_LAYERS.filter(
+            (layer) => layers[layer.id] && !layer.future
+          ).map((layer) => (
+            <span
+              key={layer.id}
+              className="flex items-center gap-1.5"
+            >
+              <span
+                className="h-3 w-3 rounded-full border border-white shadow"
+                style={{
+                  backgroundColor: layer.color,
+                }}
+              />
 
-          <span className="flex items-center gap-1.5">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white bg-white shadow">
-              +
+              {layer.label}
             </span>
-            Emergency Resources
-          </span>
+          ))}
 
           <span className="ml-auto">
             Layer Controls Enabled

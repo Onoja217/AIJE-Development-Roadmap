@@ -3,47 +3,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-export interface LayerState {
-  incidents: boolean;
-  hospitals: boolean;
-  police: boolean;
-  fire: boolean;
-  shelters: boolean;
-  warehouses: boolean;
-}
+import { DEFAULT_LAYERS } from "./map/layerConfig";
+import type { LayerId } from "./map/layerTypes";
+
+export type LayerState = Record<LayerId, boolean>;
 
 interface MapLayerControlsProps {
   layers: LayerState;
   onChange: (layers: LayerState) => void;
-
-  counts: {
-    incidents: number;
-    hospitals: number;
-    police: number;
-    fire: number;
-    shelters: number;
-    warehouses: number;
-  };
+  counts: Partial<Record<LayerId, number>>;
 }
-
-const layerLabels: Record<keyof LayerState, string> = {
-  incidents: "Incidents",
-  hospitals: "Hospitals",
-  police: "Police Stations",
-  fire: "Fire Stations",
-  shelters: "Shelters",
-  warehouses: "Warehouses",
-};
 
 export function MapLayerControls({
   layers,
   onChange,
   counts,
 }: MapLayerControlsProps) {
-  const toggleLayer = (layer: keyof LayerState) => {
+  const toggleLayer = (layerId: LayerId) => {
     onChange({
       ...layers,
-      [layer]: !layers[layer],
+      [layerId]: !layers[layerId],
     });
   };
 
@@ -54,24 +33,34 @@ export function MapLayerControls({
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {(Object.keys(layerLabels) as (keyof LayerState)[]).map((layer) => (
+        {DEFAULT_LAYERS.map((layer) => (
           <div
-            key={layer}
-            className="flex items-center justify-between"
+            key={layer.id}
+            className={`flex items-center justify-between ${
+              layer.future ? "opacity-60" : ""
+            }`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Checkbox
-                checked={layers[layer]}
-                onCheckedChange={() => toggleLayer(layer)}
+                checked={layers[layer.id]}
+                disabled={layer.future}
+                onCheckedChange={() => toggleLayer(layer.id)}
+              />
+
+              <span
+                className="h-3 w-3 rounded-full rounded"
+                style={{
+                  backgroundColor: layer.color,
+                }}
               />
 
               <Label className="cursor-pointer">
-                {layerLabels[layer]}
+                {layer.label}
               </Label>
             </div>
 
             <span className="text-xs text-muted-foreground">
-              {counts[layer]}
+              {counts[layer.id] ?? 0}
             </span>
           </div>
         ))}
@@ -79,9 +68,12 @@ export function MapLayerControls({
         <Separator />
 
         <div className="text-xs text-muted-foreground">
-          Toggle layers to focus on the information most relevant to the current response.
+          Toggle operational layers to focus on the information most relevant
+          to the current incident response.
         </div>
       </CardContent>
     </Card>
   );
 }
+
+export default MapLayerControls;
