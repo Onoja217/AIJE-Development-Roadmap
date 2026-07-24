@@ -2,6 +2,8 @@ import { CircleMarker, Popup } from "react-leaflet";
 
 import type { Incident } from "@/types/incident";
 
+import { MAP_COLORS } from "./MapIcons";
+
 interface IncidentLayerProps {
   incidents: Incident[];
   onSelect?: (incident: Incident) => void;
@@ -31,9 +33,9 @@ export function IncidentLayer({
             center={[lat, lng]}
             radius={9}
             pathOptions={{
-              color: "#ffffff",
+              color: MAP_COLORS.markerBorder,
               weight: 2,
-              fillColor: "#dc2626",
+              fillColor: MAP_COLORS.incident,
               fillOpacity: 0.9,
             }}
             eventHandlers={{
@@ -44,6 +46,7 @@ export function IncidentLayer({
               <div className="min-w-[180px] space-y-2">
                 <div>
                   <p className="font-semibold">Reported Incident</p>
+
                   <p className="text-xs text-gray-500">
                     {lat.toFixed(5)}, {lng.toFixed(5)}
                   </p>
@@ -52,7 +55,10 @@ export function IncidentLayer({
                 {onSelect && (
                   <button
                     type="button"
-                    className="w-full rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    className="w-full rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
+                    style={{
+                      backgroundColor: MAP_COLORS.incident,
+                    }}
                     onClick={() => onSelect(incident)}
                   >
                     View incident details
