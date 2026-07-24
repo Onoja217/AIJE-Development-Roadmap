@@ -14,6 +14,8 @@ import "leaflet/dist/leaflet.css";
 import type { Incident } from "@/types/incident";
 import type { EmergencyResource } from "@/types/resource";
 
+import { IncidentLayer } from "./IncidentLayer";
+
 const BENUE_STATE_CENTER: LatLngExpression = [7.3369, 8.7404];
 
 interface LeafletMapProps {
@@ -58,11 +60,8 @@ export function LeafletMap({
   onSelectIncident,
   onSelectResource,
 }: LeafletMapProps) {
-  // These props will be used when real Leaflet markers are introduced
-  // in the next migration phase.
-  void incidents;
+  // Resources will be rendered during the next migration phase.
   void resources;
-  void onSelectIncident;
   void onSelectResource;
 
   return (
@@ -83,6 +82,11 @@ export function LeafletMap({
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <IncidentLayer
+          incidents={incidents}
+          onSelect={onSelectIncident}
         />
 
         <FitMapBounds bounds={bounds} />
