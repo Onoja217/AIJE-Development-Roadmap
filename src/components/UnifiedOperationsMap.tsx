@@ -1,5 +1,3 @@
-// components/UnifiedOperationsMap.tsx
-
 import { useMemo, useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,15 +6,14 @@ import {
   getResourceLayer,
 } from "@/lib/resourceLayers";
 
-import { IncidentMarkers } from "./IncidentMarkers";
-import {
-  ResourceMarkers,
-  computeBounds,
-} from "./ResourceMarkers";
+import { computeBounds } from "./ResourceMarkers";
+
 import {
   MapLayerControls,
   type LayerState,
 } from "./MapLayerControls";
+
+import { LeafletMap } from "./map/LeafletMap";
 
 import type { Incident } from "../types/incident";
 import type { EmergencyResource } from "../types/resource";
@@ -62,9 +59,7 @@ export function UnifiedOperationsMap({
     return resources.filter((resource) => {
       const layer = getResourceLayer(resource.category);
 
-      if (!layer) {
-        return false;
-      }
+      if (!layer) return false;
 
       return layers[layer];
     });
@@ -89,7 +84,6 @@ export function UnifiedOperationsMap({
         lat: incident.location.lat!,
         lng: incident.location.lng!,
       })),
-
       ...visibleResources.map((resource) => ({
         lat: resource.lat,
         lng: resource.lng,
@@ -109,8 +103,8 @@ export function UnifiedOperationsMap({
           />
 
           <div className="p-6 text-center text-sm text-muted-foreground">
-            No visible incidents or emergency resources with GPS coordinates to
-            display.
+            No visible incidents or emergency resources with GPS coordinates
+            to display.
           </div>
         </CardContent>
       </Card>
@@ -128,21 +122,16 @@ export function UnifiedOperationsMap({
           counts={counts}
         />
 
-        <div className="relative h-80 w-full overflow-hidden rounded-md bg-muted">
-          {layers.incidents && (
-            <IncidentMarkers
-              incidents={visibleIncidents}
-              bounds={bounds}
-              onSelect={onSelectIncident}
-            />
-          )}
-
-          <ResourceMarkers
-            resources={visibleResources}
-            bounds={bounds}
-            onSelect={onSelectResource}
-          />
-        </div>
+        <LeafletMap
+          incidents={visibleIncidents}
+          resources={visibleResources}
+          bounds={[
+            [bounds.minLat, bounds.minLng],
+            [bounds.maxLat, bounds.maxLng],
+          ]}
+          onSelectIncident={onSelectIncident}
+          onSelectResource={onSelectResource}
+        />
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -157,7 +146,9 @@ export function UnifiedOperationsMap({
             Emergency Resources
           </span>
 
-          <span className="ml-auto">Layer Controls Enabled</span>
+          <span className="ml-auto">
+            Layer Controls Enabled
+          </span>
         </div>
       </CardContent>
     </Card>
