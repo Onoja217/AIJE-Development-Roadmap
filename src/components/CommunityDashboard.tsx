@@ -2,6 +2,17 @@
 
 import { useMemo, useState } from "react";
 
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  Database,
+  MapPin,
+  Radio,
+  ShieldCheck,
+} from "lucide-react";
+
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIncidents } from "../hooks/useIncidents";
 import { useResources } from "../hooks/useResources";
@@ -110,9 +121,35 @@ export function CommunityDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4">
-      <h1 className="text-xl font-bold">
-        {t("communityDashboard")}
-      </h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl font-bold">
+            {t("communityDashboard")}
+          </h1>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            Monitor incidents, emergency resources and coordinated
+            response operations.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+            <Activity className="h-3.5 w-3.5" />
+            System Operational
+          </span>
+
+          <span className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
+            <Database className="h-3.5 w-3.5" />
+            Demo Dataset
+          </span>
+
+          <span className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
+            <Clock3 className="h-3.5 w-3.5" />
+            Updated Just Now
+          </span>
+        </div>
+      </div>
 
       <EmergencyStatusBoard
         stats={stats}
@@ -220,10 +257,134 @@ export function CommunityDashboard() {
               onClose={handleCloseResourceDetails}
             />
           ) : (
-            <Card>
-              <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                Select an incident from the feed or map, or select an
-                emergency resource on the map to view its details.
+            <Card className="border-dashed">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <CardTitle className="text-base">
+                      Operations Centre
+                    </CardTitle>
+
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      No active incident or emergency resource selected.
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <section>
+                  <h3 className="mb-3 text-sm font-semibold">
+                    Select an operational item
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 rounded-lg border p-3">
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+
+                      <div>
+                        <p className="text-sm font-medium">
+                          Incident
+                        </p>
+
+                        <p className="text-xs text-muted-foreground">
+                          Select an incident from the Alert Feed or
+                          Live Map.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-lg border p-3">
+                      <MapPin className="h-4 w-4 shrink-0 text-blue-500" />
+
+                      <div>
+                        <p className="text-sm font-medium">
+                          Emergency Resource
+                        </p>
+
+                        <p className="text-xs text-muted-foreground">
+                          Select a hospital, police station, shelter
+                          or emergency resource.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="mb-3 text-sm font-semibold">
+                    Available Operations
+                  </h3>
+
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    {[
+                      "Review Incident Timeline",
+                      "Monitor Response Progress",
+                      "Assign Emergency Responders",
+                      "Review Resource Information",
+                      "Coordinate Community Alerts",
+                    ].map((operation) => (
+                      <div
+                        key={operation}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+                        <span>{operation}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="rounded-lg border bg-muted/30 p-4">
+                  <h3 className="mb-3 text-sm font-semibold">
+                    System Status
+                  </h3>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Activity className="h-4 w-4 shrink-0 text-green-500" />
+                        Status
+                      </span>
+
+                      <span className="font-medium text-green-600 dark:text-green-400">
+                        Operational
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Database className="h-4 w-4 shrink-0" />
+                        Mode
+                      </span>
+
+                      <span className="font-medium">
+                        Demo Dataset
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Radio className="h-4 w-4 shrink-0" />
+                        Backend
+                      </span>
+
+                      <span className="text-right font-medium">
+                        Awaiting Live Sync
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                    Live synchronisation with SafeBenue and Osiris
+                    Intelligence will be enabled during the
+                    integration phase.
+                  </p>
+                </section>
               </CardContent>
             </Card>
           )}
