@@ -1,4 +1,12 @@
 import { useMemo, useState } from "react";
+import {
+  Activity,
+  Database,
+  Layers3,
+  MapPin,
+  Radio,
+  Satellite,
+} from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -65,7 +73,7 @@ export function UnifiedOperationsMap({
           return false;
         }
 
-        return layers[layer];
+        return Boolean(layers[layer]);
       }),
     [resources, layers]
   );
@@ -102,6 +110,18 @@ export function UnifiedOperationsMap({
     [visibleIncidents, visibleResources]
   );
 
+  const enabledLayers = useMemo(
+    () =>
+      DEFAULT_LAYERS.filter(
+        (layer) => layers[layer.id] && !layer.future
+      ),
+    [layers]
+  );
+
+  const activeLayerCount = enabledLayers.length;
+  const visibleMarkerCount =
+    visibleIncidents.length + visibleResources.length;
+
   const layerControls = (
     <MapLayerControls
       layers={layers}
@@ -110,61 +130,219 @@ export function UnifiedOperationsMap({
     />
   );
 
-  if (points.length === 0) {
-    return (
-      <Card>
-        <CardContent className="space-y-4 p-4">
-          {layerControls}
-
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            No visible incidents or emergency resources with GPS coordinates
-            to display.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const bounds = computeBounds(points);
-
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardContent className="space-y-4 p-4">
+        <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-green-500/10 p-2 text-green-600 dark:text-green-400">
+              <Satellite
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold">
+                  Unified Operations Map
+                </p>
+
+                <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-400">
+                  <Radio
+                    className="h-2.5 w-2.5"
+                    aria-hidden="true"
+                  />
+                  Operational
+                </span>
+              </div>
+
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Incident and emergency-resource visibility across the
+                operational area.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Layers3
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+              <strong className="font-medium text-foreground">
+                {activeLayerCount}
+              </strong>
+              active layers
+            </span>
+
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+              <strong className="font-medium text-foreground">
+                {visibleMarkerCount}
+              </strong>
+              visible markers
+            </span>
+          </div>
+        </div>
+
         {layerControls}
 
-        <LeafletMap
-          incidents={visibleIncidents}
-          resources={visibleResources}
-          bounds={[
-            [bounds.minLat, bounds.minLng],
-            [bounds.maxLat, bounds.maxLng],
-          ]}
-          onSelectIncident={onSelectIncident}
-          onSelectResource={onSelectResource}
-        />
+        {points.length === 0 ? (
+          <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-12 text-center">
+            <MapPin
+              className="mx-auto h-8 w-8 text-muted-foreground"
+              aria-hidden="true"
+            />
 
-        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-          {DEFAULT_LAYERS.filter(
-            (layer) => layers[layer.id] && !layer.future
-          ).map((layer) => (
-            <span
-              key={layer.id}
-              className="flex items-center gap-1.5"
+            <p className="mt-3 text-sm font-medium">
+              No Operational Markers Visible
+            </p>
+
+            <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground">
+              No incidents or emergency resources with GPS coordinates
+              are available for the currently enabled map layers.
+            </p>
+
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Enable another layer or wait for synchronised field data.
+            </p>
+          </div>
+        ) : (
+          <>
+            {(() => {
+              const bounds = computeBounds(points);
+
+              return (
+                <div className="relative overflow-hidden rounded-lg border">
+                  <LeafletMap
+                    incidents={visibleIncidents}
+                    resources={visibleResources}
+                    bounds={[
+                      [bounds.minLat, bounds.minLng],
+                      [bounds.maxLat, bounds.maxLng],
+                    ]}
+                    onSelectIncident={onSelectIncident}
+                    onSelectResource={onSelectResource}
+                  />
+
+                  <div className="pointer-events-none absolute left-3 top-3 z-[400]">
+                    <div className="flex items-center gap-2 rounded-md border bg-background/90 px-2.5 py-1.5 text-[11px] shadow-sm backdrop-blur">
+                      <Activity
+                        className="h-3.5 w-3.5 text-green-500"
+                        aria-hidden="true"
+                      />
+
+                      <span className="font-medium">
+                        Live operational view
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div
+              className="rounded-lg border bg-muted/20 p-3"
+              aria-label="Map layer legend"
             >
-              <span
-                className="h-3 w-3 rounded-full border border-white shadow"
-                style={{
-                  backgroundColor: layer.color,
-                }}
-              />
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium">
+                    Active Layer Legend
+                  </p>
 
-              {layer.label}
-            </span>
-          ))}
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Marker colours correspond to enabled operational
+                    layers.
+                  </p>
+                </div>
 
-          <span className="ml-auto">
-            Layer Controls Enabled
-          </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {visibleMarkerCount} markers
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                {enabledLayers.map((layer) => (
+                  <span
+                    key={layer.id}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full border border-background shadow-sm"
+                      style={{
+                        backgroundColor: layer.color,
+                      }}
+                      aria-hidden="true"
+                    />
+
+                    {layer.label}
+
+                    <span className="text-[10px]">
+                      ({counts[layer.id] ?? 0})
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="grid gap-2 rounded-lg border bg-muted/20 p-3 text-xs sm:grid-cols-3">
+          <div className="flex items-center gap-2">
+            <Activity
+              className="h-3.5 w-3.5 text-green-500"
+              aria-hidden="true"
+            />
+
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Map Engine
+              </p>
+
+              <p className="font-medium">
+                Operational
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Database
+              className="h-3.5 w-3.5 text-muted-foreground"
+              aria-hidden="true"
+            />
+
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Data Source
+              </p>
+
+              <p className="font-medium">
+                Current Dataset
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Radio
+              className="h-3.5 w-3.5 text-muted-foreground"
+              aria-hidden="true"
+            />
+
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Synchronisation
+              </p>
+
+              <p className="font-medium">
+                Awaiting Live Integration
+              </p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
