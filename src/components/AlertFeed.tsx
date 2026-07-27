@@ -3,20 +3,24 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
+  Flame,
   MapPin,
   Radio,
+  ShieldAlert,
+  Target,
+  TrendingUp,
   UserRound,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "../config/dashboardConfig";
-import type { Incident } from "../types/incident";
+import type { EnrichedIncident } from "../types/enrichedIncident";
 
 interface AlertFeedProps {
-  incidents: Incident[];
+  incidents: EnrichedIncident[];
   selectedId?: string;
-  onSelect: (incident: Incident) => void;
+  onSelect: (incident: EnrichedIncident) => void;
 }
 
 function timeAgo(iso: string): string {
@@ -29,12 +33,19 @@ function timeAgo(iso: string): string {
   const diffMs = Math.max(0, Date.now() - timestamp);
   const mins = Math.floor(diffMs / 60000);
 
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return "just now";
+  }
+
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
 
   const hours = Math.floor(mins / 60);
 
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
 
   const days = Math.floor(hours / 24);
 
@@ -53,11 +64,50 @@ function isRecentIncident(iso: string): boolean {
   return Date.now() - timestamp <= thirtyMinutes;
 }
 
-function getIncidentLocation(incident: Incident): string {
+function getIncidentLocation(
+  incident: EnrichedIncident
+): string {
   return (
     incident.location.address ??
     incident.location.manualEntry ??
     "Location pending"
+  );
+}
+
+function getThreatBadgeClass(
+  threatLevel: EnrichedIncident["intelligence"]["threatLevel"]
+): string {
+  switch (threatLevel) {
+    case "critical":
+      return "border-red-700 bg-red-700 text-white";
+
+    case "high":
+      return "border-orange-600 bg-orange-600 text-white";
+
+    case "medium":
+      return "border-amber-500 bg-amber-500 text-black";
+
+    case "low":
+    default:
+      return "border-emerald-600 bg-emerald-600 text-white";
+  }
+}
+
+function formatThreatLevel(
+  threatLevel: EnrichedIncident["intelligence"]["threatLevel"]
+): string {
+  return (
+    threatLevel.charAt(0).toUpperCase() +
+    threatLevel.slice(1)
+  );
+}
+
+function formatEscalation(
+  escalation: EnrichedIncident["intelligence"]["predictedEscalation"]
+): string {
+  return (
+    escalation.charAt(0).toUpperCase() +
+    escalation.slice(1)
   );
 }
 
@@ -96,6 +146,7 @@ export function AlertFeed({
         const isRecent = isRecentIncident(incident.reportedAt);
         const priority = PRIORITY_CONFIG[incident.priority];
         const status = STATUS_CONFIG[incident.status];
+        const intelligence = incident.intelligence;
 
         return (
           <Card
@@ -105,7 +156,10 @@ export function AlertFeed({
             aria-current={isSelected ? "true" : undefined}
             onClick={() => onSelect(incident)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
+              if (
+                event.key === "Enter" ||
+                event.key === " "
+              ) {
                 event.preventDefault();
                 onSelect(incident);
               }
@@ -200,8 +254,84 @@ export function AlertFeed({
                           className="h-3 w-3"
                           aria-hidden="true"
                         />
+
                         {incident.assignedResponder}
                       </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 rounded-lg border bg-muted/25 p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge
+                        className={`${getThreatBadgeClass(
+                          intelligence.threatLevel
+                        )} text-[10px]`}
+                      >
+                        <ShieldAlert
+                          className="mr-1 h-3 w-3"
+                          aria-hidden="true"
+                        />
+
+                        {formatThreatLevel(
+                          intelligence.threatLevel
+                        )} threat ·{" "}
+                        {intelligence.threatScore}
+                      </Badge>
+
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px]"
+                      >
+                        <Target
+                          className="mr-1 h-3 w-3"
+                          aria-hidden="true"
+                        />
+
+                        {intelligence.confidence}% confidence
+                      </Badge>
+
+                      <Badge
+                        variant="outline"
+                        className="text-[10px]"
+                      >
+                        <TrendingUp
+                          className="mr-1 h-3 w-3"
+                          aria-hidden="true"
+                        />
+
+                        {formatEscalation(
+                          intelligence.predictedEscalation
+                        )}{" "}
+                        escalation
+                      </Badge>
+
+                      {intelligence.hotspot && (
+                        <Badge
+                          variant="destructive"
+                          className="text-[10px]"
+                        >
+                          <Flame
+                            className="mr-1 h-3 w-3"
+                            aria-hidden="true"
+                          />
+
+                          Active hotspot
+                        </Badge>
+                      )}
+                    </div>
+
+                    <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
+                      {intelligence.recommendation}
+                    </p>
+
+                    {intelligence.nearbyIncidentCount > 0 && (
+                      <p className="mt-2 text-[10px] text-muted-foreground">
+                        {intelligence.nearbyIncidentCount} nearby active{" "}
+                        {intelligence.nearbyIncidentCount === 1
+                          ? "incident"
+                          : "incidents"}{" "}
+                        detected within the analysis area.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -221,13 +351,13 @@ export function AlertFeed({
 
       <div className="rounded-lg border bg-muted/20 px-3 py-2.5">
         <p className="text-xs font-medium">
-          Incident Feed
+          Intelligence-Enriched Incident Feed
         </p>
 
         <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-          Alerts shown here use the current incident dataset. Additional
-          surveillance, community, resource, and intelligence feeds can be
-          connected during the integration phase.
+          Alerts combine synchronized SafeBenue incident data with
+          AIJE threat scoring, escalation analysis, hotspot detection,
+          confidence assessment, and Osiris intelligence.
         </p>
       </div>
     </div>
