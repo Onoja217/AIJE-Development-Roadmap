@@ -6,10 +6,9 @@ import {
 } from "react";
 
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
-import { mapSafeBenueIncident } from "@/integrations/safebenue/mapper";
 
+import type { EnrichedIncident } from "@/types/enrichedIncident";
 import type {
-  Incident,
   IncidentStatus,
   TimelineEvent,
 } from "@/types/incident";
@@ -22,13 +21,15 @@ interface IncidentOverride {
 }
 
 interface UseIncidentsResult {
-  incidents: Incident[];
+  incidents: EnrichedIncident[];
   isLoading: boolean;
+
   updateIncidentStatus: (
     id: string,
     status: IncidentStatus,
     note?: string
   ) => void;
+
   assignResponder: (
     id: string,
     responder: string
@@ -62,146 +63,190 @@ export function useIncidents(): UseIncidentsResult {
     isLoading,
   } = useCommunityIntegration();
 
-  /*
-   * Local overrides preserve dashboard changes while SafeBenue
-   * mutation endpoints are not yet connected.
+  /**
+   * Temporary UI overrides.
+   * These remain until SafeBenue mutation endpoints
+   * become available.
    */
   const [overrides, setOverrides] = useState<
     Record<string, IncidentOverride>
   >({});
 
-  const synchronizedIncidents = useMemo<Incident[]>(() => {
-    if (!snapshot) {
-      return [];
-    }
+  /**
+   * Incidents are already enriched by the
+   * Intelligence Engine.
+   */
+  const synchronizedIncidents =
+    useMemo<EnrichedIncident[]>(() => {
+      return (
+        snapshot?.intelligence.enrichedIncidents ?? []
+      );
+    }, [snapshot]);
 
-    return snapshot.safeBenue.incidents.map(
-      mapSafeBenueIncident
-    );
-  }, [snapshot]);
-
-  /*
-   * Remove overrides belonging to incidents that no longer exist
-   * in the synchronized SafeBenue response.
+  /**
+   * Remove overrides for incidents that no
+   * longer exist.
    */
   useEffect(() => {
-    const synchronizedIds = new Set(
-      synchronizedIncidents.map((incident) => incident.id)
+    const ids = new Set(
+      synchronizedIncidents.map(
+        (incident) => incident.id
+      )
     );
 
     setOverrides((current) => {
-      const entries = Object.entries(current);
-      const remainingEntries = entries.filter(
-        ([incidentId]) => synchronizedIds.has(incidentId)
+      const filtered = Object.fromEntries(
+        Object.entries(current).filter(([id]) =>
+          ids.has(id)
+        )
       );
 
-      if (remainingEntries.length === entries.length) {
-        return current;
-      }
-
-      return Object.fromEntries(remainingEntries);
+      return Object.keys(filtered).length ===
+        Object.keys(current).length
+        ? current
+        : filtered;
     });
   }, [synchronizedIncidents]);
 
-  const incidents = useMemo<Incident[]>(() => {
-    return synchronizedIncidents.map((incident) => {
-      const override = overrides[incident.id];
+  const incidents = useMemo<
+    EnrichedIncident[]
+  >(() => {
+    return synchronizedIncidents.map(
+      (incident) => {
+        const override =
+          overrides[incident.id];
 
-      if (!override) {
-        return incident;
+        if (!override) {
+          return incident;
+        }
+
+        return {
+          ...incident,
+
+          status:
+            override.status ??
+            incident.status,
+
+          assignedResponder:
+            override.assignedResponder ??
+            incident.assignedResponder,
+
+          responseNotes:
+            override.responseNotes ??
+            incident.responseNotes,
+
+          timeline: [
+            ...incident.timeline,
+            ...override.timeline,
+          ],
+        };
       }
-
-      return {
-        ...incident,
-        status: override.status ?? incident.status,
-        assignedResponder:
-          override.assignedResponder ??
-          incident.assignedResponder,
-        responseNotes:
-          override.responseNotes ??
-          incident.responseNotes,
-        timeline: [
-          ...incident.timeline,
-          ...override.timeline,
-        ],
-      };
-    });
+    );
   }, [synchronizedIncidents, overrides]);
 
-  const updateIncidentStatus = useCallback(
-    (
-      id: string,
-      status: IncidentStatus,
-      note?: string
-    ) => {
-      const timelineEvent: TimelineEvent = {
-        id: crypto.randomUUID(),
-        label: getTimelineLabel(status),
-        timestamp: new Date().toISOString(),
-        note,
-      };
+  const updateIncidentStatus =
+    useCallback(
+      (
+        id: string,
+        status: IncidentStatus,
+        note?: string
+      ) => {
+        const timelineEvent: TimelineEvent = {
+          id: crypto.randomUUID(),
 
-      setOverrides((current) => {
-        const existing = current[id];
+          label: getTimelineLabel(status),
 
-        return {
-          ...current,
-          [id]: {
-            status,
-            assignedResponder:
-              existing?.assignedResponder,
-            responseNotes:
-              note ?? existing?.responseNotes,
-            timeline: [
-              ...(existing?.timeline ?? []),
-              timelineEvent,
-            ],
-          },
+          timestamp:
+            new Date().toISOString(),
+
+          note,
         };
-      });
 
-      /*
-       * TODO:
-       * Send this update to the SafeBenue mutation API.
-       */
-    },
-    []
-  );
+        setOverrides((current) => {
+          const existing =
+            current[id];
 
-  const assignResponder = useCallback(
-    (id: string, responder: string) => {
-      const timelineEvent: TimelineEvent = {
-        id: crypto.randomUUID(),
-        label: "team_notified",
-        timestamp: new Date().toISOString(),
-        note: `Assigned to ${responder}`,
-      };
+          return {
+            ...current,
 
-      setOverrides((current) => {
-        const existing = current[id];
+            [id]: {
+              status,
 
-        return {
-          ...current,
-          [id]: {
-            status: existing?.status,
-            assignedResponder: responder,
-            responseNotes:
-              existing?.responseNotes,
-            timeline: [
-              ...(existing?.timeline ?? []),
-              timelineEvent,
-            ],
-          },
+              assignedResponder:
+                existing?.assignedResponder,
+
+              responseNotes:
+                note ??
+                existing?.responseNotes,
+
+              timeline: [
+                ...(existing?.timeline ??
+                  []),
+
+                timelineEvent,
+              ],
+            },
+          };
+        });
+
+        /**
+         * TODO
+         * Replace with SafeBenue mutation API.
+         */
+      },
+      []
+    );
+
+  const assignResponder =
+    useCallback(
+      (
+        id: string,
+        responder: string
+      ) => {
+        const timelineEvent: TimelineEvent = {
+          id: crypto.randomUUID(),
+
+          label: "team_notified",
+
+          timestamp:
+            new Date().toISOString(),
+
+          note: `Assigned to ${responder}`,
         };
-      });
 
-      /*
-       * TODO:
-       * Send responder assignment to SafeBenue.
-       */
-    },
-    []
-  );
+        setOverrides((current) => {
+          const existing =
+            current[id];
+
+          return {
+            ...current,
+
+            [id]: {
+              status: existing?.status,
+
+              assignedResponder:
+                responder,
+
+              responseNotes:
+                existing?.responseNotes,
+
+              timeline: [
+                ...(existing?.timeline ??
+                  []),
+
+                timelineEvent,
+              ],
+            },
+          };
+        });
+
+        /**
+         * TODO
+         * Replace with SafeBenue mutation API.
+         */
+      },
+      []
+    );
 
   return {
     incidents,

@@ -1,17 +1,30 @@
-import { fetchSafeBenueData } from "@/integrations/safebenue/client";
 import { fetchOsirisIntelligence } from "@/integrations/osiris/client";
+import type { OsirisIntelligencePayload } from "@/integrations/osiris/types";
+
+import { fetchSafeBenueData } from "@/integrations/safebenue/client";
+import { mapSafeBenueIncident } from "@/integrations/safebenue/mapper";
+import type { SafeBenuePayload } from "@/integrations/safebenue/types";
 
 import type { IntegrationHealth } from "@/integrations/shared/integrationTypes";
-import type { SafeBenuePayload } from "@/integrations/safebenue/types";
-import type { OsirisIntelligencePayload } from "@/integrations/osiris/types";
+
+import { enrichIncidents } from "@/services/intelligenceEngine";
+
+import type { EnrichedIncident } from "@/types/enrichedIncident";
 
 export interface CommunityIntegrationSnapshot {
   safeBenue: SafeBenuePayload;
+
   osiris: OsirisIntelligencePayload;
+
+  intelligence: {
+    enrichedIncidents: EnrichedIncident[];
+  };
+
   health: {
     safeBenue: IntegrationHealth;
     osiris: IntegrationHealth;
   };
+
   synchronizedAt: string;
 }
 
@@ -41,7 +54,7 @@ export async function synchronizeCommunityIntegrations(): Promise<
             lastError:
               safeBenueResult.reason instanceof Error
                 ? safeBenueResult.reason.message
-                : "SafeBenue synchronization failed",
+                : "SafeBenue synchronisation failed",
             recordsReceived: 0,
           },
         };
@@ -62,18 +75,36 @@ export async function synchronizeCommunityIntegrations(): Promise<
             lastError:
               osirisResult.reason instanceof Error
                 ? osirisResult.reason.message
-                : "Osiris synchronization failed",
+                : "Osiris synchronisation failed",
             recordsReceived: 0,
           },
         };
 
+  const mappedIncidents =
+    safeBenue.data.incidents.map(
+      mapSafeBenueIncident
+    );
+
+  const enrichedIncidents = enrichIncidents(
+    mappedIncidents,
+    osiris.data.assessments,
+    osiris.data.hotspots
+  );
+
   return {
     safeBenue: safeBenue.data,
+
     osiris: osiris.data,
+
+    intelligence: {
+      enrichedIncidents,
+    },
+
     health: {
       safeBenue: safeBenue.health,
       osiris: osiris.health,
     },
+
     synchronizedAt: new Date().toISOString(),
   };
 }
