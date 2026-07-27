@@ -10,10 +10,12 @@ import {
   Database,
   MapPin,
   Radio,
+  RefreshCw,
   ShieldCheck,
 } from "lucide-react";
 
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCommunityLiveSync } from "@/hooks/useCommunityLiveSync";
 import { useIncidents } from "../hooks/useIncidents";
 import { useResources } from "../hooks/useResources";
 
@@ -53,8 +55,73 @@ import type {
 
 import type { EmergencyResource } from "../types/resource";
 
+function formatIntegrationState(
+  state: string | undefined
+): string {
+  if (!state) {
+    return "Not Configured";
+  }
+
+  return state
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
+
+function getHealthTextClass(
+  state: string | undefined
+): string {
+  switch (state) {
+    case "connected":
+    case "healthy":
+      return "text-green-600 dark:text-green-400";
+
+    case "degraded":
+    case "syncing":
+      return "text-yellow-600 dark:text-yellow-400";
+
+    case "disconnected":
+    case "error":
+      return "text-red-600 dark:text-red-400";
+
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function getHealthDotClass(
+  state: string | undefined
+): string {
+  switch (state) {
+    case "connected":
+    case "healthy":
+      return "bg-green-500";
+
+    case "degraded":
+    case "syncing":
+      return "bg-yellow-500";
+
+    case "disconnected":
+    case "error":
+      return "bg-red-500";
+
+    default:
+      return "bg-muted-foreground";
+  }
+}
+
 export function CommunityDashboard() {
   const { t } = useLanguage();
+
+  const {
+    snapshot,
+    mode,
+    isLoading: syncLoading,
+    isRefreshing,
+    error: syncError,
+    refresh,
+  } = useCommunityLiveSync();
 
   const {
     incidents,
@@ -68,7 +135,8 @@ export function CommunityDashboard() {
     isLoading: resourcesLoading,
   } = useResources();
 
-  const [filters, setFilters] = useState<IncidentFilters>({});
+  const [filters, setFilters] =
+    useState<IncidentFilters>({});
 
   const [selectedIncident, setSelectedIncident] =
     useState<Incident | null>(null);
@@ -89,21 +157,76 @@ export function CommunityDashboard() {
     [incidents]
   );
 
-  // Keep the selected incident synchronized with live updates.
+  const safeBenueHealth =
+    snapshot?.health.safeBenue;
+
+  const osirisHealth =
+    snapshot?.health.osiris;
+
+  const safeBenueState =
+    safeBenueHealth?.state;
+
+  const osirisState =
+    osirisHealth?.state;
+
+  const safeBenueConnected =
+    safeBenueState === "connected" ||
+    safeBenueState === "healthy";
+
+  const osirisConnected =
+    osirisState === "connected" ||
+    osirisState === "healthy";
+
+  const anyIntegrationConnected =
+    safeBenueConnected || osirisConnected;
+
+  const systemOperational =
+    !syncError &&
+    (
+      mode === "demo" ||
+      anyIntegrationConnected ||
+      syncLoading
+    );
+
+  const lastSync = snapshot?.synchronizedAt
+    ? new Date(
+        snapshot.synchronizedAt
+      ).toLocaleTimeString()
+    : "Not yet synchronised";
+
+  const safeBenueIncidentCount =
+    snapshot?.safeBenue.incidents.length ?? 0;
+
+  const safeBenueResourceCount =
+    snapshot?.safeBenue.resources.length ?? 0;
+
+  const safeBenueMissingPersonCount =
+    snapshot?.safeBenue.missingPersons.length ?? 0;
+
+  const osirisAssessmentCount =
+    snapshot?.osiris.assessments.length ?? 0;
+
+  const osirisHotspotCount =
+    snapshot?.osiris.hotspots.length ?? 0;
+
+  // Keep selected records synchronised with live updates.
   const selectedLiveIncident = selectedIncident
     ? incidents.find(
-        (incident) => incident.id === selectedIncident.id
+        (incident) =>
+          incident.id === selectedIncident.id
       ) ?? null
     : null;
 
-  // Keep the selected resource synchronized with live updates.
   const selectedLiveResource = selectedResource
     ? resources.find(
-        (resource) => resource.id === selectedResource.id
+        (resource) =>
+          resource.id === selectedResource.id
       ) ?? null
     : null;
 
-  const handleSelectIncident = (incident: Incident) => {
+  const handleSelectIncident = (
+    incident: Incident
+  ) => {
     setSelectedIncident(incident);
     setSelectedResource(null);
   };
@@ -119,6 +242,10 @@ export function CommunityDashboard() {
     setSelectedResource(null);
   };
 
+  const handleRefresh = () => {
+    void refresh();
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -128,28 +255,79 @@ export function CommunityDashboard() {
           </h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Monitor incidents, emergency resources and coordinated
-            response operations.
+            Monitor incidents, emergency resources and
+            coordinated response operations.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+          <span
+            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
+              systemOperational
+                ? "border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400"
+                : "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
+            }`}
+          >
             <Activity className="h-3.5 w-3.5" />
-            System Operational
+
+            {systemOperational
+              ? "System Operational"
+              : "System Degraded"}
           </span>
 
           <span className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
             <Database className="h-3.5 w-3.5" />
-            Demo Dataset
+            {mode.toUpperCase()} MODE
           </span>
 
           <span className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
             <Clock3 className="h-3.5 w-3.5" />
-            Updated Just Now
+
+            {syncLoading
+              ? "Synchronising..."
+              : `Last Sync: ${lastSync}`}
           </span>
+
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={syncLoading || isRefreshing}
+            className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Refresh SafeBenue and Osiris data"
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${
+                syncLoading || isRefreshing
+                  ? "animate-spin"
+                  : ""
+              }`}
+            />
+
+            {isRefreshing
+              ? "Refreshing"
+              : "Refresh"}
+          </button>
         </div>
       </div>
+
+      {syncError && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+
+          <div>
+            <p className="font-medium">
+              Integration synchronisation error
+            </p>
+
+            <p className="mt-1 text-xs">
+              {syncError}
+            </p>
+          </div>
+        </div>
+      )}
 
       <EmergencyStatusBoard
         stats={stats}
@@ -181,7 +359,9 @@ export function CommunityDashboard() {
 
               <AlertFeed
                 incidents={filteredIncidents}
-                selectedId={selectedLiveIncident?.id}
+                selectedId={
+                  selectedLiveIncident?.id
+                }
                 onSelect={handleSelectIncident}
               />
             </TabsContent>
@@ -190,15 +370,20 @@ export function CommunityDashboard() {
               {resourcesLoading ? (
                 <Card>
                   <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                    Loading emergency operations map...
+                    Loading emergency operations
+                    map...
                   </CardContent>
                 </Card>
               ) : (
                 <UnifiedOperationsMap
                   incidents={filteredIncidents}
                   resources={resources}
-                  onSelectIncident={handleSelectIncident}
-                  onSelectResource={handleSelectResource}
+                  onSelectIncident={
+                    handleSelectIncident
+                  }
+                  onSelectResource={
+                    handleSelectResource
+                  }
                 />
               )}
             </TabsContent>
@@ -217,15 +402,19 @@ export function CommunityDashboard() {
                 </CardTitle>
 
                 <p className="text-xs text-muted-foreground">
-                  {selectedLiveIncident.location.address ??
-                    selectedLiveIncident.location.manualEntry ??
+                  {selectedLiveIncident.location
+                    .address ??
+                    selectedLiveIncident.location
+                      .manualEntry ??
                     "Location pending"}
                 </p>
               </CardHeader>
 
               <CardContent className="space-y-5">
                 <p className="text-sm">
-                  {selectedLiveIncident.description}
+                  {
+                    selectedLiveIncident.description
+                  }
                 </p>
 
                 <div>
@@ -234,7 +423,9 @@ export function CommunityDashboard() {
                   </h3>
 
                   <IncidentTimeline
-                    incident={selectedLiveIncident}
+                    incident={
+                      selectedLiveIncident
+                    }
                   />
                 </div>
 
@@ -244,9 +435,15 @@ export function CommunityDashboard() {
                   </h3>
 
                   <ResponseTracking
-                    incident={selectedLiveIncident}
-                    onUpdateStatus={updateIncidentStatus}
-                    onAssignResponder={assignResponder}
+                    incident={
+                      selectedLiveIncident
+                    }
+                    onUpdateStatus={
+                      updateIncidentStatus
+                    }
+                    onAssignResponder={
+                      assignResponder
+                    }
                   />
                 </div>
               </CardContent>
@@ -254,7 +451,9 @@ export function CommunityDashboard() {
           ) : selectedLiveResource ? (
             <ResourceDetails
               resource={selectedLiveResource}
-              onClose={handleCloseResourceDetails}
+              onClose={
+                handleCloseResourceDetails
+              }
             />
           ) : (
             <Card className="border-dashed">
@@ -270,7 +469,8 @@ export function CommunityDashboard() {
                     </CardTitle>
 
                     <p className="mt-1 text-xs text-muted-foreground">
-                      No active incident or emergency resource selected.
+                      No active incident or emergency
+                      resource selected.
                     </p>
                   </div>
                 </div>
@@ -292,8 +492,8 @@ export function CommunityDashboard() {
                         </p>
 
                         <p className="text-xs text-muted-foreground">
-                          Select an incident from the Alert Feed or
-                          Live Map.
+                          Select an incident from the
+                          Alert Feed or Live Map.
                         </p>
                       </div>
                     </div>
@@ -307,8 +507,9 @@ export function CommunityDashboard() {
                         </p>
 
                         <p className="text-xs text-muted-foreground">
-                          Select a hospital, police station, shelter
-                          or emergency resource.
+                          Select a hospital, police
+                          station, shelter or emergency
+                          resource.
                         </p>
                       </div>
                     </div>
@@ -333,6 +534,7 @@ export function CommunityDashboard() {
                         className="flex items-center gap-2"
                       >
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+
                         <span>{operation}</span>
                       </div>
                     ))}
@@ -347,12 +549,27 @@ export function CommunityDashboard() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <span className="flex items-center gap-2 text-muted-foreground">
-                        <Activity className="h-4 w-4 shrink-0 text-green-500" />
+                        <Activity
+                          className={`h-4 w-4 shrink-0 ${
+                            systemOperational
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }`}
+                        />
+
                         Status
                       </span>
 
-                      <span className="font-medium text-green-600 dark:text-green-400">
-                        Operational
+                      <span
+                        className={`font-medium ${
+                          systemOperational
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {systemOperational
+                          ? "Operational"
+                          : "Degraded"}
                       </span>
                     </div>
 
@@ -363,7 +580,7 @@ export function CommunityDashboard() {
                       </span>
 
                       <span className="font-medium">
-                        Demo Dataset
+                        {mode.toUpperCase()}
                       </span>
                     </div>
 
@@ -373,17 +590,158 @@ export function CommunityDashboard() {
                         Backend
                       </span>
 
+                      <span
+                        className={`text-right font-medium ${
+                          anyIntegrationConnected
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-yellow-600 dark:text-yellow-400"
+                        }`}
+                      >
+                        {syncLoading
+                          ? "Synchronising"
+                          : anyIntegrationConnected
+                            ? "Connected"
+                            : "Awaiting Live Sync"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Clock3 className="h-4 w-4 shrink-0" />
+                        Last Sync
+                      </span>
+
                       <span className="text-right font-medium">
-                        Awaiting Live Sync
+                        {lastSync}
                       </span>
                     </div>
                   </div>
 
-                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                    Live synchronisation with SafeBenue and Osiris
-                    Intelligence will be enabled during the
-                    integration phase.
-                  </p>
+                  <div className="mt-4 space-y-3 border-t pt-4">
+                    <div className="rounded-md border bg-background p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2 text-sm font-medium">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${getHealthDotClass(
+                              safeBenueState
+                            )}`}
+                          />
+
+                          SafeBenue
+                        </span>
+
+                        <span
+                          className={`text-xs font-medium ${getHealthTextClass(
+                            safeBenueState
+                          )}`}
+                        >
+                          {formatIntegrationState(
+                            safeBenueState
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <p className="text-base font-semibold">
+                            {
+                              safeBenueIncidentCount
+                            }
+                          </p>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            Incidents
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-base font-semibold">
+                            {
+                              safeBenueResourceCount
+                            }
+                          </p>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            Resources
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-base font-semibold">
+                            {
+                              safeBenueMissingPersonCount
+                            }
+                          </p>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            Missing
+                          </p>
+                        </div>
+                      </div>
+
+                      {safeBenueHealth?.lastError && (
+                        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
+                          {
+                            safeBenueHealth.lastError
+                          }
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="rounded-md border bg-background p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2 text-sm font-medium">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${getHealthDotClass(
+                              osirisState
+                            )}`}
+                          />
+
+                          Osiris Intelligence
+                        </span>
+
+                        <span
+                          className={`text-xs font-medium ${getHealthTextClass(
+                            osirisState
+                          )}`}
+                        >
+                          {formatIntegrationState(
+                            osirisState
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+                        <div>
+                          <p className="text-base font-semibold">
+                            {
+                              osirisAssessmentCount
+                            }
+                          </p>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            Assessments
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-base font-semibold">
+                            {osirisHotspotCount}
+                          </p>
+
+                          <p className="text-[11px] text-muted-foreground">
+                            Hotspots
+                          </p>
+                        </div>
+                      </div>
+
+                      {osirisHealth?.lastError && (
+                        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
+                          {osirisHealth.lastError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </section>
               </CardContent>
             </Card>
