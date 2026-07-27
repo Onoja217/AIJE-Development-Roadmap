@@ -16,14 +16,16 @@ import {
 
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
+
 import { useIncidents } from "../hooks/useIncidents";
 import { useResources } from "../hooks/useResources";
 
 import {
-  computeStats,
   filterIncidents,
   sortByMostRecent,
 } from "../lib/incidentUtils";
+
+import { buildDashboardIntelligence } from "../services/dashboardIntelligence";
 
 import { EmergencyStatusBoard } from "./EmergencyStatusBoard";
 import { AlertFeed } from "./AlertFeed";
@@ -48,11 +50,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import type {
-  Incident,
-  IncidentFilters,
-} from "../types/incident";
-
+import type { IncidentFilters } from "../types/incident";
+import type { EnrichedIncident } from "../types/enrichedIncident";
 import type { EmergencyResource } from "../types/resource";
 
 function formatIntegrationState(
@@ -115,17 +114,17 @@ export function CommunityDashboard() {
   const { t } = useLanguage();
 
   const {
-  snapshot,
-  mode,
-  isLoading: syncLoading,
-  isRefreshing,
-  error: syncError,
-  refresh,
-} = useCommunityIntegration();
+    snapshot,
+    mode,
+    isLoading: syncLoading,
+    isRefreshing,
+    error: syncError,
+    refresh,
+  } = useCommunityIntegration();
 
   const {
     incidents,
-    isLoading,
+    isLoading: incidentsLoading,
     updateIncidentStatus,
     assignResponder,
   } = useIncidents();
@@ -139,7 +138,7 @@ export function CommunityDashboard() {
     useState<IncidentFilters>({});
 
   const [selectedIncident, setSelectedIncident] =
-    useState<Incident | null>(null);
+    useState<EnrichedIncident | null>(null);
 
   const [selectedResource, setSelectedResource] =
     useState<EmergencyResource | null>(null);
@@ -148,12 +147,13 @@ export function CommunityDashboard() {
     () =>
       sortByMostRecent(
         filterIncidents(incidents, filters)
-      ),
+      ) as EnrichedIncident[],
     [incidents, filters]
   );
 
   const stats = useMemo(
-    () => computeStats(incidents),
+    () =>
+      buildDashboardIntelligence(incidents),
     [incidents]
   );
 
@@ -210,22 +210,24 @@ export function CommunityDashboard() {
     snapshot?.osiris.hotspots.length ?? 0;
 
   // Keep selected records synchronised with live updates.
-  const selectedLiveIncident = selectedIncident
-    ? incidents.find(
-        (incident) =>
-          incident.id === selectedIncident.id
-      ) ?? null
-    : null;
+  const selectedLiveIncident =
+    selectedIncident
+      ? incidents.find(
+          (incident) =>
+            incident.id === selectedIncident.id
+        ) ?? null
+      : null;
 
-  const selectedLiveResource = selectedResource
-    ? resources.find(
-        (resource) =>
-          resource.id === selectedResource.id
-      ) ?? null
-    : null;
+  const selectedLiveResource =
+    selectedResource
+      ? resources.find(
+          (resource) =>
+            resource.id === selectedResource.id
+        ) ?? null
+      : null;
 
   const handleSelectIncident = (
-    incident: Incident
+    incident: EnrichedIncident
   ) => {
     setSelectedIncident(incident);
     setSelectedResource(null);
@@ -255,8 +257,9 @@ export function CommunityDashboard() {
           </h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Monitor incidents, emergency resources and
-            coordinated response operations.
+            Monitor incidents, emergency resources,
+            intelligence analysis and coordinated response
+            operations.
           </p>
         </div>
 
@@ -331,11 +334,12 @@ export function CommunityDashboard() {
 
       <EmergencyStatusBoard
         stats={stats}
-        isLoading={isLoading}
+        isLoading={
+          incidentsLoading || syncLoading
+        }
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        {/* LEFT COLUMN */}
         <div className="space-y-4">
           <Tabs defaultValue="feed">
             <TabsList>
@@ -370,8 +374,7 @@ export function CommunityDashboard() {
               {resourcesLoading ? (
                 <Card>
                   <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                    Loading emergency operations
-                    map...
+                    Loading emergency operations map...
                   </CardContent>
                 </Card>
               ) : (
@@ -390,7 +393,6 @@ export function CommunityDashboard() {
           </Tabs>
         </div>
 
-        {/* RIGHT COLUMN */}
         <div className="space-y-4">
           <NearbyResources />
 
@@ -402,8 +404,7 @@ export function CommunityDashboard() {
                 </CardTitle>
 
                 <p className="text-xs text-muted-foreground">
-                  {selectedLiveIncident.location
-                    .address ??
+                  {selectedLiveIncident.location.address ??
                     selectedLiveIncident.location
                       .manualEntry ??
                     "Location pending"}
@@ -412,10 +413,46 @@ export function CommunityDashboard() {
 
               <CardContent className="space-y-5">
                 <p className="text-sm">
-                  {
-                    selectedLiveIncident.description
-                  }
+                  {selectedLiveIncident.description}
                 </p>
+
+                <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Intelligence Threat Score
+                      </p>
+
+                      <p className="mt-1 text-2xl font-bold">
+                        {
+                          selectedLiveIncident
+                            .intelligence.threatScore
+                        }
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Confidence
+                      </p>
+
+                      <p className="mt-1 text-lg font-semibold">
+                        {
+                          selectedLiveIncident
+                            .intelligence.confidence
+                        }
+                        %
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {
+                      selectedLiveIncident
+                        .intelligence.recommendation
+                    }
+                  </p>
+                </div>
 
                 <div>
                   <h3 className="mb-2 text-sm font-semibold">
@@ -423,9 +460,7 @@ export function CommunityDashboard() {
                   </h3>
 
                   <IncidentTimeline
-                    incident={
-                      selectedLiveIncident
-                    }
+                    incident={selectedLiveIncident}
                   />
                 </div>
 
@@ -435,9 +470,7 @@ export function CommunityDashboard() {
                   </h3>
 
                   <ResponseTracking
-                    incident={
-                      selectedLiveIncident
-                    }
+                    incident={selectedLiveIncident}
                     onUpdateStatus={
                       updateIncidentStatus
                     }
@@ -523,6 +556,7 @@ export function CommunityDashboard() {
 
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {[
+                      "Review Incident Intelligence",
                       "Review Incident Timeline",
                       "Monitor Response Progress",
                       "Assign Emergency Responders",
@@ -534,7 +568,6 @@ export function CommunityDashboard() {
                         className="flex items-center gap-2"
                       >
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
-
                         <span>{operation}</span>
                       </div>
                     ))}
@@ -644,9 +677,7 @@ export function CommunityDashboard() {
                       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                         <div>
                           <p className="text-base font-semibold">
-                            {
-                              safeBenueIncidentCount
-                            }
+                            {safeBenueIncidentCount}
                           </p>
 
                           <p className="text-[11px] text-muted-foreground">
@@ -656,9 +687,7 @@ export function CommunityDashboard() {
 
                         <div>
                           <p className="text-base font-semibold">
-                            {
-                              safeBenueResourceCount
-                            }
+                            {safeBenueResourceCount}
                           </p>
 
                           <p className="text-[11px] text-muted-foreground">
@@ -668,9 +697,7 @@ export function CommunityDashboard() {
 
                         <div>
                           <p className="text-base font-semibold">
-                            {
-                              safeBenueMissingPersonCount
-                            }
+                            {safeBenueMissingPersonCount}
                           </p>
 
                           <p className="text-[11px] text-muted-foreground">
@@ -681,9 +708,7 @@ export function CommunityDashboard() {
 
                       {safeBenueHealth?.lastError && (
                         <p className="mt-3 text-xs text-red-600 dark:text-red-400">
-                          {
-                            safeBenueHealth.lastError
-                          }
+                          {safeBenueHealth.lastError}
                         </p>
                       )}
                     </div>
@@ -714,9 +739,7 @@ export function CommunityDashboard() {
                       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
                         <div>
                           <p className="text-base font-semibold">
-                            {
-                              osirisAssessmentCount
-                            }
+                            {osirisAssessmentCount}
                           </p>
 
                           <p className="text-[11px] text-muted-foreground">
