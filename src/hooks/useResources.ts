@@ -1,60 +1,60 @@
-// hooks/useResources.ts
+import {
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
-import { useEffect, useState } from "react";
-import { ResourceService } from "../services/resources";
-import type { EmergencyResource } from "../types/resource";
+import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
+import { mapSafeBenueResource } from "@/integrations/safebenue/mapper";
 
-export function useResources() {
-  const [resources, setResources] = useState<EmergencyResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+import type { EmergencyResource } from "@/types/resource";
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadResources() {
-      try {
-        setIsLoading(true);
-
-        const data = await ResourceService.getResources();
-
-        if (mounted) {
-          setResources(data);
-        }
-      } catch (error) {
-        console.error("Failed to load emergency resources:", error);
-
-        if (mounted) {
-          setResources([]);
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadResources();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return { resources, isLoading };
+interface UseResourcesResult {
+  resources: EmergencyResource[];
+  isLoading: boolean;
 }
 
-// Gets the user's current location for nearest-resource sorting.
+export function useResources(): UseResourcesResult {
+  const {
+    snapshot,
+    isLoading,
+  } = useCommunityIntegration();
+
+  const resources = useMemo<EmergencyResource[]>(() => {
+    if (!snapshot) {
+      return [];
+    }
+
+    return snapshot.safeBenue.resources.map(
+      mapSafeBenueResource
+    );
+  }, [snapshot]);
+
+  return {
+    resources,
+    isLoading,
+  };
+}
+
+type UserLocationStatus =
+  | "idle"
+  | "requesting"
+  | "granted"
+  | "denied";
+
+interface UserLocation {
+  lat: number;
+  lng: number;
+}
+
 export function useUserLocation() {
-  const [location, setLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+  const [location, setLocation] =
+    useState<UserLocation | null>(null);
 
-  const [status, setStatus] = useState<
-    "idle" | "requesting" | "granted" | "denied"
-  >("idle");
+  const [status, setStatus] =
+    useState<UserLocationStatus>("idle");
 
-  function requestLocation() {
+  const requestLocation = useCallback(() => {
     if (!("geolocation" in navigator)) {
       setStatus("denied");
       return;
@@ -71,15 +71,21 @@ export function useUserLocation() {
 
         setStatus("granted");
       },
-      () => {
+      (error) => {
+        console.error(
+          "Unable to retrieve user location:",
+          error
+        );
+
         setStatus("denied");
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
+        maximumAge: 60000,
       }
     );
-  }
+  }, []);
 
   return {
     location,

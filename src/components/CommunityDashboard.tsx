@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { useLanguage } from "@/hooks/useLanguage";
-import { useCommunityLiveSync } from "@/hooks/useCommunityLiveSync";
+import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
 import { useIncidents } from "../hooks/useIncidents";
 import { useResources } from "../hooks/useResources";
 
@@ -115,13 +115,13 @@ export function CommunityDashboard() {
   const { t } = useLanguage();
 
   const {
-    snapshot,
-    mode,
-    isLoading: syncLoading,
-    isRefreshing,
-    error: syncError,
-    refresh,
-  } = useCommunityLiveSync();
+  snapshot,
+  mode,
+  isLoading: syncLoading,
+  isRefreshing,
+  error: syncError,
+  refresh,
+} = useCommunityIntegration();
 
   const {
     incidents,
