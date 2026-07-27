@@ -30,7 +30,7 @@ import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 import CommunityAlerts from "./pages/CommunityAlerts";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { GlobalControls } from "@/components/GlobalControls";
-
+import { EmergencyContactsPage } from "@/components/EmergencyContactsPage";
 const queryClient = new QueryClient();
 
 interface ProtectedRouteProps {
