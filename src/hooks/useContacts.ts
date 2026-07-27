@@ -1,50 +1,145 @@
-// hooks/useContacts.ts
-//
-// Mock data + in-memory CRUD so this page is fully usable before backend
-// integration exists. Swap the internals here for real API calls later —
-// every component consuming this hook stays unchanged.
-//
-// NOTE: This does NOT touch alert dispatch logic — it only manages the
-// contact records themselves, per the issue's "do not modify" instruction.
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { useState, useEffect, useCallback } from "react";
-import type { EmergencyContact, EmergencyContactInput } from "../types/contact";
+import type {
+  EmergencyContact,
+  EmergencyContactInput,
+} from "../types/contact";
 
-const MOCK_CONTACTS: EmergencyContact[] = [
-  { id: "c1", fullName: "Sgt. Aondona Iyorpuu", phoneNumber: "080-100-0001", role: "police", community: "Otukpo", status: "active" },
-  { id: "c2", fullName: "Dr. Chinwe Okafor", phoneNumber: "080-100-0002", role: "hospital", community: "Otukpo", status: "active" },
-  { id: "c3", fullName: "Adaji Ogbaji", phoneNumber: "080-100-0003", role: "vigilante", community: "Ochekwu", status: "active" },
-  { id: "c4", fullName: "Chief Michael Ogah", phoneNumber: "080-100-0004", role: "community_leader", community: "Ochekwu", status: "active" },
-  { id: "c5", fullName: "Benue Relief NGO — Coordinator", phoneNumber: "080-100-0005", role: "ngo", community: "Otukpo", status: "inactive" },
-];
+import {
+  createContact,
+  searchContacts,
+  sortContacts,
+  updateContact,
+} from "../utils/contactUtils";
+
+const STORAGE_KEY = "aije-emergency-contacts";
+
+function loadStoredContacts(): EmergencyContact[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const storedContacts =
+      window.localStorage.getItem(STORAGE_KEY);
+
+    if (!storedContacts) {
+      return [];
+    }
+
+    const parsedContacts: unknown =
+      JSON.parse(storedContacts);
+
+    if (!Array.isArray(parsedContacts)) {
+      return [];
+    }
+
+    return parsedContacts as EmergencyContact[];
+  } catch {
+    return [];
+  }
+}
 
 export function useContacts() {
-  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [contacts, setContacts] = useState<
+    EmergencyContact[]
+  >(() => loadStoredContacts());
+
+  const [searchQuery, setSearchQuery] =
+    useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setContacts(MOCK_CONTACTS);
-      setIsLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(contacts)
+      );
+    } catch {
+      console.error(
+        "Unable to save emergency contacts."
+      );
+    }
+  }, [contacts]);
 
-  const addContact = useCallback((input: EmergencyContactInput) => {
-    const newContact: EmergencyContact = { ...input, id: crypto.randomUUID() };
-    setContacts((prev) => [newContact, ...prev]);
-    // TODO: replace with a real API call once backend is available.
-  }, []);
+  const addContact = useCallback(
+    (data: EmergencyContactInput) => {
+      const newContact = createContact(data);
 
-  const updateContact = useCallback((id: string, input: EmergencyContactInput) => {
-    setContacts((prev) => prev.map((c) => (c.id === id ? { ...input, id } : c)));
-    // TODO: replace with a real API call once backend is available.
-  }, []);
+      setContacts((currentContacts) =>
+        sortContacts([
+          ...currentContacts,
+          newContact,
+        ])
+      );
 
-  const deleteContact = useCallback((id: string) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
-    // TODO: replace with a real API call once backend is available.
-  }, []);
+      return newContact;
+    },
+    []
+  );
 
-  return { contacts, isLoading, addContact, updateContact, deleteContact };
+  const editContact = useCallback(
+    (
+      contactId: string,
+      data: EmergencyContactInput
+    ) => {
+      setContacts((currentContacts) =>
+        sortContacts(
+          currentContacts.map((contact) =>
+            contact.id === contactId
+              ? updateContact(contact, data)
+              : contact
+          )
+        )
+      );
+    },
+    []
+  );
+
+  const deleteContact = useCallback(
+    (contactId: string) => {
+      setContacts((currentContacts) =>
+        currentContacts.filter(
+          (contact) =>
+            contact.id !== contactId
+        )
+      );
+    },
+    []
+  );
+
+  const getContactById = useCallback(
+    (contactId: string) =>
+      contacts.find(
+        (contact) =>
+          contact.id === contactId
+      ),
+    [contacts]
+  );
+
+  const filteredContacts = useMemo(
+    () =>
+      sortContacts(
+        searchContacts(
+          contacts,
+          searchQuery
+        )
+      ),
+    [contacts, searchQuery]
+  );
+
+  return {
+    contacts,
+    filteredContacts,
+    searchQuery,
+    setSearchQuery,
+    addContact,
+    editContact,
+    deleteContact,
+    getContactById,
+  };
 }

@@ -1,9 +1,18 @@
 import type { ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +20,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { CommunityDashboard } from "@/components/CommunityDashboard";
 import { EmergencyResourceMap } from "@/components/EmergencyResourceMap";
+import { GlobalControls } from "@/components/GlobalControls";
 
 import Index from "./pages/Index";
 import SensorManagement from "./pages/SensorManagement";
@@ -28,16 +38,17 @@ import NotFound from "./pages/NotFound";
 import CameraManagement from "./pages/CameraManagement";
 import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 import CommunityAlerts from "./pages/CommunityAlerts";
-import { LanguageProvider } from "@/hooks/useLanguage";
-import { GlobalControls } from "@/components/GlobalControls";
-import { EmergencyContactsPage } from "@/components/EmergencyContactsPage";
+import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+
 const queryClient = new QueryClient();
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
-function ProtectedRoute({ children }: ProtectedRouteProps) {
+function ProtectedRoute({
+  children,
+}: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -62,149 +73,173 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 function App() {
   return (
     <LanguageProvider>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
 
-          <BrowserRouter>
-            <GlobalControls />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+            <BrowserRouter>
+              <GlobalControls />
 
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-    path="/incident-report"
-    element={
-        <ProtectedRoute>
-            <CitizenIncidentReporting />
-        </ProtectedRoute>
-    }
-/>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
 
-              <Route
-                path="/sensors"
-                element={
-                  <ProtectedRoute>
-                    <SensorManagement />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/reset-password"
+                  element={<ResetPassword />}
+                />
 
-              <Route
-                path="/control"
-                element={
-                  <ProtectedRoute>
-                    <ControlPanel />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-  path="/cameras"
-  element={
-    <ProtectedRoute>
-      <CameraManagement />
-    </ProtectedRoute>
-  }
-/>
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/detection"
-                element={
-                  <ProtectedRoute>
-                    <DetectionManager />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/incident-report"
+                  element={
+                    <ProtectedRoute>
+                      <CitizenIncidentReporting />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/faces"
-                element={
-                  <ProtectedRoute>
-                    <FaceRecognition />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/sensors"
+                  element={
+                    <ProtectedRoute>
+                      <SensorManagement />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/control"
+                  element={
+                    <ProtectedRoute>
+                      <ControlPanel />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/pricing"
-                element={
-                  <ProtectedRoute>
-                    <Pricing />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/cameras"
+                  element={
+                    <ProtectedRoute>
+                      <CameraManagement />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/deployments"
-                element={
-                  <ProtectedRoute>
-                    <Deployments />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/detection"
+                  element={
+                    <ProtectedRoute>
+                      <DetectionManager />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/billing/callback"
-                element={
-                  <ProtectedRoute>
-                    <BillingCallback />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/faces"
+                  element={
+                    <ProtectedRoute>
+                      <FaceRecognition />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/admin/webhooks"
-                element={
-                  <ProtectedRoute>
-                    <AdminWebhooks />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/community-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <CommunityDashboard />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/pricing"
+                  element={
+                    <ProtectedRoute>
+                      <Pricing />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/resources"
-                element={
-                  <ProtectedRoute>
-                    <EmergencyResourceMap />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/deployments"
+                  element={
+                    <ProtectedRoute>
+                      <Deployments />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/community-alerts" element={<ProtectedRoute><CommunityAlerts /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+                <Route
+                  path="/billing/callback"
+                  element={
+                    <ProtectedRoute>
+                      <BillingCallback />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/admin/webhooks"
+                  element={
+                    <ProtectedRoute>
+                      <AdminWebhooks />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/community-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <CommunityDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/resources"
+                  element={
+                    <ProtectedRoute>
+                      <EmergencyResourceMap />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/community-alerts"
+                  element={
+                    <ProtectedRoute>
+                      <CommunityAlerts />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/emergency-contacts"
+                  element={
+                    <ProtectedRoute>
+                      <EmergencyContactsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </LanguageProvider>
   );
 }

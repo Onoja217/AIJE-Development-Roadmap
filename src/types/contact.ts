@@ -1,5 +1,3 @@
-// types/contact.ts
-
 export type ContactRole =
   | "police"
   | "hospital"
@@ -9,7 +7,9 @@ export type ContactRole =
   | "ngo"
   | "family";
 
-export type ContactStatus = "active" | "inactive";
+export type ContactStatus =
+  | "active"
+  | "inactive";
 
 export interface EmergencyContact {
   id: string;
@@ -18,7 +18,11 @@ export interface EmergencyContact {
   role: ContactRole;
   community: string;
   status: ContactStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Used by the form before an id exists (create flow).
-export type EmergencyContactInput = Omit<EmergencyContact, "id">;
+export type EmergencyContactInput = Omit<
+  EmergencyContact,
+  "id" | "createdAt" | "updatedAt"
+>;
