@@ -9,6 +9,16 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { enqueue, registerSyncHandler } from "@/lib/syncEngine";
+import type { EmergencyReport } from "@/types/report";
+
+registerSyncHandler<EmergencyReport>("incident_reports", async (report) => {
+  await fetch("/api/reports", { method: "POST", body: JSON.stringify(report) });
+});
+
+async function saveReport(report: EmergencyReport) {
+  await enqueue("incident_reports", report);
+}
 
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
