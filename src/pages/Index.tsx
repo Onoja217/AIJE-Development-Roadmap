@@ -3,6 +3,7 @@ import { SensorCard } from "@/components/dashboard/SensorCard";
 import { MuteProvider } from "@/hooks/useMute";
 import { ThreatLevel } from "@/components/dashboard/ThreatLevel";
 import { AlertFeed } from "@/components/dashboard/AlertFeed";
+import { CommunityAlertFeed } from "@/components/dashboard/CommunityAlertFeed";
 import { ZoneMap } from "@/components/dashboard/ZoneMap";
 import { VibrationChart } from "@/components/dashboard/VibrationChart";
 import { SystemStatus } from "@/components/dashboard/SystemStatus";
@@ -91,9 +92,10 @@ const Index = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-              className="lg:col-span-4"
+              className="lg:col-span-4 space-y-4"
             >
               <AlertFeed sensors={sensors} />
+              <CommunityAlertFeed />
             </motion.div>
           </motion.div>
           <div className="h-16 md:hidden" />
