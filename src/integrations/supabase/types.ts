@@ -14,6 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_deliveries: {
+        Row: {
+          alert_id: string
+          attempts: number
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          provider: string | null
+          provider_message_id: string | null
+          recipient: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          alert_id: string
+          attempts?: number
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_id?: string
+          attempts?: number
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_deliveries_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "community_alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_escalations: {
+        Row: {
+          alert_id: string
+          created_at: string
+          from_level: number
+          id: string
+          notified_contacts: string[]
+          reason: string | null
+          to_level: number
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          from_level: number
+          id?: string
+          notified_contacts?: string[]
+          reason?: string | null
+          to_level: number
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          from_level?: number
+          id?: string
+          notified_contacts?: string[]
+          reason?: string | null
+          to_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_escalations_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "community_alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alert_history: {
         Row: {
           created_at: string
@@ -119,6 +207,182 @@ export type Database = {
         }
         Relationships: []
       }
+      community_alert_targets: {
+        Row: {
+          alert_id: string
+          created_at: string
+          group_id: string
+          id: string
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_alert_targets_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "community_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_alert_targets_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_watch_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_alerts: {
+        Row: {
+          created_at: string
+          escalation_level: number
+          id: string
+          incident_id: string | null
+          incident_type: string
+          instructions: string
+          language: string
+          location: string
+          next_escalation_at: string | null
+          occurred_at: string
+          owner_id: string
+          resolved_at: string | null
+          status: string
+          summary: string
+          threat_level: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          escalation_level?: number
+          id?: string
+          incident_id?: string | null
+          incident_type: string
+          instructions?: string
+          language?: string
+          location: string
+          next_escalation_at?: string | null
+          occurred_at?: string
+          owner_id: string
+          resolved_at?: string | null
+          status?: string
+          summary: string
+          threat_level?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          escalation_level?: number
+          id?: string
+          incident_id?: string | null
+          incident_type?: string
+          instructions?: string
+          language?: string
+          location?: string
+          next_escalation_at?: string | null
+          occurred_at?: string
+          owner_id?: string
+          resolved_at?: string | null
+          status?: string
+          summary?: string
+          threat_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_group_members: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          name: string
+          phone: string
+          preferred_language: string
+          sms_enabled: boolean
+          updated_at: string
+          whatsapp_enabled: boolean
+          whatsapp_target: string | null
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          name: string
+          phone: string
+          preferred_language?: string
+          sms_enabled?: boolean
+          updated_at?: string
+          whatsapp_enabled?: boolean
+          whatsapp_target?: string | null
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          name?: string
+          phone?: string
+          preferred_language?: string
+          sms_enabled?: boolean
+          updated_at?: string
+          whatsapp_enabled?: boolean
+          whatsapp_target?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_watch_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_watch_groups: {
+        Row: {
+          community: string
+          created_at: string
+          escalation_minutes: number
+          id: string
+          leader_name: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          community: string
+          created_at?: string
+          escalation_minutes?: number
+          id?: string
+          leader_name?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          community?: string
+          created_at?: string
+          escalation_minutes?: number
+          id?: string
+          leader_name?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: []
+      }
       deployments: {
         Row: {
           created_at: string
@@ -152,6 +416,51 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      emergency_contacts: {
+        Row: {
+          active: boolean
+          authority_level: number
+          category: string
+          community: string | null
+          created_at: string
+          id: string
+          incident_types: string[]
+          name: string
+          owner_id: string
+          phone: string
+          updated_at: string
+          whatsapp_target: string | null
+        }
+        Insert: {
+          active?: boolean
+          authority_level?: number
+          category: string
+          community?: string | null
+          created_at?: string
+          id?: string
+          incident_types?: string[]
+          name: string
+          owner_id: string
+          phone: string
+          updated_at?: string
+          whatsapp_target?: string | null
+        }
+        Update: {
+          active?: boolean
+          authority_level?: number
+          category?: string
+          community?: string | null
+          created_at?: string
+          id?: string
+          incident_types?: string[]
+          name?: string
+          owner_id?: string
+          phone?: string
+          updated_at?: string
+          whatsapp_target?: string | null
         }
         Relationships: []
       }
