@@ -170,12 +170,10 @@ export function CommunityDashboard() {
     osirisHealth?.state;
 
   const safeBenueConnected =
-    safeBenueState === "connected" ||
-    safeBenueState === "healthy";
+    safeBenueState === "connected";
 
   const osirisConnected =
-    osirisState === "connected" ||
-    osirisState === "healthy";
+    osirisState === "connected";
 
   const anyIntegrationConnected =
     safeBenueConnected || osirisConnected;
