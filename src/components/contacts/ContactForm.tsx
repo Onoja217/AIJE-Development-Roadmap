@@ -78,7 +78,7 @@ export function ContactForm({
   }, [contact, form]);
 
   function handleSubmit(values: ContactSchemaType) {
-    onSubmit(values);
+    onSubmit(values as EmergencyContactInput);
 
     if (!contact) {
       form.reset(DEFAULT_VALUES);

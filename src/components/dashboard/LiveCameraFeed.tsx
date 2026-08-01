@@ -184,6 +184,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       return;
     }
     let inside = false;
+    let intruders: { trackId?: number }[] = [];
     let maxConfidence = 0.70;
     let maxSeenCount = 0;
 
@@ -205,7 +206,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       }
       const vw = video.videoWidth;
       const vh = video.videoHeight;
-      const inZone = detections.filter((d) => {
+      const inZone: typeof detections = detections.filter((d) => {
         if (d.class !== "person") return false;
         // Gate: Must be seen for at least 3 frames to avoid transient false alarms
         if (d.seenCount && d.seenCount < 3) return false;
@@ -216,6 +217,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       });
 
       inside = inZone.length > 0;
+      intruders = inZone;
       if (inside) {
         maxConfidence = inZone.reduce((max, d) => Math.max(max, d.score), 0);
         maxSeenCount = inZone.reduce((max, d) => Math.max(max, d.seenCount ?? 0), 0);
@@ -247,7 +249,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     // Filter intruders to only evaluate targets not currently in cooldown
     const targetsToAlert = simulatedZoneIntrusion
       ? [{ trackId: -1 }]
-      : inZone.filter((p) => {
+      : intruders.filter((p) => {
           if (p.trackId === undefined) return true;
           const lastAlertTime = alertedTrackIdsRef.current[p.trackId];
           return !lastAlertTime || (now - lastAlertTime >= cooldownMs);

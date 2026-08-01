@@ -92,7 +92,7 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
         ...(geo.location.lat !== undefined ? geo.location : {}),
       },
       contact: values.contact || undefined,
-      images: values.images,
+      images: values.images as EmergencyReport["images"],
       syncStatus: "pending",
     };
 
