@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Header } from "@/components/dashboard/Header";
+import { SyncStatusPanel } from "@/components/SyncStatusPanel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -148,6 +149,10 @@ export default function ControlPanel() {
             Access and manage every operational module connected to the AIJE
             Community Shield platform.
           </p>
+        </section>
+
+        <section className="max-w-md" aria-label="Offline synchronisation status">
+          <SyncStatusPanel />
         </section>
 
         <section
