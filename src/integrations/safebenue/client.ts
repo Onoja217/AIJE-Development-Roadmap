@@ -1,10 +1,12 @@
 import { integrationConfig } from "../shared/integrationConfig";
+import { fetchIntegrationJson } from "../shared/integrationHttp";
 
 import type {
   IntegrationHealth,
   IntegrationResult,
 } from "../shared/integrationTypes";
 
+import { safeBenueDemoPayload } from "./demoData";
 import type { SafeBenuePayload } from "./types";
 
 const emptyPayload: SafeBenuePayload = {
@@ -25,37 +27,75 @@ const createHealth = (
   ...overrides,
 });
 
+const countRecords = (payload: SafeBenuePayload) =>
+  payload.incidents.length +
+  payload.resources.length +
+  payload.missingPersons.length;
+
 export async function fetchSafeBenueData(): Promise<
   IntegrationResult<SafeBenuePayload>
 > {
-  if (
-    integrationConfig.mode === "demo" ||
-    !integrationConfig.safeBenueEnabled
-  ) {
+  const startedAt = new Date().toISOString();
+  const config = integrationConfig.safeBenue;
+
+  // Demo mode: deterministic local dataset, no network calls.
+  if (integrationConfig.mode === "demo") {
     return {
-      data: emptyPayload,
-      health: createHealth(),
+      data: safeBenueDemoPayload,
+      health: createHealth({
+        state: "connected",
+        lastSyncAt: startedAt,
+        lastSuccessfulSyncAt: startedAt,
+        recordsReceived: countRecords(safeBenueDemoPayload),
+      }),
     };
   }
 
-  const startedAt = new Date().toISOString();
+  if (!config.enabled) {
+    return { data: emptyPayload, health: createHealth() };
+  }
 
-  try {
-    /*
-     * Live requests requiring API credentials should be sent
-     * through a Supabase Edge Function.
-     *
-     * This placeholder will be replaced once the SafeBenue
-     * endpoint or database-access method is confirmed.
-     */
-
+  if (!config.baseUrl) {
     return {
       data: emptyPayload,
       health: createHealth({
-        state: "degraded",
+        state: "not_configured",
         lastSyncAt: startedAt,
         lastError:
-          "SafeBenue integration is enabled but no live endpoint has been configured.",
+          "SafeBenue is enabled but VITE_SAFEBENUE_BASE_URL is missing or invalid.",
+      }),
+    };
+  }
+
+  try {
+    const [incidents, resources, missingPersons] = await Promise.all([
+      fetchIntegrationJson<SafeBenuePayload["incidents"]>(
+        config,
+        "/incidents"
+      ),
+      fetchIntegrationJson<SafeBenuePayload["resources"]>(
+        config,
+        "/resources"
+      ),
+      fetchIntegrationJson<SafeBenuePayload["missingPersons"]>(
+        config,
+        "/missing-persons"
+      ).catch(() => [] as SafeBenuePayload["missingPersons"]),
+    ]);
+
+    const data: SafeBenuePayload = {
+      incidents: Array.isArray(incidents) ? incidents : [],
+      resources: Array.isArray(resources) ? resources : [],
+      missingPersons: Array.isArray(missingPersons) ? missingPersons : [],
+    };
+
+    return {
+      data,
+      health: createHealth({
+        state: "connected",
+        lastSyncAt: startedAt,
+        lastSuccessfulSyncAt: new Date().toISOString(),
+        recordsReceived: countRecords(data),
       }),
     };
   } catch (error) {
