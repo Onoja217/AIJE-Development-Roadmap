@@ -608,6 +608,63 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_reports: {
+        Row: {
+          address: string | null
+          category: string
+          client_id: string | null
+          contact: string | null
+          created_at: string
+          description: string
+          id: string
+          image_count: number
+          latitude: number | null
+          longitude: number | null
+          manual_location: string | null
+          occurred_at: string
+          reporter_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          client_id?: string | null
+          contact?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          image_count?: number
+          latitude?: number | null
+          longitude?: number | null
+          manual_location?: string | null
+          occurred_at?: string
+          reporter_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          client_id?: string | null
+          contact?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_count?: number
+          latitude?: number | null
+          longitude?: number | null
+          manual_location?: string | null
+          occurred_at?: string
+          reporter_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_events: {
         Row: {
           created_at: string
