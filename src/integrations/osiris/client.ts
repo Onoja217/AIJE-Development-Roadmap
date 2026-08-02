@@ -1,10 +1,12 @@
 import { integrationConfig } from "../shared/integrationConfig";
+import { fetchIntegrationJson } from "../shared/integrationHttp";
 
 import type {
   IntegrationHealth,
   IntegrationResult,
 } from "../shared/integrationTypes";
 
+import { osirisDemoPayload } from "./demoData";
 import type { OsirisIntelligencePayload } from "./types";
 
 const emptyPayload: OsirisIntelligencePayload = {
@@ -24,34 +26,67 @@ const createHealth = (
   ...overrides,
 });
 
+const countRecords = (payload: OsirisIntelligencePayload) =>
+  payload.assessments.length + payload.hotspots.length;
+
 export async function fetchOsirisIntelligence(): Promise<
   IntegrationResult<OsirisIntelligencePayload>
 > {
-  if (
-    integrationConfig.mode === "demo" ||
-    !integrationConfig.osirisEnabled
-  ) {
+  const startedAt = new Date().toISOString();
+  const config = integrationConfig.osiris;
+
+  if (integrationConfig.mode === "demo") {
     return {
-      data: emptyPayload,
-      health: createHealth(),
+      data: osirisDemoPayload,
+      health: createHealth({
+        state: "connected",
+        lastSyncAt: startedAt,
+        lastSuccessfulSyncAt: startedAt,
+        recordsReceived: countRecords(osirisDemoPayload),
+      }),
     };
   }
 
-  const startedAt = new Date().toISOString();
+  if (!config.enabled) {
+    return { data: emptyPayload, health: createHealth() };
+  }
 
-  try {
-    /*
-     * Osiris requests requiring credentials must be routed
-     * through a protected backend or Supabase Edge Function.
-     */
-
+  if (!config.baseUrl) {
     return {
       data: emptyPayload,
       health: createHealth({
-        state: "degraded",
+        state: "not_configured",
         lastSyncAt: startedAt,
         lastError:
-          "Osiris integration is enabled but no live endpoint has been configured.",
+          "Osiris is enabled but VITE_OSIRIS_BASE_URL is missing or invalid.",
+      }),
+    };
+  }
+
+  try {
+    const [assessments, hotspots] = await Promise.all([
+      fetchIntegrationJson<OsirisIntelligencePayload["assessments"]>(
+        config,
+        "/threat-assessments"
+      ),
+      fetchIntegrationJson<OsirisIntelligencePayload["hotspots"]>(
+        config,
+        "/hotspots"
+      ).catch(() => [] as OsirisIntelligencePayload["hotspots"]),
+    ]);
+
+    const data: OsirisIntelligencePayload = {
+      assessments: Array.isArray(assessments) ? assessments : [],
+      hotspots: Array.isArray(hotspots) ? hotspots : [],
+    };
+
+    return {
+      data,
+      health: createHealth({
+        state: "connected",
+        lastSyncAt: startedAt,
+        lastSuccessfulSyncAt: new Date().toISOString(),
+        recordsReceived: countRecords(data),
       }),
     };
   } catch (error) {
