@@ -8,11 +8,20 @@ export type IntegrationState =
   | "degraded"
   | "disconnected";
 
+export interface IntegrationEndpointConfig {
+  enabled: boolean;
+  baseUrl: string | null;
+  /** Public/read-only token only. Never put private keys in the client. */
+  publicToken: string | null;
+}
+
 export interface IntegrationConfiguration {
   mode: IntegrationMode;
   safeBenueEnabled: boolean;
   osirisEnabled: boolean;
   pollingIntervalMs: number;
+  safeBenue: IntegrationEndpointConfig;
+  osiris: IntegrationEndpointConfig;
 }
 
 export interface IntegrationHealth {
