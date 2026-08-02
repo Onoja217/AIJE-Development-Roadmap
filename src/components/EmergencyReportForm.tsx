@@ -191,8 +191,8 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
             />
 
             {/* Location */}
-            <FormItem>
-              <FormLabel>Location</FormLabel>
+            <div className="space-y-2">
+              <Label>Location</Label>
               <div className="space-y-2">
                 <Button
                   type="button"
@@ -228,11 +228,11 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                   />
                 )}
               </div>
-            </FormItem>
+            </div>
 
             {/* Images */}
-            <FormItem>
-              <FormLabel>Photos (optional, up to 5)</FormLabel>
+            <div className="space-y-2">
+              <Label>Photos (optional, up to 5)</Label>
               <div className="space-y-2">
                 <Input
                   type="file"
@@ -266,7 +266,8 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                   </div>
                 )}
               </div>
-            </FormItem>
+            </div>
+
 
             <FormField
               control={form.control}
