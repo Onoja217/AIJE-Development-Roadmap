@@ -39,7 +39,11 @@ export function useCameraMedia() {
         const { data: signed } = await supabase.storage
           .from("camera-media")
           .createSignedUrl(row.file_path, 60 * 60);
-        return { ...row, url: signed?.signedUrl ?? "" };
+        return {
+          ...row,
+          media_type: row.media_type as CameraMediaItem["media_type"],
+          url: signed?.signedUrl ?? "",
+        };
       })
     );
 
