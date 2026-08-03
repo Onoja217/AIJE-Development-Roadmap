@@ -31,9 +31,9 @@ export function Header() {
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4"
+      className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-3 py-3 md:px-6 md:py-4"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex w-full flex-wrap items-center gap-2 md:gap-3">
         <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
           <img src={aijeLogo} alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
         </div>
