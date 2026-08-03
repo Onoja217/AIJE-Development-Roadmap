@@ -38,7 +38,7 @@ export function Header() {
           <img src={aijeLogo} alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
         </div>
         <div>
-          <h1 className="text-lg font-bold tracking-tight text-foreground">AIJE</h1>
+          <span className="block text-lg font-bold tracking-tight text-foreground">AIJE</span>
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">The eyes have seen</p>
         </div>
         <div className="hidden sm:flex flex-col items-end mr-2">
