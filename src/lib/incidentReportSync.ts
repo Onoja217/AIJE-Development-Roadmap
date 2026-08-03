@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { enqueue, registerSyncHandler } from "./syncEngine";
+import { createNotification } from "./notificationService";
 import type { EmergencyReport } from "@/types/report";
 
 export const INCIDENT_REPORT_COLLECTION = "incident_reports";
@@ -45,6 +46,17 @@ export function registerIncidentReportSync() {
       );
 
       if (error) throw error;
+
+      await createNotification({
+        category: "incident",
+        priority: "high",
+        title: `Incident report submitted: ${report.title}`,
+        body: `Category: ${report.category}. ${
+          report.location?.address ?? "No address provided"
+        }`,
+        link: "/incident-report",
+        metadata: { client_id: report.id, category: report.category },
+      });
     }
   );
 }

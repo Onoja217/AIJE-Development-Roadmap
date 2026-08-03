@@ -68,7 +68,7 @@ export default function AdminWebhooks() {
     ]);
     setRows((deliv ?? []) as Delivery[]);
     const counts: Record<string, number> = {};
-    (dl ?? []).forEach((r: any) => (counts[r.status] = (counts[r.status] ?? 0) + 1));
+    (dl ?? []).forEach((r: { status: string }) => (counts[r.status] = (counts[r.status] ?? 0) + 1));
     setDeadLetter(Object.entries(counts).map(([status, count]) => ({ status, count })));
     setLoading(false);
   }
@@ -94,7 +94,7 @@ export default function AdminWebhooks() {
       if (!b) continue;
       b.p50.push(r.latency_ms);
       b.p95.push(r.latency_ms);
-      (b as any)[r.status]++;
+      (b as unknown as Record<string, number>)[r.status]++;
       if (r.attempt > 1) b.retries++;
     }
     return Array.from(map.values()).map((b) => {

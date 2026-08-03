@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden">
-      <div className="flex items-center justify-around h-14">
+      <div className="flex h-14 items-center justify-around gap-0.5 overflow-x-auto px-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -25,7 +25,7 @@ export function BottomNav() {
               key={item.label}
               to={item.path}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                "flex shrink-0 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"

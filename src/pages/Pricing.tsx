@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlans, useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 
 function formatNGN(kobo: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -49,8 +49,8 @@ export default function Pricing() {
         toast.warning("Checkout is running in TEST mode — no real charge will be made.");
       }
       window.location.href = data.authorization_url;
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not start checkout");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Could not start checkout"));
       setPending(null);
     }
   };

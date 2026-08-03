@@ -5,6 +5,7 @@ import aijeLogo from "@/assets/aije-logo.png";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
 
 function useClock() {
@@ -21,6 +22,7 @@ export function Header() {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const now = useClock();
+  const unreadCount = useUnreadNotificationCount();
 
   const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
@@ -29,14 +31,14 @@ export function Header() {
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4"
+      className="flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-3 py-3 md:px-6 md:py-4"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex w-full flex-wrap items-center gap-2 md:gap-3">
         <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
           <img src={aijeLogo} alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
         </div>
         <div>
-          <h1 className="text-lg font-bold tracking-tight text-foreground">AIJE</h1>
+          <span className="block text-lg font-bold tracking-tight text-foreground">AIJE</span>
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">The eyes have seen</p>
         </div>
         <div className="hidden sm:flex flex-col items-end mr-2">
@@ -65,10 +67,18 @@ export function Header() {
             <Volume2 className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
-        <button className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link
+          to="/notifications"
+          className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+          title="Notifications"
+        >
           <Bell className="h-4 w-4 text-muted-foreground" />
-          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
-        </button>
+          {unreadCount > 0 ? (
+            <span className="absolute -top-1 -right-1 min-w-[1.1rem] rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-destructive-foreground ring-2 ring-background">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          ) : null}
+        </Link>
         <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Control Panel">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
         </Link>

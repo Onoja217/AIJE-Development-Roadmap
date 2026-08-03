@@ -27,7 +27,7 @@ export function ResourceFilters({ filters, onChange }: ResourceFiltersProps) {
 
       <Select
         value={filters.category ?? "all"}
-        onValueChange={(v) => onChange({ ...filters, category: v === "all" ? undefined : (v as any) })}
+        onValueChange={(v) => onChange({ ...filters, category: v === "all" ? undefined : (v as never) })}
       >
         <SelectTrigger className="sm:w-56">
           <SelectValue placeholder="All categories" />

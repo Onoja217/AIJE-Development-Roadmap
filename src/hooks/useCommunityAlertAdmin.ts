@@ -2,13 +2,26 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ContactCategory, EmergencyContact, WatchGroup } from "@/types/communityAlert";
 
-// The migration may be newer than the generated Supabase type file.
-const db = supabase as any;
+const db = supabase;
+
+interface GroupMemberRow { id: string; phone: string; whatsapp_target: string | null }
+interface GroupRow {
+  id: string; name: string; community: string; ward: string | null;
+  leader_name: string | null; community_group_members: GroupMemberRow[] | null;
+}
+interface ContactRow {
+  id: string; name: string; category: ContactCategory; phone: string;
+  whatsapp_target: string | null; community: string; active: boolean;
+}
+interface AlertRow {
+  id: string; incident_type: string; summary: string; location: string;
+  threat_level: string; status: string; escalation_level: number | null; created_at: string;
+}
 
 export function useCommunityAlertAdmin() {
   const [groups, setGroups] = useState<WatchGroup[]>([]);
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -21,14 +34,14 @@ export function useCommunityAlertAdmin() {
     if (groupResult.error) throw groupResult.error;
     if (contactResult.error) throw contactResult.error;
     if (alertResult.error) throw alertResult.error;
-    setGroups((groupResult.data ?? []).map((g:any) => ({
+    setGroups(((groupResult.data ?? []) as unknown as GroupRow[]).map((g: GroupRow) => ({
       id:g.id, name:g.name, community:g.community, ward:g.ward ?? "", leader:g.leader_name ?? "Unassigned",
       memberCount:g.community_group_members?.length ?? 0,
-      phoneNumbers:(g.community_group_members ?? []).map((m:any)=>m.phone),
-      whatsappTargets:(g.community_group_members ?? []).map((m:any)=>m.whatsapp_target).filter(Boolean),
+      phoneNumbers:(g.community_group_members ?? []).map((m: GroupMemberRow)=>m.phone),
+      whatsappTargets:(g.community_group_members ?? []).map((m: GroupMemberRow)=>m.whatsapp_target).filter(Boolean),
     })));
-    setContacts((contactResult.data ?? []).map((c:any)=>({id:c.id,name:c.name,category:c.category,phone:c.phone,whatsapp:c.whatsapp_target,community:c.community,active:c.active})));
-    setAlerts(alertResult.data ?? []);
+    setContacts(((contactResult.data ?? []) as unknown as ContactRow[]).map((c: ContactRow)=>({id:c.id,name:c.name,category:c.category,phone:c.phone,whatsapp:c.whatsapp_target,community:c.community,active:c.active})));
+    setAlerts((alertResult.data ?? []) as AlertRow[]);
     setLoading(false);
   }, []);
 

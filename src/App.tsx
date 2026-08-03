@@ -9,16 +9,11 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { enqueue, registerSyncHandler } from "@/lib/syncEngine";
-import type { EmergencyReport } from "@/types/report";
+import { registerIncidentReportSync } from "@/lib/incidentReportSync";
 
-registerSyncHandler<EmergencyReport>("incident_reports", async (report) => {
-  await fetch("/api/reports", { method: "POST", body: JSON.stringify(report) });
-});
+// Register offline sync handlers once, before any route renders.
+registerIncidentReportSync();
 
-async function saveReport(report: EmergencyReport) {
-  await enqueue("incident_reports", report);
-}
 
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,6 +44,7 @@ import CameraManagement from "./pages/CameraManagement";
 import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 import CommunityAlerts from "./pages/CommunityAlerts";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -243,6 +239,16 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+
+                <Route
+                  path="/notifications"
+                  element={
+                    <ProtectedRoute>
+                      <Notifications />
+                    </ProtectedRoute>
+                  }
+                />
+
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

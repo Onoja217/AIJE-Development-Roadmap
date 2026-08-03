@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Plus, Server, Trash2, MapPin, AlertCircle, Loader2 } from "lucide-react";
@@ -31,8 +32,8 @@ export default function Deployments() {
       setForm({ name: "", location: "", description: "" });
       setOpen(false);
       toast.success("Deployment created");
-    } catch (e: any) {
-      toast.error(e.message ?? "Failed");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Failed"));
     } finally {
       setSubmitting(false);
     }
@@ -163,7 +164,7 @@ export default function Deployments() {
                   onClick={async () => {
                     if (confirm(`Delete deployment "${d.name}"?`)) {
                       try { await remove(d.id); toast.success("Deleted"); }
-                      catch (e: any) { toast.error(e.message); }
+                      catch (e: unknown) { toast.error(getErrorMessage(e)); }
                     }
                   }}
                 >
