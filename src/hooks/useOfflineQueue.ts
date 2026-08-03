@@ -99,6 +99,26 @@ export function useOfflineQueue(user: User | null) {
       } else {
         await enqueue(payload);
       }
+
+      // In-app notification mirror (no SMS/WhatsApp delivery).
+      void createNotification({
+        category: "ai_detection",
+        priority:
+          alert.severity === "danger"
+            ? "critical"
+            : alert.severity === "warning"
+              ? "high"
+              : "normal",
+        title: `${alert.sensor_type} alert`,
+        body: alert.message,
+        link: "/detection",
+        metadata: {
+          sensor_type: alert.sensor_type,
+          severity: alert.severity,
+          value: alert.value ?? null,
+          offline: !online,
+        },
+      });
     },
     [user, online]
   );
