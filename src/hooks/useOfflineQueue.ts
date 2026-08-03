@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useNetworkStatus } from "./useNetworkStatus";
+import { createNotification } from "@/lib/notificationService";
 
 const DB_NAME = "aegis-offline";
 const STORE = "alert-queue";
