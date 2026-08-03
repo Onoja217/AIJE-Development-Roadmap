@@ -27,7 +27,7 @@ export function AlertFilters({ filters, onChange }: AlertFiltersProps) {
 
       <Select
         value={filters.status ?? "all"}
-        onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : (v as any) })}
+        onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : (v as never) })}
       >
         <SelectTrigger className="sm:w-40">
           <SelectValue placeholder="Status" />
@@ -42,7 +42,7 @@ export function AlertFilters({ filters, onChange }: AlertFiltersProps) {
 
       <Select
         value={filters.priority ?? "all"}
-        onValueChange={(v) => onChange({ ...filters, priority: v === "all" ? undefined : (v as any) })}
+        onValueChange={(v) => onChange({ ...filters, priority: v === "all" ? undefined : (v as never) })}
       >
         <SelectTrigger className="sm:w-40">
           <SelectValue placeholder="Priority" />

@@ -35,7 +35,7 @@ export function useCameraMedia() {
     }
 
     const items: CameraMediaItem[] = await Promise.all(
-      (data || []).map(async (row: any) => {
+      (data || []).map(async (row: { file_path: string }) => {
         const { data: signed } = await supabase.storage
           .from("camera-media")
           .createSignedUrl(row.file_path, 60 * 60);

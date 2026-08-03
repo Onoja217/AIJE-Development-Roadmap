@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,8 +76,8 @@ export default function Profile() {
       setAvatarUrl(signed ? `${signed}#t=${Date.now()}` : null);
 
       toast({ title: "Avatar updated", description: "Your profile picture has been updated." });
-    } catch (error: any) {
-      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Upload failed", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -93,8 +94,8 @@ export default function Profile() {
         .eq("user_id", user.id);
       if (error) throw error;
       toast({ title: "Profile saved", description: "Your display name has been updated." });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Error", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setSaving(false);
     }

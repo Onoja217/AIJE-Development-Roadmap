@@ -3,7 +3,7 @@ import { useMute } from "@/hooks/useMute";
 
 function playAlarmSound(severity: "danger" | "warning") {
   try {
-    const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext | undefined;
+    const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext) as typeof AudioContext | undefined;
     if (!Ctx) return;
     const ctx = new Ctx();
     const gain = ctx.createGain();

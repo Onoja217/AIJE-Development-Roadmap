@@ -68,7 +68,7 @@ export default function AdminWebhooks() {
     ]);
     setRows((deliv ?? []) as Delivery[]);
     const counts: Record<string, number> = {};
-    (dl ?? []).forEach((r: any) => (counts[r.status] = (counts[r.status] ?? 0) + 1));
+    (dl ?? []).forEach((r: { status: string }) => (counts[r.status] = (counts[r.status] ?? 0) + 1));
     setDeadLetter(Object.entries(counts).map(([status, count]) => ({ status, count })));
     setLoading(false);
   }
