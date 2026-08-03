@@ -65,10 +65,18 @@ export function Header() {
             <Volume2 className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
-        <button className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80">
+        <Link
+          to="/notifications"
+          className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+          title="Notifications"
+        >
           <Bell className="h-4 w-4 text-muted-foreground" />
-          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
-        </button>
+          {unreadCount > 0 ? (
+            <span className="absolute -top-1 -right-1 min-w-[1.1rem] rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-destructive-foreground ring-2 ring-background">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          ) : null}
+        </Link>
         <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Control Panel">
           <Smartphone className="h-4 w-4 text-muted-foreground" />
         </Link>
