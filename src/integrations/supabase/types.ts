@@ -665,6 +665,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          category: Database["public"]["Enums"]["notification_category"]
+          created_at: string
+          id: string
+          link: string | null
+          metadata: Json
+          priority: Database["public"]["Enums"]["notification_priority"]
+          read_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          read_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          read_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_events: {
         Row: {
           created_at: string
@@ -1136,6 +1178,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      notification_category:
+        | "incident"
+        | "community_alert"
+        | "ai_detection"
+        | "system"
+        | "auth"
+      notification_priority: "low" | "normal" | "high" | "critical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1264,6 +1313,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      notification_category: [
+        "incident",
+        "community_alert",
+        "ai_detection",
+        "system",
+        "auth",
+      ],
+      notification_priority: ["low", "normal", "high", "critical"],
     },
   },
 } as const
