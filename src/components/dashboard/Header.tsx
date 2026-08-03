@@ -5,6 +5,7 @@ import aijeLogo from "@/assets/aije-logo.png";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
 
 function useClock() {
