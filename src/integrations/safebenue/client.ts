@@ -104,12 +104,15 @@ export async function fetchSafeBenueData(): Promise<
         ? error.message
         : "Unknown SafeBenue integration error";
 
+    // Graceful degradation: keep the operations views usable with the local
+    // demo dataset instead of rendering an empty dashboard.
     return {
-      data: emptyPayload,
+      data: safeBenueDemoPayload,
       health: createHealth({
-        state: "disconnected",
+        state: "degraded",
         lastSyncAt: startedAt,
-        lastError: message,
+        lastError: `${message} — falling back to demo dataset`,
+        recordsReceived: countRecords(safeBenueDemoPayload),
       }),
     };
   }
