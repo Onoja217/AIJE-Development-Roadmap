@@ -22,6 +22,7 @@ export function Header() {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const now = useClock();
+  const unreadCount = useUnreadNotificationCount();
 
   const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
