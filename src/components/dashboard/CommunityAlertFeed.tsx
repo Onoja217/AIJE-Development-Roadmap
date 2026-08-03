@@ -16,11 +16,7 @@ interface CommunityAlertRow {
 }
 
 // Community alert tables may be newer than the generated database types.
-const db = supabase as unknown as {
-  from: (table: string) => any;
-  channel: (name: string) => any;
-  removeChannel: (channel: unknown) => void;
-};
+const db = supabase;
 
 const threatStyles: Record<string, string> = {
   critical: "border-destructive/40 text-destructive",

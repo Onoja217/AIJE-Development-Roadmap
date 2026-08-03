@@ -36,7 +36,12 @@ export function usePlans() {
       .eq("active", true)
       .order("sort_order")
       .then(({ data }) => {
-        setPlans((data as any[])?.map((p) => ({ ...p, features: p.features ?? [] })) ?? []);
+        setPlans(
+          ((data ?? []).map((p) => ({
+            ...p,
+            features: (p.features ?? []) as string[],
+          })) as unknown as Plan[])
+        );
         setLoading(false);
       });
   }, []);
@@ -62,8 +67,8 @@ export function useSubscription() {
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
-      setSub(data as any);
-      setPlan(((data as any).plans ?? null) as Plan | null);
+      setSub(data as unknown as Subscription);
+      setPlan(((data as { plans?: unknown }).plans ?? null) as Plan | null);
     } else {
       setSub(null);
       setPlan(null);

@@ -94,7 +94,7 @@ export default function AdminWebhooks() {
       if (!b) continue;
       b.p50.push(r.latency_ms);
       b.p95.push(r.latency_ms);
-      (b as any)[r.status]++;
+      (b as unknown as Record<string, number>)[r.status]++;
       if (r.attempt > 1) b.retries++;
     }
     return Array.from(map.values()).map((b) => {
