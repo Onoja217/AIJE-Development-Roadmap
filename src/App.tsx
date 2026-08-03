@@ -49,6 +49,7 @@ import CameraManagement from "./pages/CameraManagement";
 import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 import CommunityAlerts from "./pages/CommunityAlerts";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
