@@ -247,7 +247,7 @@ export default function SensorManagement() {
   const alertCount = sensors.filter(s => s.status === "alert").length;
 
   return (
-    <div className="min-h-screen bg-background grid-overlay">
+    <div className="min-h-dvh bg-background grid-overlay">
       {/* Header */}
       <header className="flex items-center gap-4 border-b border-border bg-card/50 backdrop-blur-sm px-6 py-4">
         <Link to="/" className="rounded-lg bg-secondary p-2 hover:bg-secondary/80 transition-colors">

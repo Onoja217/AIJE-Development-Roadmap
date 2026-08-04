@@ -89,7 +89,7 @@ export default function DetectionManager() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-dvh bg-background pb-20 md:pb-0">
       <Header />
       <main className="container mx-auto px-4 py-6 space-y-6">
         <motion.div

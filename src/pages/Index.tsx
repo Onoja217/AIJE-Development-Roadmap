@@ -34,7 +34,7 @@ const Index = () => {
 
   return (
     <MuteProvider>
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-dvh bg-background relative overflow-hidden">
       {/* Parallax background layer (static on mobile) */}
       <motion.div
         style={{ y: bgY }}
