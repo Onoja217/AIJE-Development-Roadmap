@@ -26,7 +26,7 @@ export default function BillingCallback() {
   }, [reference]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-background flex items-center justify-center p-4">
       <Card className="p-8 max-w-md w-full text-center">
         {status === "loading" && (
           <>

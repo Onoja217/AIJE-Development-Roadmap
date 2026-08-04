@@ -56,7 +56,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-24">
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="container max-w-6xl flex items-center justify-between py-3">
           <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
@@ -64,7 +64,7 @@ export default function Pricing() {
           </Link>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-semibold tracking-tight">AEGIS Billing</span>
+            <span className="font-semibold tracking-tight">AIJE Billing</span>
           </div>
         </div>
       </header>
