@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       .gte("delivered_at", windowStart)
       .limit(10000);
 
-    const lats = (deliveries ?? []).map((d: { latency_ms: number | null }) => d.latency_ms as number);
+    const lats = (deliveries ?? []).map((d: any) => d.latency_ms as number);
     const p95 = percentile(lats, 0.95);
 
     if (lats.length >= 5 && p95 >= s.latency_p95_threshold_ms) {

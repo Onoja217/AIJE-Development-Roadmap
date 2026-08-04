@@ -70,7 +70,7 @@ export default function FaceRecognitionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
@@ -79,7 +79,7 @@ export default function FaceRecognitionPage() {
   // ============ HARD CONSENT GATE ============
   if (!hasConsent) {
     return (
-      <div className="min-h-dvh bg-background pb-20">
+      <div className="min-h-screen bg-background pb-20">
         <Header />
         <main className="container max-w-2xl mx-auto px-4 py-6 space-y-4">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -160,7 +160,7 @@ export default function FaceRecognitionPage() {
   const staff = enrollments.filter((e) => e.role === "staff");
 
   return (
-    <div className="min-h-dvh bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <main className="container max-w-3xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">

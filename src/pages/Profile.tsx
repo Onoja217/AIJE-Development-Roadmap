@@ -103,14 +103,14 @@ export default function Profile() {
 
   if (authLoading || loadingProfile) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-background grid-overlay pb-20 md:pb-6">
+    <div className="min-h-screen bg-background grid-overlay pb-20 md:pb-6">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}

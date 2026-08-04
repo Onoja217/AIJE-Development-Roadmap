@@ -128,7 +128,7 @@ const modules: ModuleItem[] = [
 
 export default function ControlPanel() {
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main className="mx-auto max-w-[1600px] space-y-8 px-4 py-6 md:px-6">

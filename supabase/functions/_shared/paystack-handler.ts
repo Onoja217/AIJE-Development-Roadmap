@@ -3,13 +3,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-type PaystackEvent = {
-  event?: string;
-  data?: { metadata?: Record<string, unknown>; [key: string]: unknown };
-  [key: string]: unknown;
-};
-
-export async function processPaystackEvent(admin: SupabaseClient, evt: PaystackEvent) {
+export async function processPaystackEvent(admin: SupabaseClient, evt: any) {
   const meta = evt?.data?.metadata ?? {};
   const userId = meta.user_id ?? null;
   const planId = meta.plan_id ?? null;

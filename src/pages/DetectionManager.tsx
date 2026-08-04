@@ -89,7 +89,7 @@ export default function DetectionManager() {
       : 0;
 
   return (
-    <div className="min-h-dvh bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header />
       <main className="container mx-auto px-4 py-6 space-y-6">
         <motion.div
@@ -101,7 +101,7 @@ export default function DetectionManager() {
             <ScanEye className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Detection Manager</h1>
+            <h2 className="text-xl font-bold tracking-tight">Detection Manager</h2>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
               Central AI Operations
             </p>
