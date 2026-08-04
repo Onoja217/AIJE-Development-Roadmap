@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     return new Response("invalid signature", { status: 401 });
   }
 
-  let evt: any;
+  let evt: Record<string, unknown>;
   try {
     evt = JSON.parse(raw);
   } catch {
