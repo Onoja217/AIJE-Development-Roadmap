@@ -44,9 +44,10 @@ const Index = () => {
       {!isMobile && <div className="absolute inset-0 scan-line pointer-events-none" />}
 
       {/* Scrollable content */}
-      <div ref={containerRef} className="relative z-10 h-screen overflow-y-auto">
+      <div ref={containerRef} className="relative z-10 h-dvh overflow-y-auto">
         <Header />
         <main className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
+          <h1 className="sr-only">AIJE security command dashboard</h1>
           <motion.div
             style={{ y: sensorY }}
             initial={{ opacity: 0, y: 30 }}

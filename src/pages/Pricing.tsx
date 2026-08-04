@@ -64,7 +64,7 @@ export default function Pricing() {
           </Link>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-semibold tracking-tight">AEGIS Billing</span>
+            <span className="font-semibold tracking-tight">AIJE Billing</span>
           </div>
         </div>
       </header>

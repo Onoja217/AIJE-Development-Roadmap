@@ -101,7 +101,7 @@ export default function DetectionManager() {
             <ScanEye className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Detection Manager</h2>
+            <h1 className="text-xl font-bold tracking-tight">Detection Manager</h1>
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
               Central AI Operations
             </p>
