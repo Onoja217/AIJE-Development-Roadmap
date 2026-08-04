@@ -1,4 +1,12 @@
 import { createRoot } from "react-dom/client";
+
+import App from "./App.tsx";
 import "./index.css";
-import RefProbe from "./pages/__RefProbe";
-createRoot(document.getElementById("root")!).render(<RefProbe />);
+
+import { CommunityIntegrationProvider } from "@/contexts/CommunityIntegrationContext";
+
+createRoot(document.getElementById("root")!).render(
+  <CommunityIntegrationProvider>
+    <App />
+  </CommunityIntegrationProvider>
+);
