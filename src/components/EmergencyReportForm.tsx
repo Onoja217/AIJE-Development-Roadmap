@@ -228,25 +228,31 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                   </p>
                 )}
 
-                {(geo.status === "denied" || geo.status === "unavailable") && (
-                  <FormField
-                    control={form.control}
-                    name="location.manualEntry"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter location manually (e.g. nearest landmark, village)"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="location.manualEntry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          placeholder="Or type the location (e.g. nearest landmark, village)"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.formState.errors.location?.message && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.location.message as string}
+                  </p>
                 )}
               </div>
             </div>
+
 
             {/* Images */}
             <div className="space-y-2">
