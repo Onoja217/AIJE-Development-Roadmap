@@ -81,6 +81,27 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     return () => { window.removeEventListener("storage", onStorage); clearInterval(id); };
   }, [cameraName]);
 
+  // Per-camera confidence threshold set from Detection Manager
+  const [minConfidence, setMinConfidence] = useState(() => {
+    if (typeof window === "undefined") return 0.8;
+    const raw = localStorage.getItem(`aije.detection.confidence.${cameraName}`);
+    const parsed = raw ? parseFloat(raw) : NaN;
+    return Number.isFinite(parsed) ? parsed : 0.8;
+  });
+  useEffect(() => {
+    const key = `aije.detection.confidence.${cameraName}`;
+    const sync = () => {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? parseFloat(raw) : NaN;
+      setMinConfidence(Number.isFinite(parsed) ? parsed : 0.8);
+    };
+    sync();
+    const onStorage = (e: StorageEvent) => { if (e.key === key) sync(); };
+    window.addEventListener("storage", onStorage);
+    const id = setInterval(sync, 1500);
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(id); };
+  }, [cameraName]);
+
   const { regions, motionLevel } = useMotionDetection({
     videoRef,
     enabled: motionEnabled && !error,
@@ -97,10 +118,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     enabled: personDetectEnabled && !error && !globallyPaused,
     fps: 6,
     personOnly: false,
-    minScore: 0.55,
+    minScore: minConfidence,
     shouldProcess: shouldProcessAI,
+    confirmFrames: 3,
+    smoothing: 0.4,
   });
-  const personCount = detections.filter((d) => d.class === "person" && (d.seenCount ?? 0) >= 3).length;
+  const confirmedPersons = detections.filter(
+    (d) => d.class === "person" && (d.seenCount ?? 0) >= 3,
+  );
+  const personCount = confirmedPersons.length;
+  const avgConfidence =
+    confirmedPersons.length > 0
+      ? confirmedPersons.reduce((sum, d) => sum + (d.avgScore ?? d.score), 0) /
+        confirmedPersons.length
+      : 0;
 
   // Telemetry → Detection Manager (rolling fps from detection batches)
   const detectTimestampsRef = useRef<number[]>([]);
@@ -118,17 +149,20 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
       fps: Math.round(fps * 10) / 10,
       lastDetectionAt: Date.now(),
       zoneArmed: zoneEnabled,
+      avgConfidence,
+      minConfidence,
       modelLoading,
     });
-  }, [detections, personCount, personDetectEnabled, cameraName, zoneEnabled, modelLoading]);
+  }, [detections, personCount, avgConfidence, minConfidence, personDetectEnabled, cameraName, zoneEnabled, modelLoading]);
 
   useEffect(() => {
     updateDetectionStat(cameraName, {
       enabled: personDetectEnabled,
       zoneArmed: zoneEnabled,
+      minConfidence,
       modelLoading,
     });
-  }, [personDetectEnabled, zoneEnabled, modelLoading, cameraName]);
+  }, [personDetectEnabled, zoneEnabled, minConfidence, modelLoading, cameraName]);
 
   useEffect(() => {
     return () => {
