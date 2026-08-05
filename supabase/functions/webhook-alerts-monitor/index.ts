@@ -17,8 +17,24 @@ function percentile(values: number[], p: number) {
   return sorted[idx];
 }
 
+function isAuthorizedCronCall(req: Request) {
+  const secret = Deno.env.get("ALERT_CRON_SECRET");
+  if (!secret) return false;
+  const header = req.headers.get("x-cron-secret");
+  const bearer = req.headers.get("Authorization");
+  return header === secret || bearer === `Bearer ${secret}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  if (!isAuthorizedCronCall(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
