@@ -7,6 +7,10 @@ export interface DetectionStat {
   fps: number;
   lastDetectionAt: number;
   zoneArmed: boolean;
+  /** Mean smoothed confidence of confirmed detections (0-1). */
+  avgConfidence: number;
+  /** Configured minimum confidence threshold for this camera (0-1). */
+  minConfidence: number;
   online: boolean;
   modelLoading: boolean;
 }
@@ -30,6 +34,8 @@ export function updateDetectionStat(name: string, patch: Partial<DetectionStat>)
       fps: 0,
       lastDetectionAt: 0,
       zoneArmed: false,
+      avgConfidence: 0,
+      minConfidence: 0,
       online: true,
       modelLoading: false,
     } as DetectionStat);
