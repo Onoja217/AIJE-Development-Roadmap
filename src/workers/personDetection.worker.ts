@@ -15,7 +15,7 @@ loadModel().then(() => {
 self.onmessage = async (e: MessageEvent) => {
   const data = e.data as { type: string; reqId?: number; bitmap?: ImageBitmap; minScore?: number };
   if (data.type === "detect" && data.bitmap && data.reqId != null) {
-    const { reqId, bitmap, minScore = 0.55 } = data;
+    const { reqId, bitmap, minScore = 0.75 } = data;
     try {
       const model = await loadModel();
       // coco-ssd accepts ImageBitmap as a PixelData source in workers

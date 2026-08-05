@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
-import { ScanEye, UserSearch, ShieldAlert, Cpu, Activity, WifiOff, Pause, Play } from "lucide-react";
+import { ScanEye, UserSearch, ShieldAlert, Cpu, Activity, WifiOff, Pause, Play, Gauge } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
 import { Slider } from "@/components/ui/slider";
 import { BottomNav } from "@/components/dashboard/BottomNav";
@@ -81,6 +81,12 @@ export default function DetectionManager() {
 
   const activeFeeds = stats.length;
   const totalPersons = stats.reduce((sum, s) => sum + (s.enabled ? s.personCount : 0), 0);
+  const confidenceSamples = stats.filter((s) => s.avgConfidence > 0);
+  const avgConfidence =
+    confidenceSamples.length > 0
+      ? confidenceSamples.reduce((sum, s) => sum + s.avgConfidence, 0) /
+        confidenceSamples.length
+      : 0;
   const avgFps =
     stats.length > 0
       ? Math.round(
@@ -109,7 +115,7 @@ export default function DetectionManager() {
         </motion.div>
 
         {/* Aggregate cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <StatCard
             icon={<Activity className="h-4 w-4 text-primary" />}
             label="Active Feeds"
@@ -119,6 +125,11 @@ export default function DetectionManager() {
             icon={<UserSearch className="h-4 w-4 text-destructive" />}
             label="Persons in Frame"
             value={totalPersons.toString()}
+          />
+          <StatCard
+            icon={<Gauge className="h-4 w-4 text-success" />}
+            label="Avg Confidence"
+            value={avgConfidence > 0 ? `${Math.round(avgConfidence * 100)}%` : "—"}
           />
           <StatCard
             icon={<Cpu className="h-4 w-4 text-accent-foreground" />}
@@ -201,7 +212,8 @@ function CameraOpsCard({
 
   const [confidence, setConfidence] = useState<number>(() => {
     const val = localStorage.getItem(`aije.detection.confidence.${cam.name}`);
-    return val ? parseFloat(val) : 0.70;
+    const parsed = val ? parseFloat(val) : NaN;
+    return Number.isFinite(parsed) ? parsed : 0.80;
   });
 
   const handleConfidenceChange = (val: number[]) => {
@@ -249,8 +261,12 @@ function CameraOpsCard({
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="grid grid-cols-4 gap-2 text-center">
         <Metric label="Persons" value={isLive ? String(live.personCount) : "—"} />
+        <Metric
+          label="Conf"
+          value={live && live.avgConfidence > 0 ? `${Math.round(live.avgConfidence * 100)}%` : "—"}
+        />
         <Metric label="AI FPS" value={isLive ? live.fps.toFixed(1) : "—"} />
         <Metric label="Zone" value={live?.zoneArmed ? "ARMED" : "off"} />
       </div>
@@ -263,7 +279,7 @@ function CameraOpsCard({
         <Slider
           value={[confidence]}
           onValueChange={handleConfidenceChange}
-          min={0.50}
+          min={0.60}
           max={0.95}
           step={0.05}
           className="py-1"

@@ -4,9 +4,13 @@ import { detectInWorker, waitForWorkerReady } from "@/lib/detectionWorkerClient"
 export interface Detection {
   bbox: [number, number, number, number]; // x, y, w, h in video pixels
   score: number;
+  /** Temporally smoothed confidence across the track's lifetime (0-1). */
+  avgScore?: number;
   class: string;
   trackId?: number;
   seenCount?: number;
+  /** True once the track has been seen on `confirmFrames` consecutive frames. */
+  confirmed?: boolean;
 }
 
 interface Track {
@@ -15,6 +19,7 @@ interface Track {
   class: string;
   unseenFrames: number;
   seenCount: number;
+  avgScore: number;
 }
 
 interface Options {
@@ -31,6 +36,12 @@ interface Options {
    * Defaults to true (always process).
    */
   shouldProcess?: boolean;
+  /** Consecutive frames a track must be seen before it counts as confirmed. */
+  confirmFrames?: number;
+  /** Bounding-box smoothing factor (0 = no smoothing, 0.6 = heavy). */
+  smoothing?: number;
+  /** Target inference width in px; frames are resized before inference. */
+  inferenceWidth?: number;
 }
 
 /**
@@ -43,8 +54,11 @@ export function usePersonDetection({
   enabled,
   fps = 6,
   personOnly = true,
-  minScore = 0.70,
+  minScore = 0.80,
   shouldProcess = true,
+  confirmFrames = 3,
+  smoothing = 0.4,
+  inferenceWidth = 640,
 }: Options) {
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef(0);
@@ -111,8 +125,25 @@ export function usePersonDetection({
           rafRef.current = requestAnimationFrame(tick);
           return;
         }
-        const bitmap = await createImageBitmap(video);
-        const preds = await detectInWorker(bitmap, minScore);
+        // Normalise the frame to a consistent, higher inference resolution so
+        // small/low-res streams still produce confident detections.
+        const targetW = Math.max(video.videoWidth, inferenceWidth);
+        const scale = targetW / video.videoWidth;
+        const bitmap = await createImageBitmap(video, {
+          resizeWidth: Math.round(video.videoWidth * scale),
+          resizeHeight: Math.round(video.videoHeight * scale),
+          resizeQuality: "high",
+        });
+        const raw = await detectInWorker(bitmap, minScore);
+        const preds = raw.map((p) => ({
+          ...p,
+          bbox: [
+            p.bbox[0] / scale,
+            p.bbox[1] / scale,
+            p.bbox[2] / scale,
+            p.bbox[3] / scale,
+          ] as [number, number, number, number],
+        }));
         const filtered = personOnly ? preds.filter((p) => p.class === "person") : preds;
 
         // Perform IoU tracking on new detections
@@ -139,14 +170,21 @@ export function usePersonDetection({
             // Found existing track match
             matchedTrackIndexes.add(bestTrackIdx);
             const track = currentTracks[bestTrackIdx];
-            track.bbox = det.bbox;
+            // Smooth the box so labels/zones don't jitter frame to frame.
+            track.bbox = track.bbox.map(
+              (prev, idx) => prev * smoothing + det.bbox[idx] * (1 - smoothing),
+            ) as [number, number, number, number];
             track.unseenFrames = 0;
             track.seenCount += 1;
+            track.avgScore = track.avgScore * 0.7 + det.score * 0.3;
 
             matchedDetections.push({
               ...det,
+              bbox: track.bbox,
               trackId: track.id,
               seenCount: track.seenCount,
+              avgScore: track.avgScore,
+              confirmed: track.seenCount >= confirmFrames,
             });
           } else {
             // Create a new track
@@ -157,12 +195,15 @@ export function usePersonDetection({
               class: det.class,
               unseenFrames: 0,
               seenCount: 1,
+              avgScore: det.score,
             });
 
             matchedDetections.push({
               ...det,
               trackId: newId,
               seenCount: 1,
+              avgScore: det.score,
+              confirmed: confirmFrames <= 1,
             });
           }
         }
@@ -190,7 +231,17 @@ export function usePersonDetection({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [enabled, loading, fps, personOnly, minScore, videoRef]);
+  }, [
+    enabled,
+    loading,
+    fps,
+    personOnly,
+    minScore,
+    videoRef,
+    confirmFrames,
+    smoothing,
+    inferenceWidth,
+  ]);
 
   return { detections, loading, error };
 }
