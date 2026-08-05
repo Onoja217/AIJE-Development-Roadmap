@@ -17,6 +17,8 @@ registerIncidentReportSync();
 
 import { ThemeProvider } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
+import { AdminRoute } from "@/components/auth/AdminRoute";
+
 import { LanguageProvider } from "@/hooks/useLanguage";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -198,11 +200,12 @@ function App() {
                 <Route
                   path="/admin/webhooks"
                   element={
-                    <ProtectedRoute>
+                    <AdminRoute>
                       <AdminWebhooks />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   }
                 />
+
 
                 <Route
                   path="/community-dashboard"
