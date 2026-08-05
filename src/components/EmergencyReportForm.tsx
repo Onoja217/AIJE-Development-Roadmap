@@ -8,7 +8,7 @@
 // prop, which the app wires up to Samuel's `saveReport()` (or equivalent) function.
 // This component only reacts to the returned/observed sync status for display.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reportSchema, type ReportSchemaType } from "../lib/reportSchema";
@@ -57,6 +57,24 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
       images: [],
     },
   });
+
+  // Keep the GPS result inside the form state so validation can see it.
+  useEffect(() => {
+    if (geo.location.lat === undefined || geo.location.lng === undefined) return;
+    const current = form.getValues("location") ?? {};
+    form.setValue(
+      "location",
+      {
+        ...current,
+        lat: geo.location.lat,
+        lng: geo.location.lng,
+        address: geo.location.address ?? current.address,
+      },
+      { shouldValidate: true }
+    );
+  }, [geo.location.lat, geo.location.lng, geo.location.address, form]);
+
+
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) return;
