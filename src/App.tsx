@@ -198,11 +198,12 @@ function App() {
                 <Route
                   path="/admin/webhooks"
                   element={
-                    <ProtectedRoute>
+                    <AdminRoute>
                       <AdminWebhooks />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   }
                 />
+
 
                 <Route
                   path="/community-dashboard"
