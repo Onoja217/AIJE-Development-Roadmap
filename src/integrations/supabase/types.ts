@@ -839,6 +839,86 @@ export type Database = {
         }
         Relationships: []
       }
+      safebenue_early_warnings: {
+        Row: {
+          author_id: string
+          category: string
+          community: string
+          created_at: string
+          description: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          occurred_at: string
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          community: string
+          created_at?: string
+          description: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          occurred_at?: string
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          community?: string
+          created_at?: string
+          description?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          occurred_at?: string
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: []
+      }
+      safebenue_warning_confirmations: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          warning_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          warning_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          warning_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safebenue_warning_confirmations_warning_id_fkey"
+            columns: ["warning_id"]
+            isOneToOne: false
+            referencedRelation: "safebenue_early_warnings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sensor_configs: {
         Row: {
           critical_threshold: number

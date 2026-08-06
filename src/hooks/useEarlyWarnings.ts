@@ -1,0 +1,157 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+export type WarningSeverity = "low" | "medium" | "high" | "critical";
+export type WarningStatus = "active" | "resolved" | "false_alarm";
+
+export interface EarlyWarning {
+  id: string;
+  author_id: string;
+  title: string;
+  description: string;
+  category: string;
+  severity: WarningSeverity;
+  status: WarningStatus;
+  community: string;
+  ward: string | null;
+  occurred_at: string;
+  created_at: string;
+}
+
+export interface NewEarlyWarning {
+  title: string;
+  description: string;
+  category: string;
+  severity: WarningSeverity;
+  community: string;
+  ward?: string;
+}
+
+export function useEarlyWarnings() {
+  const [warnings, setWarnings] = useState<EarlyWarning[]>([]);
+  const [confirmations, setConfirmations] = useState<
+    { warning_id: string; user_id: string }[]
+  >([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const [warningResult, confirmResult] = await Promise.all([
+      supabase
+        .from("safebenue_early_warnings")
+        .select(
+          "id,author_id,title,description,category,severity,status,community,ward,occurred_at,created_at"
+        )
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("safebenue_warning_confirmations")
+        .select("warning_id,user_id"),
+    ]);
+
+    if (warningResult.error) {
+      setError(warningResult.error.message);
+    } else {
+      setError(null);
+      setWarnings((warningResult.data ?? []) as EarlyWarning[]);
+      setConfirmations(confirmResult.data ?? []);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    void load();
+
+    const channel = supabase
+      .channel("safebenue-early-warnings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "safebenue_early_warnings" },
+        () => void load()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "safebenue_warning_confirmations" },
+        () => void load()
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [load]);
+
+  const confirmationCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    confirmations.forEach((c) =>
+      counts.set(c.warning_id, (counts.get(c.warning_id) ?? 0) + 1)
+    );
+    return counts;
+  }, [confirmations]);
+
+  const myConfirmations = useMemo(
+    () =>
+      new Set(
+        confirmations.filter((c) => c.user_id === userId).map((c) => c.warning_id)
+      ),
+    [confirmations, userId]
+  );
+
+  async function postWarning(input: NewEarlyWarning) {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw new Error("Sign in to post an early warning");
+    const { error: insertError } = await supabase
+      .from("safebenue_early_warnings")
+      .insert({
+        author_id: data.user.id,
+        title: input.title,
+        description: input.description,
+        category: input.category,
+        severity: input.severity,
+        community: input.community,
+        ward: input.ward?.trim() || null,
+      });
+    if (insertError) throw insertError;
+  }
+
+  async function toggleConfirmation(warningId: string) {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw new Error("Sign in to confirm a warning");
+    if (myConfirmations.has(warningId)) {
+      const { error: delError } = await supabase
+        .from("safebenue_warning_confirmations")
+        .delete()
+        .eq("warning_id", warningId)
+        .eq("user_id", data.user.id);
+      if (delError) throw delError;
+    } else {
+      const { error: insError } = await supabase
+        .from("safebenue_warning_confirmations")
+        .insert({ warning_id: warningId, user_id: data.user.id });
+      if (insError) throw insError;
+    }
+  }
+
+  async function setStatus(warningId: string, status: WarningStatus) {
+    const { error: updError } = await supabase
+      .from("safebenue_early_warnings")
+      .update({ status })
+      .eq("id", warningId);
+    if (updError) throw updError;
+  }
+
+  return {
+    warnings,
+    loading,
+    error,
+    userId,
+    confirmationCounts,
+    myConfirmations,
+    postWarning,
+    toggleConfirmation,
+    setStatus,
+    refresh: load,
+  };
+}
