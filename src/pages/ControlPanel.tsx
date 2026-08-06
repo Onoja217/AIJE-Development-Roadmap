@@ -37,6 +37,14 @@ interface ModuleItem {
 
 const modules: ModuleItem[] = [
   {
+    title: "SafeBenue",
+    description:
+      "Community-driven early warning, emergency response, offline-first reporting, and community resilience tools.",
+    path: "/safebenue",
+    icon: LifeBuoy,
+    status: "Active",
+  },
+  {
     title: "Community Dashboard",
     description:
       "View community incidents, emergency reports, response tracking, nearby resources, and live operational updates.",

@@ -47,6 +47,13 @@ import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
 import CommunityAlerts from "./pages/CommunityAlerts";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
 import Notifications from "./pages/Notifications";
+import SafeBenueLanding from "./pages/safebenue/SafeBenueLanding";
+import SafeBenueDashboard from "./pages/safebenue/SafeBenueDashboard";
+import SafeBenueReports from "./pages/safebenue/SafeBenueReports";
+import SafeBenueResources from "./pages/safebenue/SafeBenueResources";
+import SafeBenueCommunityWatch from "./pages/safebenue/SafeBenueCommunityWatch";
+import SafeBenueFamily from "./pages/safebenue/SafeBenueFamily";
+import SafeBenueAdmin from "./pages/safebenue/SafeBenueAdmin";
 
 const queryClient = new QueryClient();
 
@@ -252,6 +259,69 @@ function App() {
                   }
                 />
 
+
+                <Route
+                  path="/safebenue"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueLanding />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/reports"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueReports />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/resources"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueResources />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/community-watch"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueCommunityWatch />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/family"
+                  element={
+                    <ProtectedRoute>
+                      <SafeBenueFamily />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/safebenue/admin"
+                  element={
+                    <AdminRoute>
+                      <SafeBenueAdmin />
+                    </AdminRoute>
+                  }
+                />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
