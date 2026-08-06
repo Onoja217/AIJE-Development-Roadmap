@@ -7,6 +7,7 @@ import {
   Database,
   FileWarning,
   Hospital,
+  LifeBuoy,
   Megaphone,
   RadioTower,
   ScanFace,
