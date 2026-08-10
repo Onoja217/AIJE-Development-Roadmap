@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -25,40 +25,57 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import { CommunityDashboard } from "@/components/CommunityDashboard";
-import { EmergencyResourceMap } from "@/components/EmergencyResourceMap";
 import { GlobalControls } from "@/components/GlobalControls";
 
-import Index from "./pages/Index";
-import SensorManagement from "./pages/SensorManagement";
-import ControlPanel from "./pages/ControlPanel";
-import DetectionManager from "./pages/DetectionManager";
-import FaceRecognition from "./pages/FaceRecognition";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Profile from "./pages/Profile";
-import Pricing from "./pages/Pricing";
-import Deployments from "./pages/Deployments";
-import BillingCallback from "./pages/BillingCallback";
-import AdminWebhooks from "./pages/AdminWebhooks";
-import NotFound from "./pages/NotFound";
-import CameraManagement from "./pages/CameraManagement";
-import CitizenIncidentReporting from "./pages/CitizenIncidentReporting";
-import CommunityAlerts from "./pages/CommunityAlerts";
-import EmergencyContactsPage from "./pages/EmergencyContactsPage";
-import Notifications from "./pages/Notifications";
-import SafeBenueLanding from "./pages/safebenue/SafeBenueLanding";
-import SafeBenueDashboard from "./pages/safebenue/SafeBenueDashboard";
-import SafeBenueReports from "./pages/safebenue/SafeBenueReports";
-import SafeBenueResources from "./pages/safebenue/SafeBenueResources";
-import SafeBenueCommunityWatch from "./pages/safebenue/SafeBenueCommunityWatch";
-import SafeBenueFamily from "./pages/safebenue/SafeBenueFamily";
-import SafeBenueAdmin from "./pages/safebenue/SafeBenueAdmin";
+const CommunityDashboard = lazy(() =>
+  import("@/components/CommunityDashboard").then((module) => ({ default: module.CommunityDashboard })),
+);
+const EmergencyResourceMap = lazy(() =>
+  import("@/components/EmergencyResourceMap").then((module) => ({ default: module.EmergencyResourceMap })),
+);
+
+const Index = lazy(() => import("./pages/Index"));
+const SensorManagement = lazy(() => import("./pages/SensorManagement"));
+const ControlPanel = lazy(() => import("./pages/ControlPanel"));
+const DetectionManager = lazy(() => import("./pages/DetectionManager"));
+const FaceRecognition = lazy(() => import("./pages/FaceRecognition"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Deployments = lazy(() => import("./pages/Deployments"));
+const BillingCallback = lazy(() => import("./pages/BillingCallback"));
+const AdminWebhooks = lazy(() => import("./pages/AdminWebhooks"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const CameraManagement = lazy(() => import("./pages/CameraManagement"));
+const CitizenIncidentReporting = lazy(() => import("./pages/CitizenIncidentReporting"));
+const CommunityAlerts = lazy(() => import("./pages/CommunityAlerts"));
+const EmergencyContactsPage = lazy(() => import("./pages/EmergencyContactsPage"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const SafeBenueLanding = lazy(() => import("./pages/safebenue/SafeBenueLanding"));
+const SafeBenueDashboard = lazy(() => import("./pages/safebenue/SafeBenueDashboard"));
+const SafeBenueReports = lazy(() => import("./pages/safebenue/SafeBenueReports"));
+const SafeBenueResources = lazy(() => import("./pages/safebenue/SafeBenueResources"));
+const SafeBenueCommunityWatch = lazy(() => import("./pages/safebenue/SafeBenueCommunityWatch"));
+const SafeBenueFamily = lazy(() => import("./pages/safebenue/SafeBenueFamily"));
+const SafeBenueAdmin = lazy(() => import("./pages/safebenue/SafeBenueAdmin"));
 
 const queryClient = new QueryClient();
 
 interface ProtectedRouteProps {
   children: ReactNode;
+}
+
+function PageLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div
+        className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
+        aria-label="Loading"
+        role="status"
+      />
+    </div>
+  );
 }
 
 function ProtectedRoute({
@@ -67,15 +84,7 @@ function ProtectedRoute({
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div
-          className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
-          aria-label="Loading"
-          role="status"
-        />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!user) {
@@ -97,6 +106,7 @@ function App() {
             <BrowserRouter>
               <GlobalControls />
 
+              <Suspense fallback={<PageLoading />}>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
 
@@ -325,6 +335,7 @@ function App() {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </QueryClientProvider>

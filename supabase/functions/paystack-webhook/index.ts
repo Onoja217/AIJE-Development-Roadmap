@@ -56,11 +56,15 @@ Deno.serve(async (req) => {
     return new Response("invalid signature", { status: 401 });
   }
 
-  let evt: any;
+  let evt: unknown;
   try {
     evt = JSON.parse(raw);
   } catch {
     return new Response("invalid json", { status: 400 });
+  }
+
+  if (!evt || typeof evt !== "object" || !("event" in evt) || typeof evt.event !== "string") {
+    return new Response("invalid event", { status: 400, headers: corsHeaders });
   }
 
   try {
