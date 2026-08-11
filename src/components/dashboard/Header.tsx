@@ -1,4 +1,18 @@
-import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye, Siren } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  Settings,
+  Smartphone,
+  Volume2,
+  VolumeX,
+  LogIn,
+  LogOut,
+  UserCircle,
+  Sun,
+  Moon,
+  ScanEye,
+  Siren,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useMute } from "@/hooks/useMute";
@@ -6,6 +20,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
+import { useAccess } from "@/features/access/AccessProvider";
+import { OrganizationSwitcher } from "@/features/organizations/OrganizationSwitcher";
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -18,13 +34,22 @@ function useClock() {
 
 export function Header() {
   const { muted, toggleMute } = useMute();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const now = useClock();
   const unreadCount = useUnreadNotificationCount();
+  const { hasPermission } = useAccess();
 
-  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  const date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  const time = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const date = now.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <motion.header
@@ -34,20 +59,35 @@ export function Header() {
     >
       <div className="flex w-full flex-wrap items-center gap-2 md:gap-3">
         <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
-          <img src="/icons/icon-192.png" alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
+          <img
+            src="/icons/icon-192.png"
+            alt="AIJE logo"
+            className="h-8 w-8 object-contain"
+            width={32}
+            height={32}
+          />
         </div>
         <div>
-          <span className="block text-lg font-bold tracking-tight text-foreground">AIJE</span>
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">The eyes have seen</p>
+          <span className="block text-lg font-bold tracking-tight text-foreground">
+            AIJE
+          </span>
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+            The eyes have seen
+          </p>
         </div>
         <div className="hidden sm:flex flex-col items-end mr-2">
-          <span className="font-mono text-sm font-semibold text-primary tabular-nums">{time}</span>
+          <span className="font-mono text-sm font-semibold text-primary tabular-nums">
+            {time}
+          </span>
           <span className="text-xs text-muted-foreground">{date}</span>
         </div>
+        <OrganizationSwitcher />
         <button
           onClick={toggleTheme}
           className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={
+            theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
         >
           {theme === "dark" ? (
             <Sun className="h-4 w-4 text-warning" />
@@ -66,36 +106,91 @@ export function Header() {
             <Volume2 className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
-        <Link
-          to="/notifications"
-          className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
-          title="Notifications"
-        >
-          <Bell className="h-4 w-4 text-muted-foreground" />
-          {unreadCount > 0 ? (
-            <span className="absolute -top-1 -right-1 min-w-[1.1rem] rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-destructive-foreground ring-2 ring-background">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          ) : null}
-        </Link>
-        <Link to="/control" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Control Panel">
-          <Smartphone className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link to="/community-alerts" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Community Alerts">
-          <Siren className="h-4 w-4 text-destructive" />
-        </Link>
-        <Link to="/detection" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Detection Manager">
-          <ScanEye className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link to="/sensors" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Sensor Settings">
-          <Settings className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link to="/profile" className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80" title="Profile">
-          <UserCircle className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <button onClick={signOut} className="rounded-lg bg-secondary p-2 transition-colors hover:bg-destructive/10" title="Sign out">
-          <LogOut className="h-4 w-4 text-muted-foreground" />
-        </button>
+        {user ? (
+          <Link
+            to="/notifications"
+            className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Notifications"
+          >
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            {unreadCount > 0 ? (
+              <span className="absolute -top-1 -right-1 min-w-[1.1rem] rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-destructive-foreground ring-2 ring-background">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
+          </Link>
+        ) : null}
+        {hasPermission("cameras.manage") ? (
+          <Link
+            to="/control"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Control Panel"
+          >
+            <Smartphone className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        ) : null}
+        {hasPermission("alerts.dispatch") ? (
+          <Link
+            to="/community-alerts"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Community Alerts"
+          >
+            <Siren className="h-4 w-4 text-destructive" />
+          </Link>
+        ) : null}
+        {hasPermission("cameras.view") ? (
+          <Link
+            to="/detection"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Detection Manager"
+          >
+            <ScanEye className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        ) : null}
+        {hasPermission("cameras.view") || hasPermission("cameras.manage") ? (
+          <Link
+            to="/sensors"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Sensor Settings"
+          >
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        ) : null}
+        {hasPermission("organization.manage") ? (
+          <Link
+            to="/organization"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Organization"
+          >
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        ) : null}
+        {user ? (
+          <Link
+            to="/profile"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Profile"
+          >
+            <UserCircle className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        ) : null}
+        {user ? (
+          <button
+            onClick={signOut}
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-destructive/10"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4 text-muted-foreground" />
+          </button>
+        ) : (
+          <Link
+            to="/auth"
+            className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
+            title="Sign in"
+          >
+            <LogIn className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        )}
       </div>
     </motion.header>
   );

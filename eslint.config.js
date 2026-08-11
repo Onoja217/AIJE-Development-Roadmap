@@ -33,6 +33,7 @@ export default tseslint.config(
             "toast",
             "toggleVariants",
             "useCommunityIntegration",
+            "useAccess",
             "useFormField",
             "useLanguage",
             "useMute",

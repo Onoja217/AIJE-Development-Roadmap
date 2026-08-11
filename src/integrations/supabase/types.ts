@@ -622,7 +622,9 @@ export type Database = {
           longitude: number | null
           manual_location: string | null
           occurred_at: string
-          reporter_id: string
+          organization_id: string | null
+          assigned_team_id: string | null
+          reporter_id: string | null
           status: string
           title: string
           updated_at: string
@@ -640,7 +642,9 @@ export type Database = {
           longitude?: number | null
           manual_location?: string | null
           occurred_at?: string
-          reporter_id: string
+          organization_id?: string | null
+          assigned_team_id?: string | null
+          reporter_id?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -658,7 +662,9 @@ export type Database = {
           longitude?: number | null
           manual_location?: string | null
           occurred_at?: string
-          reporter_id?: string
+          organization_id?: string | null
+          assigned_team_id?: string | null
+          reporter_id?: string | null
           status?: string
           title?: string
           updated_at?: string

@@ -62,7 +62,8 @@ Development:
 - CI/CD
 
 Operational setup and security procedures are documented in
-[DEPLOYMENT.md](./DEPLOYMENT.md) and [SECURITY.md](./SECURITY.md).
+[DEPLOYMENT.md](./DEPLOYMENT.md), [SECURITY.md](./SECURITY.md), and
+[docs/ACCESS_CONTROL.md](./docs/ACCESS_CONTROL.md).
 
 ---
 

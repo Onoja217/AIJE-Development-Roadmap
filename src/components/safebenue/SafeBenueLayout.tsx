@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Header } from "@/components/dashboard/Header";
 import { cn } from "@/lib/utils";
+import { useAccess } from "@/features/access/AccessProvider";
 
 const tabs = [
   { label: "Overview", path: "/safebenue" },
@@ -10,7 +11,7 @@ const tabs = [
   { label: "Resources", path: "/safebenue/resources" },
   { label: "Community Watch", path: "/safebenue/community-watch" },
   { label: "Family", path: "/safebenue/family" },
-  { label: "Admin", path: "/safebenue/admin" },
+  { label: "Admin", path: "/safebenue/admin", admin: true },
 ];
 
 interface SafeBenueLayoutProps {
@@ -19,8 +20,19 @@ interface SafeBenueLayoutProps {
   children?: ReactNode;
 }
 
-export function SafeBenueLayout({ title, description, children }: SafeBenueLayoutProps) {
+export function SafeBenueLayout({
+  title,
+  description,
+  children,
+}: SafeBenueLayoutProps) {
   const location = useLocation();
+  const { hasPermission } = useAccess();
+  const visibleTabs = tabs.filter(
+    (tab) =>
+      !tab.admin ||
+      hasPermission("organization.manage") ||
+      hasPermission("reports.verify"),
+  );
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -31,7 +43,7 @@ export function SafeBenueLayout({ title, description, children }: SafeBenueLayou
           aria-label="SafeBenue sections"
           className="mx-auto flex max-w-[1600px] gap-1 overflow-x-auto px-4 py-2 md:px-6"
         >
-          {tabs.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActive = location.pathname === tab.path;
             return (
               <Link
@@ -41,7 +53,7 @@ export function SafeBenueLayout({ title, description, children }: SafeBenueLayou
                   "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab.label}
@@ -56,7 +68,9 @@ export function SafeBenueLayout({ title, description, children }: SafeBenueLayou
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
             SafeBenue · Powered by AIJE
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {title}
+          </h1>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
             {description}
           </p>
