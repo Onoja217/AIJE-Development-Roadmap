@@ -13,9 +13,9 @@
 export type IncidentPriority = "low" | "medium" | "high" | "critical";
 
 export type IncidentStatus =
-  | "pending"      // just received, not yet verified
-  | "verified"     // AI/human confirmed it's real
-  | "responding"   // a team has been dispatched
+  | "pending" // just received, not yet verified
+  | "verified" // AI/human confirmed it's real
+  | "responding" // a team has been dispatched
   | "resolved";
 
 export interface TimelineEvent {

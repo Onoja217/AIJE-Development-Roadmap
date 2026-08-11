@@ -1,7 +1,6 @@
 import { Bell, Settings, Smartphone, Volume2, VolumeX, LogOut, UserCircle, Sun, Moon, ScanEye, Siren } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import aijeLogo from "@/assets/aije-logo.png";
 import { useMute } from "@/hooks/useMute";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -35,7 +34,7 @@ export function Header() {
     >
       <div className="flex w-full flex-wrap items-center gap-2 md:gap-3">
         <div className="rounded-lg bg-primary/10 p-1 glow-primary overflow-hidden">
-          <img src={aijeLogo} alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
+          <img src="/icons/icon-192.png" alt="AIJE logo" className="h-8 w-8 object-contain" width={32} height={32} />
         </div>
         <div>
           <span className="block text-lg font-bold tracking-tight text-foreground">AIJE</span>

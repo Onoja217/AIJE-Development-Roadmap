@@ -14,9 +14,16 @@
 // change when a new feature is added.
 
 import { getDB } from "./db";
-import type { SyncHandler, SyncQueueItem, SyncStats, SyncStatus } from "../types/sync";
+import type {
+  SyncHandler,
+  SyncQueueItem,
+  SyncStats,
+  SyncStatus,
+} from "../types/sync";
 
 const MAX_RETRIES = 5;
+const MAX_QUEUE_ITEMS = 500;
+const SYNC_LEASE_MS = 5 * 60_000;
 const BASE_BACKOFF_MS = 2000; // 2s, 4s, 8s, 16s, 32s
 
 const handlers = new Map<string, SyncHandler>();
@@ -35,7 +42,10 @@ export function onQueueChange(fn: () => void): () => void {
 }
 
 /** Register how a given collection should actually be sent to the backend. */
-export function registerSyncHandler<T>(collection: string, handler: SyncHandler<T>) {
+export function registerSyncHandler<T>(
+  collection: string,
+  handler: SyncHandler<T>,
+) {
   handlers.set(collection, handler as SyncHandler);
 }
 
@@ -46,6 +56,23 @@ export function registerSyncHandler<T>(collection: string, handler: SyncHandler<
  */
 export async function enqueue<T>(collection: string, data: T): Promise<string> {
   const db = await getDB();
+  const allKeys = await db.getAllKeys("sync_queue");
+  if (allKeys.length >= MAX_QUEUE_ITEMS) {
+    const synced = (
+      await db.getAllFromIndex("sync_queue", "by-status", "synced")
+    ).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    for (const item of synced.slice(
+      0,
+      Math.max(0, allKeys.length - MAX_QUEUE_ITEMS + 1),
+    )) {
+      await db.delete("sync_queue", item.id);
+    }
+    if ((await db.getAllKeys("sync_queue")).length >= MAX_QUEUE_ITEMS) {
+      throw new Error(
+        "Offline queue is full. Connect to the internet and retry synchronization.",
+      );
+    }
+  }
   const item: SyncQueueItem<T> = {
     id: crypto.randomUUID(),
     collection,
@@ -76,12 +103,18 @@ export async function getStats(): Promise<SyncStats> {
   };
 }
 
-export async function getItemsByCollection(collection: string): Promise<SyncQueueItem[]> {
+export async function getItemsByCollection(
+  collection: string,
+): Promise<SyncQueueItem[]> {
   const db = await getDB();
   return db.getAllFromIndex("sync_queue", "by-collection", collection);
 }
 
-async function updateItemStatus(id: string, status: SyncStatus, error?: string) {
+async function updateItemStatus(
+  id: string,
+  status: SyncStatus,
+  error?: string,
+) {
   const db = await getDB();
   const item = await db.get("sync_queue", id);
   if (!item) return;
@@ -104,11 +137,22 @@ export async function processQueue(): Promise<void> {
 
   try {
     const db = await getDB();
-    const pending = await db.getAllFromIndex("sync_queue", "by-status", "pending");
-    const failedRetryable = (await db.getAllFromIndex("sync_queue", "by-status", "failed")).filter(
-      (i) => i.retryCount < MAX_RETRIES
+    const pending = await db.getAllFromIndex(
+      "sync_queue",
+      "by-status",
+      "pending",
     );
-    const toProcess = [...pending, ...failedRetryable];
+    const failedRetryable = (
+      await db.getAllFromIndex("sync_queue", "by-status", "failed")
+    ).filter((i) => i.retryCount < MAX_RETRIES);
+    const staleSyncing = (
+      await db.getAllFromIndex("sync_queue", "by-status", "syncing")
+    ).filter(
+      (item) =>
+        !item.lastAttemptAt ||
+        Date.now() - new Date(item.lastAttemptAt).getTime() > SYNC_LEASE_MS,
+    );
+    const toProcess = [...pending, ...failedRetryable, ...staleSyncing];
 
     for (const item of toProcess) {
       const handler = handlers.get(item.collection);

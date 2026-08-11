@@ -24,7 +24,10 @@ function rebuildSnapshot() {
   listeners.forEach((l) => l());
 }
 
-export function updateDetectionStat(name: string, patch: Partial<DetectionStat>) {
+export function updateDetectionStat(
+  name: string,
+  patch: Partial<DetectionStat>,
+) {
   const prev =
     stats.get(name) ||
     ({

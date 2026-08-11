@@ -8,7 +8,8 @@ import { isAuthorizedCronCall, unauthorized } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 function percentile(values: number[], p: number) {
@@ -19,12 +20,16 @@ function percentile(values: number[], p: number) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
 
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-
-  if (!(await isAuthorizedCronCall(req, admin))) return unauthorized(corsHeaders);
+  if (!(await isAuthorizedCronCall(req, admin)))
+    return unauthorized(corsHeaders);
 
   const { data: settings, error: sErr } = await admin
     .from("webhook_alert_settings")
@@ -32,16 +37,28 @@ Deno.serve(async (req) => {
     .eq("enabled", true);
 
   if (sErr) {
-    console.error(JSON.stringify({ msg: "monitor.settings_fetch_failed", error: sErr.message }));
-    return new Response(JSON.stringify({ error: sErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error(
+      JSON.stringify({
+        msg: "monitor.settings_fetch_failed",
+        error: sErr.message,
+      }),
+    );
+    return new Response(JSON.stringify({ error: sErr.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const summary = { users: 0, fired: 0, skipped_cooldown: 0 };
 
   for (const s of settings ?? []) {
     summary.users++;
-    const windowStart = new Date(Date.now() - s.window_minutes * 60_000).toISOString();
-    const cooldownStart = new Date(Date.now() - s.cooldown_minutes * 60_000).toISOString();
+    const windowStart = new Date(
+      Date.now() - s.window_minutes * 60_000,
+    ).toISOString();
+    const cooldownStart = new Date(
+      Date.now() - s.cooldown_minutes * 60_000,
+    ).toISOString();
 
     // Dead-letter pending count (global — the deployment owner cares about all pending).
     const { count: dlCount } = await admin
@@ -80,7 +97,10 @@ Deno.serve(async (req) => {
 
     const lats = (deliveries ?? [])
       .map((delivery) => delivery.latency_ms)
-      .filter((latency): latency is number => typeof latency === "number" && Number.isFinite(latency));
+      .filter(
+        (latency): latency is number =>
+          typeof latency === "number" && Number.isFinite(latency),
+      );
     const p95 = percentile(lats, 0.95);
 
     if (lats.length >= 5 && p95 >= s.latency_p95_threshold_ms) {
@@ -106,6 +126,10 @@ Deno.serve(async (req) => {
     }
   }
 
-  console.log(JSON.stringify({ msg: "webhook_alerts_monitor.run", ...summary }));
-  return new Response(JSON.stringify(summary), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  console.log(
+    JSON.stringify({ msg: "webhook_alerts_monitor.run", ...summary }),
+  );
+  return new Response(JSON.stringify(summary), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

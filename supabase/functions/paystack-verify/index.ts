@@ -3,267 +3,230 @@ import {
   loadPaystackSecretKey,
   logPaystackMode,
 } from "../_shared/paystack-key.ts";
+import { logJson } from "../_shared/structured-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-correlation-id",
 };
+const REFERENCE_PATTERN = /^aije_[a-z0-9_]{8,80}$/i;
 
-function jsonResponse(
+function json(
   body: Record<string, unknown>,
-  status = 200,
-): Response {
+  status: number,
+  correlationId: string,
+) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       ...corsHeaders,
-      "Content-Type": "application/json",
+      "content-type": "application/json",
+      "x-correlation-id": correlationId,
     },
   });
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS")
     return new Response("ok", { headers: corsHeaders });
-  }
+  const correlationId =
+    request.headers.get("x-correlation-id") ?? crypto.randomUUID();
+  if (request.method !== "POST")
+    return json({ error: "Method not allowed" }, 405, correlationId);
 
-  if (req.method !== "POST") {
-    return jsonResponse(
-      { error: "Method not allowed" },
-      405,
-    );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const authorization = request.headers.get("Authorization");
+  if (!supabaseUrl || !anonKey || !serviceRoleKey)
+    return json({ error: "Payment service unavailable" }, 500, correlationId);
+  if (!authorization?.startsWith("Bearer "))
+    return json({ error: "Authentication required" }, 401, correlationId);
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const {
+    data: { user },
+    error: authError,
+  } = await userClient.auth.getUser();
+  if (authError || !user)
+    return json({ error: "Invalid or expired session" }, 401, correlationId);
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400, correlationId);
   }
+  const reference =
+    body &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    typeof (body as Record<string, unknown>).reference === "string"
+      ? ((body as Record<string, unknown>).reference as string).trim()
+      : "";
+  if (!REFERENCE_PATTERN.test(reference))
+    return json(
+      { error: "A valid payment reference is required" },
+      422,
+      correlationId,
+    );
 
   try {
     const keyInfo = loadPaystackSecretKey();
-    logPaystackMode("paystack-initialize", keyInfo);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      console.error("Missing Supabase server environment variables");
-
-      return jsonResponse(
-        { error: "Payment service is not configured correctly." },
-        500,
-      );
-    }
-
-    const authHeader = req.headers.get("Authorization");
-
-    if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse(
-        { error: "Authentication token is missing." },
-        401,
-      );
-    }
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
-
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
-
-    if (userError || !user) {
-      console.error("Authentication failed:", userError?.message);
-
-      return jsonResponse(
-        { error: "Your session is invalid or expired. Please sign in again." },
-        401,
-      );
-    }
-
-    if (!user.email) {
-      return jsonResponse(
-        { error: "Your account does not have an email address." },
-        422,
-      );
-    }
-
-    let requestBody: {
-      plan_id?: string;
-      callback_url?: string;
-    };
-
-    try {
-      requestBody = await req.json();
-    } catch {
-      return jsonResponse(
-        { error: "Invalid JSON request body." },
-        400,
-      );
-    }
-
-    const planId = requestBody.plan_id?.trim();
-    const callbackUrl = requestBody.callback_url?.trim();
-
-    if (!planId) {
-      return jsonResponse(
-        { error: "plan_id is required." },
-        422,
-      );
-    }
-
-    if (callbackUrl) {
-      try {
-        const url = new URL(callbackUrl);
-
-        if (!["http:", "https:"].includes(url.protocol)) {
-          throw new Error("Invalid protocol");
-        }
-      } catch {
-        return jsonResponse(
-          { error: "callback_url must be a valid HTTP or HTTPS URL." },
-          422,
-        );
-      }
-    }
-
-    /*
-     * Use a separate service-role client to read server-owned pricing.
-     * Do not pass the user's Authorization header into this client.
-     */
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
-
-    const { data: plan, error: planError } = await adminClient
-      .from("plans")
-      .select("id, code, name, price_ngn_kobo, is_custom")
-      .eq("id", planId)
-      .maybeSingle();
-
-    if (planError) {
-      console.error("Plan lookup failed:", planError);
-
-      return jsonResponse(
-        { error: "Unable to retrieve the selected plan." },
-        500,
-      );
-    }
-
-    if (!plan) {
-      return jsonResponse(
-        { error: "The selected plan was not found." },
-        404,
-      );
-    }
-
-    if (plan.is_custom) {
-      return jsonResponse(
-        { error: "This plan requires a custom quote. Please contact sales." },
-        422,
-      );
-    }
-
-    const amount = Number(plan.price_ngn_kobo);
-
-    if (!Number.isInteger(amount) || amount <= 0) {
-      console.error("Invalid plan price:", {
-        planId: plan.id,
-        storedAmount: plan.price_ngn_kobo,
+    logPaystackMode("paystack-verify", keyInfo);
+    const response = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${keyInfo.key}` } },
+    );
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.status || result.data?.status !== "success") {
+      logJson("warn", "paystack.verify.rejected", {
+        correlation_id: correlationId,
+        reference,
+        status: response.status,
       });
-
-      return jsonResponse(
-        { error: "The selected plan has an invalid payment amount." },
-        500,
+      return json(
+        { success: false, error: "Payment is not successful" },
+        409,
+        correlationId,
       );
     }
 
-    const reference =
-      `aije_${user.id.replaceAll("-", "").slice(0, 10)}_${Date.now()}`;
+    const transaction = result.data as Record<string, unknown>;
+    const metadata =
+      transaction.metadata &&
+      typeof transaction.metadata === "object" &&
+      !Array.isArray(transaction.metadata)
+        ? (transaction.metadata as Record<string, unknown>)
+        : {};
+    const planId = typeof metadata.plan_id === "string" ? metadata.plan_id : "";
+    if (metadata.user_id !== user.id)
+      return json(
+        { error: "Payment does not belong to this account" },
+        403,
+        correlationId,
+      );
 
-    const paystackPayload: Record<string, unknown> = {
-      email: user.email,
-      amount,
-      currency: "NGN",
-      reference,
-      metadata: {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: plan, error: planError } = await admin
+      .from("plans")
+      .select("id, price_ngn_kobo, active")
+      .eq("id", planId)
+      .eq("active", true)
+      .maybeSingle();
+    if (planError)
+      return json(
+        { error: "Unable to validate payment plan" },
+        500,
+        correlationId,
+      );
+    if (!plan)
+      return json(
+        { error: "Payment plan no longer exists" },
+        409,
+        correlationId,
+      );
+    if (
+      transaction.currency !== "NGN" ||
+      transaction.amount !== plan.price_ngn_kobo
+    ) {
+      logJson("error", "paystack.verify.amount_mismatch", {
+        correlation_id: correlationId,
         user_id: user.id,
         plan_id: plan.id,
-        plan_code: plan.code,
-      },
-    };
-
-    if (callbackUrl) {
-      paystackPayload.callback_url = callbackUrl;
-    }
-
-    console.info("Initializing Paystack transaction", {
-      reference,
-      userId: user.id,
-      planId: plan.id,
-      amount,
-      mode: keyInfo.mode,
-      hasCallbackUrl: Boolean(callbackUrl),
-    });
-
-    const paystackResponse = await fetch(
-      "https://api.paystack.co/transaction/initialize",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${keyInfo.key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(paystackPayload),
-      },
-    );
-
-    const paystackJson = await paystackResponse.json().catch(() => null);
-
-    if (!paystackResponse.ok || !paystackJson?.status) {
-      console.error("Paystack initialize rejected:", {
-        httpStatus: paystackResponse.status,
-        message: paystackJson?.message,
-        type: paystackJson?.type,
-        code: paystackJson?.code,
+        reference,
       });
-
-      return jsonResponse(
-        {
-          error:
-            paystackJson?.message ??
-            "Paystack could not initialize the transaction.",
-        },
-        502,
+      return json(
+        { error: "Payment amount does not match the selected plan" },
+        409,
+        correlationId,
       );
     }
 
-    return jsonResponse({
-      authorization_url: paystackJson.data.authorization_url,
-      reference: paystackJson.data.reference,
-      access_code: paystackJson.data.access_code,
-      mode: keyInfo.mode,
-    });
-  } catch (error) {
-    console.error("Unexpected initialize error:", error);
+    const eventId =
+      transaction.id === undefined ? null : String(transaction.id);
+    if (eventId) {
+      const { data: existing } = await admin
+        .from("payment_events")
+        .select("id")
+        .eq("paystack_event_id", eventId)
+        .maybeSingle();
+      if (existing)
+        return json(
+          { success: true, duplicate: true, reference },
+          200,
+          correlationId,
+        );
+    }
 
-    return jsonResponse(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unexpected payment error occurred.",
+    const periodEnd = new Date();
+    periodEnd.setUTCDate(periodEnd.getUTCDate() + 30);
+    const customer =
+      transaction.customer &&
+      typeof transaction.customer === "object" &&
+      !Array.isArray(transaction.customer)
+        ? (transaction.customer as Record<string, unknown>)
+        : {};
+    const { error: subscriptionError } = await admin
+      .from("subscriptions")
+      .upsert(
+        {
+          user_id: user.id,
+          plan_id: plan.id,
+          status: "active",
+          paystack_customer_code:
+            typeof customer.customer_code === "string"
+              ? customer.customer_code
+              : null,
+          current_period_end: periodEnd.toISOString(),
+          cancel_at_period_end: false,
+        },
+        { onConflict: "user_id" },
+      );
+    if (subscriptionError)
+      throw new Error(
+        `Subscription update failed: ${subscriptionError.message}`,
+      );
+
+    const { error: eventError } = await admin.from("payment_events").insert({
+      user_id: user.id,
+      event_type: "charge.success.verified",
+      reference,
+      paystack_event_id: eventId,
+      payload: {
+        id: transaction.id,
+        status: transaction.status,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        plan_id: plan.id,
       },
-      500,
+    });
+    if (eventError?.code !== "23505" && eventError)
+      throw new Error(`Payment event insert failed: ${eventError.message}`);
+
+    logJson("info", "paystack.verify.completed", {
+      correlation_id: correlationId,
+      user_id: user.id,
+      plan_id: plan.id,
+      reference,
+    });
+    return json(
+      { success: true, reference, plan_id: plan.id },
+      200,
+      correlationId,
     );
+  } catch (error) {
+    logJson("error", "paystack.verify.failed", {
+      correlation_id: correlationId,
+      reference,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return json({ error: "Unable to verify payment" }, 500, correlationId);
   }
 });

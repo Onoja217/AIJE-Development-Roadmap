@@ -3,6 +3,12 @@ project_id = "evsginbpruyykvwallck"
 [functions.paystack-webhook]
 verify_jwt = false
 
+[functions.paystack-initialize]
+verify_jwt = true
+
+[functions.paystack-verify]
+verify_jwt = true
+
 [functions.paystack-webhook-retry]
 verify_jwt = false
 

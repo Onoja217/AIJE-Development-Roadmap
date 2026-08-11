@@ -40,10 +40,7 @@ export type ResourceVerificationStatus =
   | "rejected"
   | "expired";
 
-export type ResourceVisibility =
-  | "public"
-  | "organization"
-  | "restricted";
+export type ResourceVisibility = "public" | "organization" | "restricted";
 
 export type ResourceService =
   | "emergency_medical_care"

@@ -74,4 +74,3 @@ jobs:
             echo "### ❌ Paystack E2E failed" >> $GITHUB_STEP_SUMMARY
             echo "See the failing test step above for details." >> $GITHUB_STEP_SUMMARY
           fi
-

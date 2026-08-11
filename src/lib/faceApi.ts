@@ -23,20 +23,36 @@ export async function ensureFaceModels(): Promise<void> {
 
 export type Descriptor = number[];
 
-export async function describeFromImage(img: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement): Promise<Descriptor | null> {
+export async function describeFromImage(
+  img: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
+): Promise<Descriptor | null> {
   await ensureFaceModels();
   const result = await faceapi
-    .detectSingleFace(img as HTMLImageElement, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+    .detectSingleFace(
+      img as HTMLImageElement,
+      new faceapi.TinyFaceDetectorOptions({
+        inputSize: 320,
+        scoreThreshold: 0.5,
+      }),
+    )
     .withFaceLandmarks()
     .withFaceDescriptor();
   if (!result) return null;
   return Array.from(result.descriptor);
 }
 
-export async function describeAllFromVideo(video: HTMLVideoElement): Promise<Descriptor[]> {
+export async function describeAllFromVideo(
+  video: HTMLVideoElement,
+): Promise<Descriptor[]> {
   await ensureFaceModels();
   const results = await faceapi
-    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+    .detectAllFaces(
+      video,
+      new faceapi.TinyFaceDetectorOptions({
+        inputSize: 224,
+        scoreThreshold: 0.5,
+      }),
+    )
     .withFaceLandmarks()
     .withFaceDescriptors();
   return results.map((r) => Array.from(r.descriptor));
@@ -62,7 +78,8 @@ export function findBestMatch(
   let best: { id: string; label: string; distance: number } | null = null;
   for (const c of candidates) {
     const d = descriptorDistance(descriptor, c.descriptor);
-    if (!best || d < best.distance) best = { id: c.id, label: c.label, distance: d };
+    if (!best || d < best.distance)
+      best = { id: c.id, label: c.label, distance: d };
   }
   if (!best || best.distance > threshold) return null;
   return best;
