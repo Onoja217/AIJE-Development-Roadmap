@@ -114,6 +114,6 @@ create policy "users insert own subscription minimal"
     and status = 'inactive'
   );
 
--- 7) realtime.messages: enable RLS (deny broadcast/presence by default)
---    Does NOT affect postgres_changes, which uses each table's own RLS.
-alter table realtime.messages enable row level security;
+-- Supabase owns and secures realtime.messages. Application migrations must
+-- not alter that platform-managed table; postgres_changes continues to use
+-- each public table's RLS policies above.
