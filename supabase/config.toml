@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.paystack-verify]
 verify_jwt = true
 
+[functions.submit-incident-report]
+verify_jwt = false
+
 [functions.paystack-webhook-retry]
 verify_jwt = false
 

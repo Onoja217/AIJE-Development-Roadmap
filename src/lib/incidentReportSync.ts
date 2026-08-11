@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { enqueue, registerSyncHandler } from "./syncEngine";
 import { createNotification } from "./notificationService";
 import type { EmergencyReport } from "@/types/report";
+import { getStoredActiveOrganizationId } from "@/features/access/accessStorage";
 
 export const INCIDENT_REPORT_COLLECTION = "incident_reports";
 
@@ -24,7 +25,15 @@ export function registerIncidentReportSync() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("Sign in required to submit incident reports");
+        const { data, error } = await supabase.functions.invoke(
+          "submit-incident-report",
+          { body: report },
+        );
+        if (error) throw error;
+        if (!data || data.accepted !== true) {
+          throw new Error("The public incident endpoint rejected the report");
+        }
+        return;
       }
 
       const { error } = await supabase.from("incident_reports").upsert(
@@ -41,6 +50,7 @@ export function registerIncidentReportSync() {
           manual_location: report.location?.manualEntry ?? null,
           image_count: report.images?.length ?? 0,
           occurred_at: report.timestamp,
+          organization_id: getStoredActiveOrganizationId(),
         },
         { onConflict: "reporter_id,client_id" },
       );

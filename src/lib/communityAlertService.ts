@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notificationService";
 import { enqueue, processQueue, registerSyncHandler } from "@/lib/syncEngine";
 import type { AlertDispatchResult, AlertDraft } from "@/types/communityAlert";
+import { getStoredActiveOrganizationId } from "@/features/access/accessStorage";
 
 const LEGACY_QUEUE_KEY = "aije-community-alert-outbox";
 const ALERT_COLLECTION = "community_alerts";
@@ -83,6 +84,8 @@ export async function dispatchCommunityAlert(
   registerAlertSync();
   const payload = {
     ...draft,
+    organizationId:
+      draft.organizationId ?? getStoredActiveOrganizationId() ?? undefined,
     idempotencyKey: draft.idempotencyKey ?? crypto.randomUUID(),
   };
   if (!navigator.onLine) return queueAlert(payload);

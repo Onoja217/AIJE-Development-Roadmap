@@ -28,6 +28,7 @@ export interface EmergencyContact {
 }
 export interface AlertDraft {
   idempotencyKey?: string;
+  organizationId?: string;
   incidentId?: string;
   incidentType: string;
   summary: string;

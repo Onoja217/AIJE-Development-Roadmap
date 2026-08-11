@@ -20,6 +20,7 @@ type AlertChannel = "sms" | "whatsapp";
 type ThreatLevel = "low" | "medium" | "high" | "critical";
 type AlertDraft = {
   idempotencyKey: string;
+  organizationId?: string;
   incidentId?: string;
   incidentType: string;
   summary: string;
@@ -122,6 +123,11 @@ function parseDraft(value: unknown): AlertDraft | null {
 
   return {
     idempotencyKey,
+    organizationId:
+      typeof value.organizationId === "string" &&
+      UUID_PATTERN.test(value.organizationId)
+        ? value.organizationId
+        : undefined,
     incidentId: parseString(value.incidentId, 1, 100) ?? undefined,
     incidentType,
     summary,
@@ -235,6 +241,11 @@ Deno.serve(async (request) => {
   if (authError || !user)
     return json({ error: "Invalid or expired session" }, 401, correlationId);
 
+  const userClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: authorization } },
+  });
+
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -254,11 +265,28 @@ Deno.serve(async (request) => {
   if ((recentCount ?? 0) >= MAX_ALERTS_PER_MINUTE)
     return json({ error: "Alert rate limit exceeded" }, 429, correlationId);
 
+  let canDispatchForOrganization = false;
+  if (draft.organizationId) {
+    const { data, error } = await userClient.rpc(
+      "current_user_has_permission",
+      {
+        _organization_id: draft.organizationId,
+        _permission: "alerts.dispatch",
+      },
+    );
+    if (error || data !== true)
+      return json(
+        { error: "Alert dispatch permission required" },
+        403,
+        correlationId,
+      );
+    canDispatchForOrganization = true;
+  }
+
   const { data: ownedGroups, error: groupError } = draft.groupIds.length
     ? await admin
         .from("community_watch_groups")
-        .select("id, escalation_minutes")
-        .eq("owner_id", user.id)
+        .select("id, owner_id, organization_id, escalation_minutes")
         .in("id", draft.groupIds)
     : { data: [], error: null };
   if (groupError)
@@ -267,7 +295,13 @@ Deno.serve(async (request) => {
       500,
       correlationId,
     );
-  if ((ownedGroups ?? []).length !== draft.groupIds.length)
+  const groupsAccessible = (ownedGroups ?? []).every(
+    (group) =>
+      group.owner_id === user.id ||
+      (canDispatchForOrganization &&
+        group.organization_id === draft.organizationId),
+  );
+  if ((ownedGroups ?? []).length !== draft.groupIds.length || !groupsAccessible)
     return json(
       { error: "One or more groups are not accessible" },
       403,
@@ -285,6 +319,7 @@ Deno.serve(async (request) => {
     .from("community_alerts")
     .insert({
       owner_id: user.id,
+      organization_id: draft.organizationId ?? null,
       incident_id: draft.incidentId,
       incident_type: draft.incidentType,
       summary: draft.summary,
@@ -347,8 +382,11 @@ Deno.serve(async (request) => {
   let contactQuery = admin
     .from("emergency_contacts")
     .select("phone, whatsapp_target, incident_types")
-    .eq("owner_id", user.id)
     .eq("active", true);
+  contactQuery =
+    draft.organizationId && canDispatchForOrganization
+      ? contactQuery.eq("organization_id", draft.organizationId)
+      : contactQuery.eq("owner_id", user.id);
   if (draft.contactIds.length)
     contactQuery = contactQuery.in("id", draft.contactIds);
   const { data: contactRows } = await contactQuery;
