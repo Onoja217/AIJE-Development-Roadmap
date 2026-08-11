@@ -27,9 +27,17 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+    let active = true;
+    const settle = (nextUser: User | null) => {
+      if (!active) return;
+      setUser(nextUser);
       setLoading(false);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      settle(session?.user ?? null);
 
       if (event === "SIGNED_IN" && session?.user) {
         notifySignInOnce(session.user);
@@ -45,12 +53,32 @@ export function useAuth() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const timeout = window.setTimeout(() => {
+      console.error("[auth] Session initialization timed out.");
+      settle(null);
+    }, 10_000);
 
-    return () => subscription.unsubscribe();
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.error("[auth] Session initialization failed", {
+            message: error.message,
+          });
+        }
+        settle(session?.user ?? null);
+      })
+      .catch((error: unknown) => {
+        console.error("[auth] Session initialization failed", error);
+        settle(null);
+      })
+      .finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

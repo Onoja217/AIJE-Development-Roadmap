@@ -1,12 +1,49 @@
-import { createRoot } from "react-dom/client";
-
-import App from "./App.tsx";
+import { createRoot, type Root } from "react-dom/client";
 import "./index.css";
+import { AppErrorBoundary, StartupError } from "@/components/AppFallback";
 
-import { CommunityIntegrationProvider } from "@/contexts/CommunityIntegrationContext";
+const container = document.getElementById("root");
 
-createRoot(document.getElementById("root")!).render(
-  <CommunityIntegrationProvider>
-    <App />
-  </CommunityIntegrationProvider>
-);
+if (!container) {
+  throw new Error("Application root element is missing.");
+}
+
+const root = createRoot(container);
+
+async function bootstrap(rootInstance: Root) {
+  if (
+    !import.meta.env.VITE_SUPABASE_URL ||
+    !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  ) {
+    console.error(
+      "[app] Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY.",
+    );
+    rootInstance.render(
+      <StartupError message="The service is not configured. Please contact the administrator." />,
+    );
+    return;
+  }
+
+  try {
+    const [{ default: App }, { CommunityIntegrationProvider }] =
+      await Promise.all([
+        import("./App.tsx"),
+        import("@/contexts/CommunityIntegrationContext"),
+      ]);
+
+    rootInstance.render(
+      <AppErrorBoundary>
+        <CommunityIntegrationProvider>
+          <App />
+        </CommunityIntegrationProvider>
+      </AppErrorBoundary>,
+    );
+  } catch (error) {
+    console.error("[app] Bootstrap failed", error);
+    rootInstance.render(
+      <StartupError message="The application failed to start. Please try again." />,
+    );
+  }
+}
+
+void bootstrap(root);
