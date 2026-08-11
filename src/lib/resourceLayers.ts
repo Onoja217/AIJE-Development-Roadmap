@@ -1,7 +1,4 @@
-import type {
-  EmergencyResource,
-  ResourceCategory,
-} from "../types/resource";
+import type { EmergencyResource, ResourceCategory } from "../types/resource";
 
 export type ResourceLayerKey =
   | "hospitals"
@@ -30,17 +27,9 @@ export const RESOURCE_LAYER_CATEGORIES: Record<
     "command_centre",
   ],
 
-  fire: [
-    "fire_service",
-    "rescue_station",
-  ],
+  fire: ["fire_service", "rescue_station"],
 
-  shelters: [
-    "safe_shelter",
-    "idp_camp",
-    "community_hall",
-    "evacuation_point",
-  ],
+  shelters: ["safe_shelter", "idp_camp", "community_hall", "evacuation_point"],
 
   warehouses: [
     "relief_warehouse",
@@ -51,11 +40,12 @@ export const RESOURCE_LAYER_CATEGORIES: Record<
 };
 
 export function getResourceLayer(
-  category: ResourceCategory
+  category: ResourceCategory,
 ): ResourceLayerKey | null {
-  const entries = Object.entries(
-    RESOURCE_LAYER_CATEGORIES
-  ) as [ResourceLayerKey, ResourceCategory[]][];
+  const entries = Object.entries(RESOURCE_LAYER_CATEGORIES) as [
+    ResourceLayerKey,
+    ResourceCategory[],
+  ][];
 
   for (const [layer, categories] of entries) {
     if (categories.includes(category)) {
@@ -67,7 +57,7 @@ export function getResourceLayer(
 }
 
 export function countResourcesByLayer(
-  resources: EmergencyResource[]
+  resources: EmergencyResource[],
 ): Record<ResourceLayerKey, number> {
   const counts: Record<ResourceLayerKey, number> = {
     hospitals: 0,

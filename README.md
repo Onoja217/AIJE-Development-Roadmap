@@ -36,35 +36,44 @@ To build a safer and more resilient community through AI-powered emergency commu
 ## Technology Stack
 
 Frontend:
+
 - React
 - TypeScript
 - Tailwind CSS
 - Vite
 
 Backend:
+
 - Supabase
 - PostgreSQL
 - Edge Functions
 
 AI:
+
 - YOLO Human Detection
 - Person Tracking
 - Threat Assessment
 
 Development:
+
 - GitHub
 - GitHub Projects
 - Pull Requests
 - CI/CD
+
+Operational setup and security procedures are documented in
+[DEPLOYMENT.md](./DEPLOYMENT.md) and [SECURITY.md](./SECURITY.md).
 
 ---
 
 ## Contributors
 
 Founder & Lead Architect
+
 - Onoja Monday Ojonugba
 
 Collaborators
+
 - Harsh
 - Christopher Okoh
 - Samuel Omafu
@@ -73,7 +82,7 @@ Collaborators
 - Jirey
 - Pius
 - Owoicho Favour
-- King-Solomon Onoja 
+- King-Solomon Onoja
 
 ---
 
@@ -98,6 +107,3 @@ Project is actively under development for the Idoma Centenary Plus Hackathon 202
 ## License
 
 Proprietary © AIJE Community Shield.
-
-
-

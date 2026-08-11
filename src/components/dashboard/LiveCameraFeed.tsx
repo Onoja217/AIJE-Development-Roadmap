@@ -55,6 +55,7 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   }, [simulatedZoneIntrusion]);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -371,12 +372,13 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
   }, [detections, personCount, zoneEnabled, personDetectEnabled, zone, cameraName, notify, queueAlert, autoSnapshotIntervalOverrideSec, smartConfig.auto_snapshot_interval_sec, zoneCooldownSec, zoneAlertSeverity, simulatedZoneIntrusion, faceActive, fr, lastMatch]);
 
   const startCamera = useCallback(async (facing: "user" | "environment") => {
-    stream?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((track) => track.stop());
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       setError(null);
       if (videoRef.current) {
@@ -385,13 +387,14 @@ export function LiveCameraFeed({ cameraName = "Front Door", onClose, streamUrl, 
     } catch {
       setError("Camera access denied. Please allow camera permissions.");
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (isCCTV) return;
     startCamera(facingMode);
     return () => {
-      stream?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     };
   }, [facingMode, isCCTV]); // eslint-disable-line react-hooks/exhaustive-deps
 

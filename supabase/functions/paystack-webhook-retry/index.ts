@@ -8,18 +8,23 @@ import { logJson, recordDelivery } from "../_shared/structured-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 const BACKOFF_MINUTES = [1, 5, 15, 60, 240, 720]; // 1m, 5m, 15m, 1h, 4h, 12h
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
 
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-
-  if (!(await isAuthorizedCronCall(req, admin))) return unauthorized(corsHeaders);
+  if (!(await isAuthorizedCronCall(req, admin)))
+    return unauthorized(corsHeaders);
 
   const runStarted = Date.now();
   const { data: rows, error } = await admin
@@ -106,7 +111,9 @@ Deno.serve(async (req) => {
         results.abandoned++;
       } else {
         const idx = Math.min(attempt - 1, BACKOFF_MINUTES.length - 1);
-        const next = new Date(Date.now() + BACKOFF_MINUTES[idx] * 60_000).toISOString();
+        const next = new Date(
+          Date.now() + BACKOFF_MINUTES[idx] * 60_000,
+        ).toISOString();
         await admin
           .from("webhook_dead_letter")
           .update({

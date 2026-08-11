@@ -9,12 +9,16 @@
 
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 const SUPABASE_URL =
   Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_URL")!;
 const ANON =
-  Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
+  Deno.env.get("SUPABASE_ANON_KEY") ??
+  Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FN_BASE = `${SUPABASE_URL}/functions/v1`;
 
@@ -84,9 +88,19 @@ Deno.test({
         headers: { apikey: ANON, "Content-Type": "application/json" },
       });
       const runJson = await runRes.json();
-      assertEquals(runRes.status, 200, `retry run failed: ${JSON.stringify(runJson)}`);
-      assert(runJson.processed >= 1, `expected at least 1 processed, got ${runJson.processed}`);
-      assert(runJson.resolved >= 1, `expected at least 1 resolved, got ${runJson.resolved}`);
+      assertEquals(
+        runRes.status,
+        200,
+        `retry run failed: ${JSON.stringify(runJson)}`,
+      );
+      assert(
+        runJson.processed >= 1,
+        `expected at least 1 processed, got ${runJson.processed}`,
+      );
+      assert(
+        runJson.resolved >= 1,
+        `expected at least 1 resolved, got ${runJson.resolved}`,
+      );
 
       // 3) Dead-letter row is now resolved with attempts bumped.
       const { data: after, error: afterErr } = await admin
@@ -128,7 +142,10 @@ Deno.test({
       if (deadLetterId) {
         await admin.from("webhook_dead_letter").delete().eq("id", deadLetterId);
       }
-      await admin.from("webhook_deliveries").delete().eq("reference", reference);
+      await admin
+        .from("webhook_deliveries")
+        .delete()
+        .eq("reference", reference);
       await admin.from("payment_events").delete().eq("user_id", userId);
       await admin.from("subscriptions").delete().eq("user_id", userId);
       await admin.auth.admin.deleteUser(userId);

@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { detectInWorker, waitForWorkerReady } from "@/lib/detectionWorkerClient";
+import {
+  acquireDetectionWorker,
+  detectInWorker,
+  releaseDetectionWorker,
+  waitForWorkerReady,
+} from "@/lib/detectionWorkerClient";
 
 export interface Detection {
   bbox: [number, number, number, number]; // x, y, w, h in video pixels
@@ -79,11 +84,13 @@ export function usePersonDetection({
   // Warm up worker once (kicks off model load if not already loaded)
   useEffect(() => {
     let cancelled = false;
+    acquireDetectionWorker();
     waitForWorkerReady().then(() => {
       if (!cancelled) setLoading(false);
     });
     return () => {
       cancelled = true;
+      releaseDetectionWorker();
     };
   }, []);
 

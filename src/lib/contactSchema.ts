@@ -22,10 +22,7 @@ export const contactSchema = z.object({
     .trim()
     .min(7, "Enter a valid phone number")
     .max(20, "Phone number is too long")
-    .regex(
-      /^\+?[0-9\s()-]{7,20}$/,
-      "Enter a valid phone number"
-    ),
+    .regex(/^\+?[0-9\s()-]{7,20}$/, "Enter a valid phone number"),
 
   role: z.enum(CONTACT_ROLE_VALUES, {
     required_error: "Select a role",

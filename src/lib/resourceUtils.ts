@@ -16,7 +16,7 @@ const UNAVAILABLE_STATUSES: ReadonlySet<ResourceStatus> = new Set([
 
 export function filterResources(
   resources: EmergencyResource[],
-  filters: ResourceFilters
+  filters: ResourceFilters,
 ): EmergencyResource[] {
   const search = filters.search?.trim().toLowerCase();
 
@@ -52,31 +52,21 @@ export function filterResources(
 
     if (
       filters.community &&
-      resource.community?.toLowerCase() !==
-        filters.community.toLowerCase()
+      resource.community?.toLowerCase() !== filters.community.toLowerCase()
     ) {
       return false;
     }
 
-    if (
-      filters.service &&
-      !resource.services?.includes(filters.service)
-    ) {
+    if (filters.service && !resource.services?.includes(filters.service)) {
       return false;
     }
 
-    if (
-      filters.onlyVerified &&
-      resource.verificationStatus !== "verified"
-    ) {
+    if (filters.onlyVerified && resource.verificationStatus !== "verified") {
       return false;
     }
 
     if (filters.onlyAvailable) {
-      if (
-        resource.status &&
-        UNAVAILABLE_STATUSES.has(resource.status)
-      ) {
+      if (resource.status && UNAVAILABLE_STATUSES.has(resource.status)) {
         return false;
       }
 
@@ -119,7 +109,7 @@ export function distanceKm(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const earthRadiusKm = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -132,11 +122,7 @@ export function distanceKm(
       Math.sin(dLng / 2) ** 2;
 
   const centralAngle =
-    2 *
-    Math.atan2(
-      Math.sqrt(calculation),
-      Math.sqrt(1 - calculation)
-    );
+    2 * Math.atan2(Math.sqrt(calculation), Math.sqrt(1 - calculation));
 
   return earthRadiusKm * centralAngle;
 }
@@ -144,7 +130,7 @@ export function distanceKm(
 export function sortByDistance(
   resources: EmergencyResource[],
   userLat: number,
-  userLng: number
+  userLng: number,
 ): Array<EmergencyResource & { distanceKm: number }> {
   return resources
     .filter(
@@ -154,19 +140,14 @@ export function sortByDistance(
         resource.lat >= -90 &&
         resource.lat <= 90 &&
         resource.lng >= -180 &&
-        resource.lng <= 180
+        resource.lng <= 180,
     )
     .map((resource) => ({
       ...resource,
-      distanceKm: distanceKm(
-        userLat,
-        userLng,
-        resource.lat,
-        resource.lng
-      ),
+      distanceKm: distanceKm(userLat, userLng, resource.lat, resource.lng),
     }))
     .sort(
       (firstResource, secondResource) =>
-        firstResource.distanceKm - secondResource.distanceKm
+        firstResource.distanceKm - secondResource.distanceKm,
     );
 }

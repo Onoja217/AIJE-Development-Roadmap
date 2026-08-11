@@ -42,7 +42,7 @@ export function registerIncidentReportSync() {
           image_count: report.images?.length ?? 0,
           occurred_at: report.timestamp,
         },
-        { onConflict: "reporter_id,client_id" }
+        { onConflict: "reporter_id,client_id" },
       );
 
       if (error) throw error;
@@ -57,7 +57,7 @@ export function registerIncidentReportSync() {
         link: "/incident-report",
         metadata: { client_id: report.id, category: report.category },
       });
-    }
+    },
   );
 }
 

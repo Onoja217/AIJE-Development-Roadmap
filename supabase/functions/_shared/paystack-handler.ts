@@ -16,13 +16,29 @@ type PaystackEvent = {
   [key: string]: unknown;
 };
 
-export async function processPaystackEvent(admin: SupabaseClient, evt: PaystackEvent) {
+export async function processPaystackEvent(
+  admin: SupabaseClient,
+  evt: PaystackEvent,
+) {
   const meta = evt?.data?.metadata ?? {};
   const userId = meta.user_id ?? null;
   const planId = meta.plan_id ?? null;
+  const eventId = evt.data?.id ? String(evt.data.id) : null;
+
+  if (eventId) {
+    const { data: existing, error: lookupError } = await admin
+      .from("payment_events")
+      .select("id")
+      .eq("paystack_event_id", eventId)
+      .maybeSingle();
+    if (lookupError)
+      throw new Error(`payment event lookup failed: ${lookupError.message}`);
+    if (existing) return;
+  }
 
   if (evt.event === "charge.success") {
-    if (!userId || !planId) throw new Error("charge.success missing user_id or plan_id metadata");
+    if (!userId || !planId)
+      throw new Error("charge.success missing user_id or plan_id metadata");
     const periodEnd = new Date();
     periodEnd.setDate(periodEnd.getDate() + 30);
     const { error } = await admin.from("subscriptions").upsert(
@@ -37,14 +53,18 @@ export async function processPaystackEvent(admin: SupabaseClient, evt: PaystackE
       { onConflict: "user_id" },
     );
     if (error) throw new Error(`subscriptions upsert failed: ${error.message}`);
-  } else if (evt.event === "subscription.disable" || evt.event === "subscription.not_renew") {
+  } else if (
+    evt.event === "subscription.disable" ||
+    evt.event === "subscription.not_renew"
+  ) {
     const code = evt.data?.subscription_code;
     if (code) {
       const { error } = await admin
         .from("subscriptions")
         .update({ status: "canceled", cancel_at_period_end: true })
         .eq("paystack_subscription_code", code);
-      if (error) throw new Error(`subscriptions cancel failed: ${error.message}`);
+      if (error)
+        throw new Error(`subscriptions cancel failed: ${error.message}`);
     }
   } else if (evt.event === "invoice.payment_failed") {
     if (userId) {
@@ -52,7 +72,8 @@ export async function processPaystackEvent(admin: SupabaseClient, evt: PaystackE
         .from("subscriptions")
         .update({ status: "past_due" })
         .eq("user_id", userId);
-      if (error) throw new Error(`subscriptions past_due failed: ${error.message}`);
+      if (error)
+        throw new Error(`subscriptions past_due failed: ${error.message}`);
     }
   }
 
@@ -60,8 +81,9 @@ export async function processPaystackEvent(admin: SupabaseClient, evt: PaystackE
     user_id: userId,
     event_type: evt.event,
     reference: evt.data?.reference ?? null,
-    paystack_event_id: evt.data?.id ? String(evt.data.id) : null,
+    paystack_event_id: eventId,
     payload: evt,
   });
-  if (logErr) throw new Error(`payment_events insert failed: ${logErr.message}`);
+  if (logErr)
+    throw new Error(`payment_events insert failed: ${logErr.message}`);
 }

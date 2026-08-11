@@ -2,7 +2,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { createHmac } from "node:crypto";
 import { processPaystackEvent } from "../_shared/paystack-handler.ts";
 import { logJson, recordDelivery } from "../_shared/structured-log.ts";
-import { loadPaystackSecretKey, logPaystackMode } from "../_shared/paystack-key.ts";
+import {
+  loadPaystackSecretKey,
+  logPaystackMode,
+} from "../_shared/paystack-key.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +14,8 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
 
   const started = Date.now();
   let keyInfo;
@@ -19,20 +23,32 @@ Deno.serve(async (req) => {
     keyInfo = loadPaystackSecretKey();
     logPaystackMode("paystack-webhook", keyInfo);
   } catch (e) {
-    logJson("error", "paystack.webhook.key_error", { error: (e as Error).message });
-    return new Response("missing or invalid PAYSTACK_SECRET_KEY", { status: 500 });
+    logJson("error", "paystack.webhook.key_error", {
+      error: (e as Error).message,
+    });
+    return new Response("missing or invalid PAYSTACK_SECRET_KEY", {
+      status: 500,
+    });
   }
   const PAYSTACK_SECRET_KEY = keyInfo.key;
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
 
   const raw = await req.text();
   const sig = req.headers.get("x-paystack-signature") ?? "";
-  const computed = createHmac("sha512", PAYSTACK_SECRET_KEY).update(raw).digest("hex");
+  const computed = createHmac("sha512", PAYSTACK_SECRET_KEY)
+    .update(raw)
+    .digest("hex");
 
   if (computed !== sig) {
     const latency = Date.now() - started;
-    logJson("warn", "paystack.webhook.invalid_signature", { source: "paystack", latency_ms: latency });
+    logJson("warn", "paystack.webhook.invalid_signature", {
+      source: "paystack",
+      latency_ms: latency,
+    });
     await admin.from("webhook_dead_letter").insert({
       source: "paystack",
       event_type: null,
@@ -63,7 +79,12 @@ Deno.serve(async (req) => {
     return new Response("invalid json", { status: 400 });
   }
 
-  if (!evt || typeof evt !== "object" || !("event" in evt) || typeof evt.event !== "string") {
+  if (
+    !evt ||
+    typeof evt !== "object" ||
+    !("event" in evt) ||
+    typeof evt.event !== "string"
+  ) {
     return new Response("invalid event", { status: 400, headers: corsHeaders });
   }
 
@@ -123,7 +144,10 @@ Deno.serve(async (req) => {
       error: msg,
     });
 
-    return new Response("queued for retry", { status: 500, headers: corsHeaders });
+    return new Response("queued for retry", {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
 

@@ -49,7 +49,7 @@ async function sendBrowserNotification(title: string, body: string) {
 
     const options: NotificationOptions = {
       body,
-      icon: "/aije-logo.png",
+      icon: "/icons/icon-192.png",
       tag: "aije-alert",
     };
 

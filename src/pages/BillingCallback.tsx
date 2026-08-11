@@ -56,7 +56,7 @@ export default function BillingCallback() {
             <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h1 className="text-xl font-semibold">Payment not verified</h1>
             <p className="text-muted-foreground text-sm mt-2">
-              We couldn't confirm your payment. If you were charged, it will be refunded automatically.
+              We couldn't confirm your payment. If you were charged, contact support with your payment reference.
             </p>
             <Button className="mt-6 w-full" onClick={() => navigate("/pricing")}>
               Try again

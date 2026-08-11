@@ -1,5 +1,5 @@
 -- Community watch groups
-CREATE TABLE public.community_watch_groups (
+CREATE TABLE IF NOT EXISTS public.community_watch_groups (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE POLICY "Owners manage their watch groups" ON public.community_watch_group
   FOR ALL TO authenticated USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
 
 -- Watch group members
-CREATE TABLE public.community_group_members (
+CREATE TABLE IF NOT EXISTS public.community_group_members (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   group_id UUID NOT NULL REFERENCES public.community_watch_groups(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -38,7 +38,7 @@ CREATE POLICY "Owners manage their group members" ON public.community_group_memb
   WITH CHECK (EXISTS (SELECT 1 FROM public.community_watch_groups g WHERE g.id = group_id AND g.owner_id = auth.uid()));
 
 -- Emergency contact directory used for alert dispatch and escalation
-CREATE TABLE public.emergency_contacts (
+CREATE TABLE IF NOT EXISTS public.emergency_contacts (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -59,7 +59,7 @@ CREATE POLICY "Owners manage their emergency contacts" ON public.emergency_conta
   FOR ALL TO authenticated USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
 
 -- Community alerts
-CREATE TABLE public.community_alerts (
+CREATE TABLE IF NOT EXISTS public.community_alerts (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   incident_id TEXT,
@@ -84,7 +84,7 @@ CREATE POLICY "Owners manage their community alerts" ON public.community_alerts
   FOR ALL TO authenticated USING (auth.uid() = owner_id) WITH CHECK (auth.uid() = owner_id);
 
 -- Alert targets (which groups received an alert)
-CREATE TABLE public.community_alert_targets (
+CREATE TABLE IF NOT EXISTS public.community_alert_targets (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   alert_id UUID NOT NULL REFERENCES public.community_alerts(id) ON DELETE CASCADE,
   group_id UUID NOT NULL REFERENCES public.community_watch_groups(id) ON DELETE CASCADE,
@@ -98,7 +98,7 @@ CREATE POLICY "Owners view their alert targets" ON public.community_alert_target
   USING (EXISTS (SELECT 1 FROM public.community_alerts a WHERE a.id = alert_id AND a.owner_id = auth.uid()));
 
 -- Delivery log
-CREATE TABLE public.alert_deliveries (
+CREATE TABLE IF NOT EXISTS public.alert_deliveries (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   alert_id UUID NOT NULL REFERENCES public.community_alerts(id) ON DELETE CASCADE,
   channel TEXT NOT NULL,
@@ -119,7 +119,7 @@ CREATE POLICY "Owners view their alert deliveries" ON public.alert_deliveries
   USING (EXISTS (SELECT 1 FROM public.community_alerts a WHERE a.id = alert_id AND a.owner_id = auth.uid()));
 
 -- Escalation history
-CREATE TABLE public.alert_escalations (
+CREATE TABLE IF NOT EXISTS public.alert_escalations (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   alert_id UUID NOT NULL REFERENCES public.community_alerts(id) ON DELETE CASCADE,
   from_level INTEGER NOT NULL,
@@ -136,6 +136,10 @@ CREATE POLICY "Owners view their alert escalations" ON public.alert_escalations
   USING (EXISTS (SELECT 1 FROM public.community_alerts a WHERE a.id = alert_id AND a.owner_id = auth.uid()));
 
 -- updated_at triggers
+ALTER TABLE public.community_group_members ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE public.emergency_contacts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE public.community_alerts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE public.alert_deliveries ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE TRIGGER update_community_watch_groups_updated_at BEFORE UPDATE ON public.community_watch_groups
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER update_community_group_members_updated_at BEFORE UPDATE ON public.community_group_members

@@ -20,7 +20,9 @@ export async function fileToReportImage(file: File): Promise<ReportImage> {
   };
 }
 
-export async function filesToReportImages(files: FileList | File[]): Promise<ReportImage[]> {
+export async function filesToReportImages(
+  files: FileList | File[],
+): Promise<ReportImage[]> {
   const fileArray = Array.from(files);
   return Promise.all(fileArray.map(fileToReportImage));
 }

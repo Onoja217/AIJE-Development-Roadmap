@@ -27,8 +27,8 @@ export type SyncStatus = "pending" | "syncing" | "synced" | "failed";
 export interface ReportLocation {
   lat?: number;
   lng?: number;
-  address?: string;      // reverse-geocoded, if available
-  manualEntry?: string;  // used when GPS is denied/unavailable
+  address?: string; // reverse-geocoded, if available
+  manualEntry?: string; // used when GPS is denied/unavailable
 }
 
 export interface ReportImage {

@@ -7,9 +7,7 @@ export type ContactRole =
   | "ngo"
   | "family";
 
-export type ContactStatus =
-  | "active"
-  | "inactive";
+export type ContactStatus = "active" | "inactive";
 
 export interface EmergencyContact {
   id: string;

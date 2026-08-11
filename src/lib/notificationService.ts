@@ -63,7 +63,7 @@ export const NOTIFICATION_PRIORITY_LABELS: Record<
  * Never throws — notifications must never break the calling workflow.
  */
 export async function createNotification(
-  input: CreateNotificationInput
+  input: CreateNotificationInput,
 ): Promise<boolean> {
   try {
     const {

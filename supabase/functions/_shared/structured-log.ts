@@ -16,7 +16,11 @@ export interface DeliveryRecord {
   error?: string | null;
 }
 
-export function logJson(level: "info" | "warn" | "error", msg: string, fields: Record<string, unknown>) {
+export function logJson(
+  level: "info" | "warn" | "error",
+  msg: string,
+  fields: Record<string, unknown>,
+) {
   const line = JSON.stringify({
     ts: new Date().toISOString(),
     level,
@@ -28,10 +32,16 @@ export function logJson(level: "info" | "warn" | "error", msg: string, fields: R
   else console.log(line);
 }
 
-export async function recordDelivery(admin: SupabaseClient, rec: DeliveryRecord) {
+export async function recordDelivery(
+  admin: SupabaseClient,
+  rec: DeliveryRecord,
+) {
   const { error } = await admin.from("webhook_deliveries").insert(rec);
   if (error) {
     // Never let metrics failure break the actual handler — just log it.
-    logJson("warn", "webhook_deliveries insert failed", { error: error.message, rec });
+    logJson("warn", "webhook_deliveries insert failed", {
+      error: error.message,
+      rec,
+    });
   }
 }
