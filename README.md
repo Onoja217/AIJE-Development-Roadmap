@@ -80,8 +80,8 @@ Collaborators
 - Samuel Omafu
 - Zedick Otokpa
 - Okpe Emmanuel
-- Jirey
-- Pius
+- Jireh 
+- Pius John
 - Owoicho Favour
 - King-Solomon Onoja
 
