@@ -15,47 +15,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccess } from "@/features/access/AccessProvider";
 import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { MuteProvider } from "@/hooks/useMute";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const safetyActions = [
   {
     title: "Report an incident",
     description: "Send a safety report, including your location and supporting details.",
-    path: "/incident-report",
+    path: APP_PATHS.incidentReport,
     label: "Create report",
     icon: RadioTower,
   },
   {
     title: "Emergency contacts",
     description: "Maintain the people and services you may need during an emergency.",
-    path: "/emergency-contacts",
+    path: APP_PATHS.emergencyContacts,
     label: "Manage contacts",
     icon: ContactRound,
   },
   {
     title: "Nearby resources",
     description: "Find verified emergency resources and services near your location.",
-    path: "/resources",
+    path: APP_PATHS.emergencyResources,
     label: "View resources",
     icon: MapPinned,
   },
   {
     title: "Notifications",
     description: "Review safety updates and messages sent to your account.",
-    path: "/notifications",
+    path: APP_PATHS.notifications,
     label: "Open notifications",
     icon: Bell,
   },
   {
     title: "My sites",
     description: "View and manage the personal sites covered by your subscription.",
-    path: "/deployments",
+    path: APP_PATHS.sites,
     label: "Manage sites",
     icon: Server,
   },
   {
     title: "My profile",
     description: "Keep your identity and contact information up to date.",
-    path: "/profile",
+    path: APP_PATHS.profile,
     label: "Open profile",
     icon: CircleUserRound,
   },

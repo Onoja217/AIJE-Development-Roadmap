@@ -56,6 +56,7 @@ import type { EmergencyResource } from "../types/resource";
 import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 function formatIntegrationState(
   state: string | undefined
@@ -766,7 +767,7 @@ export function CommunityDashboard() {
                         </p>
                       )}
                       <Button asChild variant="outline" size="sm" className="mt-3 w-full">
-                        <Link to="/osiris">Open intelligence workspace</Link>
+                        <Link to={APP_PATHS.intelligence}>Open intelligence workspace</Link>
                       </Button>
                     </div>
                   </div>

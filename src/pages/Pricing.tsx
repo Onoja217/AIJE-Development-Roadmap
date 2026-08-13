@@ -38,7 +38,7 @@ export default function Pricing() {
       const { data, error } = await supabase.functions.invoke("paystack-initialize", {
         body: {
           plan_id: planId,
-          callback_url: `${window.location.origin}/billing/callback`,
+          callback_url: `${window.location.origin}/account/billing/callback`,
         },
       });
       if (error) throw error;

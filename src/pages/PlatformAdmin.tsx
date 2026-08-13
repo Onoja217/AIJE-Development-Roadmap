@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 interface AdminArea {
   title: string;
@@ -36,69 +37,69 @@ const ADMIN_AREAS: AdminArea[] = [
     title: "Organizations",
     description:
       "Create and administer tenant organizations and operational sites.",
-    path: "/organization",
+    path: APP_PATHS.organization,
     icon: Building2,
   },
   {
     title: "Memberships",
     description:
       "Review organization membership, invitations and scoped assignments.",
-    path: "/organization",
+    path: APP_PATHS.organization,
     icon: Users,
   },
   {
     title: "Users and roles",
     description:
       "Manage database-backed roles without exposing authentication secrets.",
-    path: "/organization",
+    path: APP_PATHS.organization,
     icon: ShieldAlert,
   },
   {
     title: "Incident moderation",
     description:
       "Review incident activity and coordinate protected response workflows.",
-    path: "/community-dashboard",
+    path: APP_PATHS.community,
     icon: FileCheck2,
   },
   {
     title: "Plans and subscriptions",
     description:
       "Review the platform plan catalogue and subscription operations.",
-    path: "/pricing",
+    path: APP_PATHS.billing,
     icon: CreditCard,
   },
   {
     title: "System health",
     description:
       "Inspect operational status, synchronization and active system modules.",
-    path: "/control",
+    path: APP_PATHS.operations,
     icon: HeartPulse,
   },
   {
     title: "Integration health",
     description:
       "Review connected services and operational integration status.",
-    path: "/control",
+    path: APP_PATHS.operations,
     icon: Network,
   },
   {
     title: "Webhooks",
     description:
       "Monitor deliveries, retries, dead-letter events and alert thresholds.",
-    path: "/admin/webhooks",
+    path: APP_PATHS.webhooks,
     icon: Webhook,
   },
   {
     title: "Audit logs",
     description: "Review immutable administrative and tenant access activity.",
-    path: "/organization",
+    path: APP_PATHS.organization,
     icon: Activity,
   },
   {
     title: "Security events",
     description:
       "Review administrative notifications and suspicious platform activity.",
-    path: "/notifications",
+    path: APP_PATHS.notifications,
     icon: BellRing,
   },
 ];

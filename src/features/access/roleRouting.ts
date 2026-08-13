@@ -1,14 +1,15 @@
 import type { OrganizationAccess } from "./types";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 export const ROLE_HOME_PATHS = {
-  resident: "/dashboard",
-  household_owner: "/dashboard",
-  security_operator: "/control",
-  community_leader: "/community-dashboard",
-  responder: "/community-dashboard",
-  moderator: "/community-dashboard",
-  organization_admin: "/organization",
-  platform_admin: "/platform-admin",
+  resident: APP_PATHS.safety,
+  household_owner: APP_PATHS.safety,
+  security_operator: APP_PATHS.operations,
+  community_leader: APP_PATHS.community,
+  responder: APP_PATHS.community,
+  moderator: APP_PATHS.community,
+  organization_admin: APP_PATHS.organization,
+  platform_admin: APP_PATHS.platform,
 } as const;
 
 const ROLE_PRIORITY = [

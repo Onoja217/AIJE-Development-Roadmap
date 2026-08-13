@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Radio, ShieldAlert, MapPin, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 interface CommunityAlertRow {
   id: string;
@@ -80,7 +81,7 @@ export function CommunityAlertFeed() {
         </h3>
         <div className="flex items-center gap-3 text-xs">
           <span className="text-muted-foreground">{activeCount} active</span>
-          <Link to="/community-alerts" className="text-primary hover:underline">
+          <Link to={APP_PATHS.communityAlerts} className="text-primary hover:underline">
             Manage
           </Link>
         </div>

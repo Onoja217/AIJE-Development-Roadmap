@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { hasOrganizationPermission } from "@/features/access/accessRules";
 import type { OrganizationAccess } from "@/features/access/types";
 import { getPostLoginPath } from "@/features/access/roleRouting";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const organizations: OrganizationAccess[] = [
   {
@@ -73,19 +74,19 @@ describe("hasOrganizationPermission", () => {
 describe("getPostLoginPath", () => {
   it("always routes platform administrators to platform administration", () => {
     expect(getPostLoginPath(true, organizations, "org-operations")).toBe(
-      "/platform-admin",
+      APP_PATHS.platform,
     );
   });
 
   it("routes an active security operator to operations", () => {
     expect(getPostLoginPath(false, organizations, "org-operations")).toBe(
-      "/control",
+      APP_PATHS.operations,
     );
   });
 
   it("keeps resident access in the personal safety dashboard", () => {
     expect(getPostLoginPath(false, organizations, "org-community")).toBe(
-      "/dashboard",
+      APP_PATHS.safety,
     );
   });
 });

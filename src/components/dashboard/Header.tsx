@@ -22,6 +22,7 @@ import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
 import { useAccess } from "@/features/access/AccessProvider";
 import { OrganizationSwitcher } from "@/features/organizations/OrganizationSwitcher";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -108,7 +109,7 @@ export function Header() {
         </button>
         {user ? (
           <Link
-            to="/notifications"
+            to={APP_PATHS.notifications}
             className="relative rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Notifications"
           >
@@ -122,7 +123,7 @@ export function Header() {
         ) : null}
         {hasPermission("cameras.manage") ? (
           <Link
-            to="/control"
+            to={APP_PATHS.operations}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Control Panel"
           >
@@ -131,7 +132,7 @@ export function Header() {
         ) : null}
         {hasPermission("alerts.dispatch") ? (
           <Link
-            to="/community-alerts"
+            to={APP_PATHS.communityAlerts}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Community Alerts"
           >
@@ -140,7 +141,7 @@ export function Header() {
         ) : null}
         {hasPermission("cameras.view") ? (
           <Link
-            to="/detection"
+            to={APP_PATHS.detection}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Detection Manager"
           >
@@ -149,7 +150,7 @@ export function Header() {
         ) : null}
         {hasPermission("cameras.view") || hasPermission("cameras.manage") ? (
           <Link
-            to="/sensors"
+            to={APP_PATHS.sensors}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Sensor Settings"
           >
@@ -158,7 +159,7 @@ export function Header() {
         ) : null}
         {hasPermission("organization.manage") ? (
           <Link
-            to="/organization"
+            to={APP_PATHS.organization}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Organization"
           >
@@ -167,7 +168,7 @@ export function Header() {
         ) : null}
         {user ? (
           <Link
-            to="/profile"
+            to={APP_PATHS.profile}
             className="rounded-lg bg-secondary p-2 transition-colors hover:bg-secondary/80"
             title="Profile"
           >

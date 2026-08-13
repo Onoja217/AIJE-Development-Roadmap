@@ -12,6 +12,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { AccessProvider } from "@/features/access/AccessProvider";
 import { PermissionRoute } from "@/features/access/PermissionRoute";
 import { RoleLanding } from "@/features/access/RoleLanding";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 import { LanguageProvider } from "@/hooks/useLanguage";
 
@@ -131,7 +132,7 @@ function App() {
                     <Route path="/" element={<RoleLanding />} />
 
                     <Route
-                      path="/dashboard"
+                      path={APP_PATHS.safety}
                       element={
                         <ProtectedRoute>
                           <ResidentDashboard />
@@ -140,12 +141,12 @@ function App() {
                     />
 
                     <Route
-                      path="/incident-report"
+                      path={APP_PATHS.incidentReport}
                       element={<CitizenIncidentReporting />}
                     />
 
                     <Route
-                      path="/sensors"
+                      path={APP_PATHS.sensors}
                       element={
                         <PermissionRoute
                           anyOf={["cameras.view", "cameras.manage"]}
@@ -156,7 +157,7 @@ function App() {
                     />
 
                     <Route
-                      path="/control"
+                      path={APP_PATHS.operations}
                       element={
                         <PermissionRoute anyOf={["cameras.manage"]}>
                           <ControlPanel />
@@ -165,7 +166,7 @@ function App() {
                     />
 
                     <Route
-                      path="/cameras"
+                      path={APP_PATHS.cameras}
                       element={
                         <PermissionRoute
                           anyOf={["cameras.view", "cameras.manage"]}
@@ -176,7 +177,7 @@ function App() {
                     />
 
                     <Route
-                      path="/detection"
+                      path={APP_PATHS.detection}
                       element={
                         <PermissionRoute anyOf={["cameras.view"]}>
                           <DetectionManager />
@@ -185,7 +186,7 @@ function App() {
                     />
 
                     <Route
-                      path="/faces"
+                      path={APP_PATHS.faces}
                       element={
                         <PermissionRoute anyOf={["cameras.manage"]}>
                           <FaceRecognition />
@@ -194,7 +195,7 @@ function App() {
                     />
 
                     <Route
-                      path="/profile"
+                      path={APP_PATHS.profile}
                       element={
                         <ProtectedRoute>
                           <Profile />
@@ -203,7 +204,7 @@ function App() {
                     />
 
                     <Route
-                      path="/pricing"
+                      path={APP_PATHS.billing}
                       element={
                         <PermissionRoute anyOf={["billing.manage"]}>
                           <Pricing />
@@ -212,7 +213,7 @@ function App() {
                     />
 
                     <Route
-                      path="/deployments"
+                      path={APP_PATHS.sites}
                       element={
                         <ProtectedRoute>
                           <Deployments />
@@ -221,7 +222,7 @@ function App() {
                     />
 
                     <Route
-                      path="/billing/callback"
+                      path={APP_PATHS.billingCallback}
                       element={
                         <ProtectedRoute>
                           <BillingCallback />
@@ -230,7 +231,7 @@ function App() {
                     />
 
                     <Route
-                      path="/platform-admin"
+                      path={APP_PATHS.platform}
                       element={
                         <PermissionRoute platformOnly>
                           <PlatformAdmin />
@@ -239,7 +240,7 @@ function App() {
                     />
 
                     <Route
-                      path="/admin/webhooks"
+                      path={APP_PATHS.webhooks}
                       element={
                         <AdminRoute>
                           <AdminWebhooks />
@@ -248,7 +249,7 @@ function App() {
                     />
 
                     <Route
-                      path="/community-dashboard"
+                      path={APP_PATHS.community}
                       element={
                         <PermissionRoute
                           anyOf={[
@@ -263,7 +264,7 @@ function App() {
                     />
 
                     <Route
-                      path="/osiris"
+                      path={APP_PATHS.intelligence}
                       element={
                         <PermissionRoute
                           anyOf={[
@@ -278,7 +279,7 @@ function App() {
                     />
 
                     <Route
-                      path="/resources"
+                      path={APP_PATHS.emergencyResources}
                       element={
                         <ProtectedRoute>
                           <EmergencyResourceMap />
@@ -287,7 +288,7 @@ function App() {
                     />
 
                     <Route
-                      path="/community-alerts"
+                      path={APP_PATHS.communityAlerts}
                       element={
                         <PermissionRoute anyOf={["alerts.dispatch"]}>
                           <CommunityAlerts />
@@ -296,7 +297,7 @@ function App() {
                     />
 
                     <Route
-                      path="/emergency-contacts"
+                      path={APP_PATHS.emergencyContacts}
                       element={
                         <ProtectedRoute>
                           <EmergencyContactsPage />
@@ -305,7 +306,7 @@ function App() {
                     />
 
                     <Route
-                      path="/notifications"
+                      path={APP_PATHS.notifications}
                       element={
                         <ProtectedRoute>
                           <Notifications />
@@ -314,7 +315,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue"
+                      path={APP_PATHS.safeBenue}
                       element={
                         <ProtectedRoute>
                           <SafeBenueLanding />
@@ -323,7 +324,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/dashboard"
+                      path={APP_PATHS.safeBenueDashboard}
                       element={
                         <PermissionRoute
                           anyOf={[
@@ -338,7 +339,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/reports"
+                      path={APP_PATHS.safeBenueReports}
                       element={
                         <ProtectedRoute>
                           <SafeBenueReports />
@@ -347,7 +348,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/resources"
+                      path={APP_PATHS.safeBenueResources}
                       element={
                         <ProtectedRoute>
                           <SafeBenueResources />
@@ -356,7 +357,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/community-watch"
+                      path={APP_PATHS.safeBenueWatch}
                       element={
                         <PermissionRoute anyOf={["alerts.dispatch"]}>
                           <SafeBenueCommunityWatch />
@@ -365,7 +366,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/family"
+                      path={APP_PATHS.safeBenueFamily}
                       element={
                         <ProtectedRoute>
                           <SafeBenueFamily />
@@ -374,7 +375,7 @@ function App() {
                     />
 
                     <Route
-                      path="/safebenue/admin"
+                      path={APP_PATHS.safeBenueAdmin}
                       element={
                         <PermissionRoute
                           anyOf={["organization.manage", "reports.verify"]}
@@ -392,6 +393,34 @@ function App() {
                         </PermissionRoute>
                       }
                     />
+
+                    {/* Compatibility redirects preserve existing bookmarks. */}
+                    <Route path="/dashboard" element={<Navigate to={APP_PATHS.safety} replace />} />
+                    <Route path="/incident-report" element={<Navigate to={APP_PATHS.incidentReport} replace />} />
+                    <Route path="/resources" element={<Navigate to={APP_PATHS.emergencyResources} replace />} />
+                    <Route path="/emergency-contacts" element={<Navigate to={APP_PATHS.emergencyContacts} replace />} />
+                    <Route path="/notifications" element={<Navigate to={APP_PATHS.notifications} replace />} />
+                    <Route path="/profile" element={<Navigate to={APP_PATHS.profile} replace />} />
+                    <Route path="/deployments" element={<Navigate to={APP_PATHS.sites} replace />} />
+                    <Route path="/pricing" element={<Navigate to={APP_PATHS.billing} replace />} />
+                    <Route path="/control" element={<Navigate to={APP_PATHS.operations} replace />} />
+                    <Route path="/cameras" element={<Navigate to={APP_PATHS.cameras} replace />} />
+                    <Route path="/sensors" element={<Navigate to={APP_PATHS.sensors} replace />} />
+                    <Route path="/detection" element={<Navigate to={APP_PATHS.detection} replace />} />
+                    <Route path="/faces" element={<Navigate to={APP_PATHS.faces} replace />} />
+                    <Route path="/community-dashboard" element={<Navigate to={APP_PATHS.community} replace />} />
+                    <Route path="/community-alerts" element={<Navigate to={APP_PATHS.communityAlerts} replace />} />
+                    <Route path="/osiris" element={<Navigate to={APP_PATHS.intelligence} replace />} />
+                    <Route path="/safebenue" element={<Navigate to={APP_PATHS.safeBenue} replace />} />
+                    <Route path="/safebenue/dashboard" element={<Navigate to={APP_PATHS.safeBenueDashboard} replace />} />
+                    <Route path="/safebenue/reports" element={<Navigate to={APP_PATHS.safeBenueReports} replace />} />
+                    <Route path="/safebenue/resources" element={<Navigate to={APP_PATHS.safeBenueResources} replace />} />
+                    <Route path="/safebenue/community-watch" element={<Navigate to={APP_PATHS.safeBenueWatch} replace />} />
+                    <Route path="/safebenue/family" element={<Navigate to={APP_PATHS.safeBenueFamily} replace />} />
+                    <Route path="/safebenue/admin" element={<Navigate to={APP_PATHS.safeBenueAdmin} replace />} />
+                    <Route path="/billing/callback" element={<Navigate to={APP_PATHS.billingCallback} replace />} />
+                    <Route path="/platform-admin" element={<Navigate to={APP_PATHS.platform} replace />} />
+                    <Route path="/admin/webhooks" element={<Navigate to={APP_PATHS.webhooks} replace />} />
 
                     <Route path="*" element={<NotFound />} />
                   </Routes>

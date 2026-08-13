@@ -30,6 +30,7 @@ import {
   osirisPercentage,
   sortOsirisAssessments,
 } from "@/lib/osirisUtils";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const THREAT_STYLES: Record<OsirisThreatLevel, string> = {
   critical: "border-red-500/40 bg-red-500/10 text-red-500",
@@ -90,7 +91,7 @@ export default function OsirisIntelligence() {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <Button asChild variant="ghost" size="sm" className="mb-2 -ml-3">
-              <Link to="/community-dashboard">
+              <Link to={APP_PATHS.community}>
                 <ArrowLeft className="h-4 w-4" /> Community operations
               </Link>
             </Button>
