@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -235,6 +236,7 @@ export default function OrganizationAdmin() {
     <div className="min-h-screen bg-background pb-20 md:pb-6">
       <Header />
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
+        <RoleResourceLinks />
         <header>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
             Organization Administration

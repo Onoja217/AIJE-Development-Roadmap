@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 
 import { Header } from "@/components/dashboard/Header";
+import { useAccess } from "@/features/access/AccessProvider";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
+import type { Permission } from "@/features/access/types";
 import { SyncStatusPanel } from "@/components/SyncStatusPanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +37,8 @@ interface ModuleItem {
   path: string;
   icon: LucideIcon;
   status: ModuleStatus;
+  anyOf?: Permission[];
+  platformOnly?: boolean;
 }
 
 const modules: ModuleItem[] = [
@@ -44,6 +49,7 @@ const modules: ModuleItem[] = [
     path: "/safebenue",
     icon: LifeBuoy,
     status: "Active",
+    anyOf: ["alerts.dispatch", "incidents.respond", "reports.verify"],
   },
   {
     title: "Community Dashboard",
@@ -52,6 +58,7 @@ const modules: ModuleItem[] = [
     path: "/community-dashboard",
     icon: Users,
     status: "Active",
+    anyOf: ["alerts.dispatch"],
   },
   {
     title: "Community Alert System",
@@ -60,6 +67,7 @@ const modules: ModuleItem[] = [
     path: "/community-alerts",
     icon: Megaphone,
     status: "Active",
+    anyOf: ["cameras.view", "cameras.manage"],
   },
   {
     title: "Emergency Resources",
@@ -68,6 +76,7 @@ const modules: ModuleItem[] = [
     path: "/resources",
     icon: Hospital,
     status: "Active",
+    anyOf: ["cameras.view"],
   },
   {
     title: "Citizen Incident Reporting",
@@ -76,6 +85,7 @@ const modules: ModuleItem[] = [
     path: "/incident-report",
     icon: FileWarning,
     status: "Active",
+    anyOf: ["cameras.view", "cameras.manage"],
   },
   {
     title: "Camera Management",
@@ -84,6 +94,7 @@ const modules: ModuleItem[] = [
     path: "/cameras",
     icon: Camera,
     status: "Active",
+    anyOf: ["cameras.manage"],
   },
   {
     title: "Detection Manager",
@@ -92,6 +103,7 @@ const modules: ModuleItem[] = [
     path: "/detection",
     icon: ShieldAlert,
     status: "Active",
+    platformOnly: true,
   },
   {
     title: "Sensor Management",
@@ -136,6 +148,12 @@ const modules: ModuleItem[] = [
 ];
 
 export default function ControlPanel() {
+  const { platformAdmin, hasPermission } = useAccess();
+  const visibleModules = modules.filter((module) => {
+    if (module.platformOnly) return platformAdmin;
+    return !module.anyOf || module.anyOf.some((permission) => hasPermission(permission));
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -160,6 +178,8 @@ export default function ControlPanel() {
           </p>
         </section>
 
+        <RoleResourceLinks />
+
         <section className="max-w-md" aria-label="Offline synchronisation status">
           <SyncStatusPanel />
         </section>
@@ -168,7 +188,7 @@ export default function ControlPanel() {
           className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
           aria-label="AIJE operational modules"
         >
-          {modules.map((module) => {
+          {visibleModules.map((module) => {
             const Icon = module.icon;
             const isActive = module.status === "Active";
 

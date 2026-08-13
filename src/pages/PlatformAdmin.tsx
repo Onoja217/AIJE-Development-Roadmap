@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/dashboard/Header";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,6 +108,7 @@ export default function PlatformAdmin() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="mx-auto max-w-[1600px] space-y-8 px-4 py-6 md:px-6">
+        <RoleResourceLinks />
         <section className="space-y-3">
           <Badge variant="outline" className="border-primary/40 text-primary">
             Cross-organization access

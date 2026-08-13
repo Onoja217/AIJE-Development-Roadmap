@@ -53,6 +53,7 @@ import {
 import type { IncidentFilters } from "../types/incident";
 import type { EnrichedIncident } from "../types/enrichedIncident";
 import type { EmergencyResource } from "../types/resource";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 
 function formatIntegrationState(
   state: string | undefined
@@ -248,6 +249,7 @@ export function CommunityDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 p-4">
+      <RoleResourceLinks />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold">

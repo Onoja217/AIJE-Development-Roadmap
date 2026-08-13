@@ -13,6 +13,7 @@ import { BottomNav } from "@/components/dashboard/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccess } from "@/features/access/AccessProvider";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { MuteProvider } from "@/hooks/useMute";
 
 const safetyActions = [
@@ -85,6 +86,8 @@ export default function ResidentDashboard() {
               </div>
             </div>
           </section>
+
+          <RoleResourceLinks />
 
           <section aria-labelledby="safety-actions-title">
             <h2 id="safety-actions-title" className="mb-4 text-xl font-semibold">
