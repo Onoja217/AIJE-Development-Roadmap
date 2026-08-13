@@ -46,6 +46,7 @@ function allowedCallbackUrl(value: unknown): string | null {
       .filter(Boolean);
     const allowedOrigins = new Set([
       ...configured,
+      "https://guardian-pulse-one.vercel.app",
       "http://localhost:8082",
       "http://127.0.0.1:8082",
     ]);

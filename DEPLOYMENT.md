@@ -20,7 +20,9 @@ Configure only the providers enabled for that environment:
 
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `PAYSTACK_SECRET_KEY`
-- `ALLOWED_CALLBACK_ORIGINS` as a comma-separated exact origin allowlist
+- `ALLOWED_CALLBACK_ORIGINS` as a comma-separated exact origin allowlist for
+  additional domains. The canonical production origin
+  `https://guardian-pulse-one.vercel.app` is allowed by default.
 - `SMS_PROVIDER` (`termii` or `twilio`)
 - `TERMII_API_KEY`, `TERMII_SENDER_ID`
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`,
