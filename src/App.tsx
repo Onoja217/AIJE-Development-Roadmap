@@ -249,9 +249,15 @@ function App() {
                     <Route
                       path="/community-dashboard"
                       element={
-                        <ProtectedRoute>
+                        <PermissionRoute
+                          anyOf={[
+                            "alerts.dispatch",
+                            "incidents.respond",
+                            "reports.verify",
+                          ]}
+                        >
                           <CommunityDashboard />
-                        </ProtectedRoute>
+                        </PermissionRoute>
                       }
                     />
 
@@ -303,9 +309,15 @@ function App() {
                     <Route
                       path="/safebenue/dashboard"
                       element={
-                        <ProtectedRoute>
+                        <PermissionRoute
+                          anyOf={[
+                            "alerts.dispatch",
+                            "incidents.respond",
+                            "reports.verify",
+                          ]}
+                        >
                           <SafeBenueDashboard />
-                        </ProtectedRoute>
+                        </PermissionRoute>
                       }
                     />
 
@@ -330,9 +342,9 @@ function App() {
                     <Route
                       path="/safebenue/community-watch"
                       element={
-                        <ProtectedRoute>
+                        <PermissionRoute anyOf={["alerts.dispatch"]}>
                           <SafeBenueCommunityWatch />
-                        </ProtectedRoute>
+                        </PermissionRoute>
                       }
                     />
 
