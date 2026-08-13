@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { AccessProvider } from "@/features/access/AccessProvider";
 import { PermissionRoute } from "@/features/access/PermissionRoute";
+import { RoleLanding } from "@/features/access/RoleLanding";
 
 import { LanguageProvider } from "@/hooks/useLanguage";
 
@@ -73,6 +74,7 @@ const SafeBenueAdmin = lazy(() => import("./pages/safebenue/SafeBenueAdmin"));
 const OrganizationAdmin = lazy(
   () => import("./features/organizations/OrganizationAdmin"),
 );
+const PlatformAdmin = lazy(() => import("./pages/PlatformAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -125,8 +127,10 @@ function App() {
 
                     <Route path="/reset-password" element={<ResetPassword />} />
 
+                    <Route path="/" element={<RoleLanding />} />
+
                     <Route
-                      path="/"
+                      path="/dashboard"
                       element={
                         <ProtectedRoute>
                           <Index />
@@ -221,6 +225,15 @@ function App() {
                         <ProtectedRoute>
                           <BillingCallback />
                         </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/platform-admin"
+                      element={
+                        <PermissionRoute platformOnly>
+                          <PlatformAdmin />
+                        </PermissionRoute>
                       }
                     />
 

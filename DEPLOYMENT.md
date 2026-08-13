@@ -3,6 +3,11 @@
 Use separate Supabase projects and provider accounts for development, staging,
 and production. Never point a local build at production by default.
 
+The canonical production Supabase project is `sznafsdzdwiwhcgrfzcb` at
+`https://sznafsdzdwiwhcgrfzcb.supabase.co`. Production frontend variables,
+migrations, and Edge Function deployments must all be verified against that
+project before release.
+
 ## Frontend variables
 
 Copy `.env.example` to an ignored `.env` and configure the environment's

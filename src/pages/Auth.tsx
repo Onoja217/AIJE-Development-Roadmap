@@ -103,7 +103,7 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
