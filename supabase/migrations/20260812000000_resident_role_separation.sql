@@ -78,7 +78,7 @@ INSERT INTO public.access_audit_log(
 )
 SELECT DISTINCT
   target.organization_id,
-  NULL,
+  NULL::uuid,
   'unintended_admin_role_removed',
   'organization_membership',
   target.membership_id::text,
