@@ -32,7 +32,7 @@ const EmergencyResourceMap = lazy(() =>
   })),
 );
 
-const Index = lazy(() => import("./pages/Index"));
+const ResidentDashboard = lazy(() => import("./pages/ResidentDashboard"));
 const SensorManagement = lazy(() => import("./pages/SensorManagement"));
 const ControlPanel = lazy(() => import("./pages/ControlPanel"));
 const DetectionManager = lazy(() => import("./pages/DetectionManager"));
@@ -133,7 +133,7 @@ function App() {
                       path="/dashboard"
                       element={
                         <ProtectedRoute>
-                          <Index />
+                          <ResidentDashboard />
                         </ProtectedRoute>
                       }
                     />
