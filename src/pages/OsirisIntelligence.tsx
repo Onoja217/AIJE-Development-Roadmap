@@ -31,6 +31,7 @@ import {
   sortOsirisAssessments,
 } from "@/lib/osirisUtils";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
+import { useAccess } from "@/features/access/AccessProvider";
 
 const THREAT_STYLES: Record<OsirisThreatLevel, string> = {
   critical: "border-red-500/40 bg-red-500/10 text-red-500",
@@ -54,6 +55,7 @@ function locationLabel(assessment: OsirisThreatAssessment) {
 }
 
 export default function OsirisIntelligence() {
+  const { hasPermission } = useAccess();
   const { snapshot, mode, isLoading, isRefreshing, error, refresh } =
     useCommunityIntegration();
   const [level, setLevel] = useState<OsirisThreatLevel | "all">("all");
@@ -113,7 +115,7 @@ export default function OsirisIntelligence() {
               {health?.state?.replace("_", " ") ?? "not configured"}
             </Badge>
             <Badge variant="secondary">{mode} mode</Badge>
-            <Button onClick={() => void refresh()} disabled={isRefreshing} size="sm">
+            <Button onClick={() => void refresh()} disabled={isRefreshing || !hasPermission("intelligence.refresh")} size="sm">
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>

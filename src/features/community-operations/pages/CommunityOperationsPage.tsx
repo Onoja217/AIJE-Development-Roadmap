@@ -17,24 +17,24 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
 
-import { useIncidents } from "../hooks/useIncidents";
-import { useResources } from "../hooks/useResources";
+import { useIncidents } from "@/hooks/useIncidents";
+import { useResources } from "@/hooks/useResources";
 
 import {
   filterIncidents,
   sortByMostRecent,
-} from "../lib/incidentUtils";
+} from "@/lib/incidentUtils";
 
-import { buildDashboardIntelligence } from "../services/dashboardIntelligence";
+import { buildDashboardIntelligence } from "@/services/dashboardIntelligence";
 
-import { EmergencyStatusBoard } from "./EmergencyStatusBoard";
-import { AlertFeed } from "./AlertFeed";
-import { AlertFilters } from "./AlertFilters";
-import { IncidentTimeline } from "./IncidentTimeline";
-import { ResponseTracking } from "./ResponseTracking";
-import { UnifiedOperationsMap } from "./UnifiedOperationsMap";
-import { ResourceDetails } from "./ResourceDetails";
-import { NearbyResources } from "./NearbyResources";
+import { EmergencyStatusBoard } from "@/components/EmergencyStatusBoard";
+import { AlertFeed } from "@/components/AlertFeed";
+import { AlertFilters } from "@/components/AlertFilters";
+import { IncidentTimeline } from "@/components/IncidentTimeline";
+import { ResponseTracking } from "@/components/ResponseTracking";
+import { UnifiedOperationsMap } from "@/components/UnifiedOperationsMap";
+import { ResourceDetails } from "@/components/ResourceDetails";
+import { NearbyResources } from "@/components/NearbyResources";
 
 import {
   Card,
@@ -50,9 +50,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import type { IncidentFilters } from "../types/incident";
-import type { EnrichedIncident } from "../types/enrichedIncident";
-import type { EmergencyResource } from "../types/resource";
+import type { IncidentFilters } from "@/types/incident";
+import type { EnrichedIncident } from "@/types/enrichedIncident";
+import type { EmergencyResource } from "@/types/resource";
 import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,7 @@ function getHealthDotClass(
   }
 }
 
-export function CommunityDashboard() {
+export default function CommunityOperationsPage() {
   const { t } = useLanguage();
 
   const {

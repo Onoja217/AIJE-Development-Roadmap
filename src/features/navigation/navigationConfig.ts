@@ -99,7 +99,7 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
   {
     domain: "Intelligence",
     items: [
-      { title: "Osiris Intelligence", path: APP_PATHS.intelligence, icon: BrainCircuit, anyOf: ["alerts.dispatch", "incidents.respond", "reports.verify"] },
+      { title: "Osiris Intelligence", path: APP_PATHS.intelligence, icon: BrainCircuit, anyOf: ["intelligence.view"] },
     ],
   },
   {
@@ -127,7 +127,7 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     domain: "Account",
     items: [
       { title: "My profile", path: APP_PATHS.profile, icon: CircleUserRound },
-      { title: "My sites", path: APP_PATHS.sites, icon: Server },
+      { title: "Sites and deployments", path: APP_PATHS.sites, icon: Server, anyOf: ["sites.manage"] },
       { title: "Plans and billing", path: APP_PATHS.billing, icon: CreditCard, anyOf: ["billing.manage"] },
     ],
   },
@@ -138,6 +138,7 @@ export function canOpenNavigationItem(
   platformAdmin: boolean,
   hasPermission: (permission: Permission) => boolean,
 ) {
-  if (item.platformOnly) return platformAdmin;
+  if (platformAdmin) return true;
+  if (item.platformOnly) return false;
   return !item.anyOf || item.anyOf.some(hasPermission);
 }

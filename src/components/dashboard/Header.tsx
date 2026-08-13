@@ -23,6 +23,7 @@ import { useState, useEffect } from "react";
 import { useAccess } from "@/features/access/AccessProvider";
 import { OrganizationSwitcher } from "@/features/organizations/OrganizationSwitcher";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
+import { WorkspaceBreadcrumbs } from "@/features/navigation/WorkspaceBreadcrumbs";
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -53,6 +54,7 @@ export function Header() {
   });
 
   return (
+    <>
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -194,5 +196,7 @@ export function Header() {
         )}
       </div>
     </motion.header>
+    <WorkspaceBreadcrumbs />
+    </>
   );
 }

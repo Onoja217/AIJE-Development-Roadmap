@@ -15,6 +15,10 @@ export const PERMISSIONS = [
   "billing.manage",
   "audit.view",
   "platform.manage",
+  "intelligence.view",
+  "intelligence.refresh",
+  "intelligence.export",
+  "intelligence.manage_sources",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

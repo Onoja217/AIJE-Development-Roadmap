@@ -95,15 +95,13 @@ export async function fetchOsirisIntelligence(): Promise<
         ? error.message
         : "Unknown Osiris integration error";
 
-    // Graceful degradation: fall back to the local demo intelligence set so
-    // downstream panels keep rendering.
     return {
-      data: osirisDemoPayload,
+      data: emptyPayload,
       health: createHealth({
         state: "degraded",
         lastSyncAt: startedAt,
-        lastError: `${message} — falling back to demo dataset`,
-        recordsReceived: countRecords(osirisDemoPayload),
+        lastError: `${message} — live intelligence is unavailable`,
+        recordsReceived: 0,
       }),
     };
   }

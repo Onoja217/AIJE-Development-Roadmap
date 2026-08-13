@@ -29,7 +29,7 @@ describe("domain navigation", () => {
       canOpenNavigationItem(
         osiris!,
         false,
-        (permission) => permission === "reports.verify",
+        (permission) => permission === "intelligence.view",
       ),
     ).toBe(true);
   });
