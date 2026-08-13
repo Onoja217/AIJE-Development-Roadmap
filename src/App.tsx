@@ -75,6 +75,7 @@ const OrganizationAdmin = lazy(
   () => import("./features/organizations/OrganizationAdmin"),
 );
 const PlatformAdmin = lazy(() => import("./pages/PlatformAdmin"));
+const OsirisIntelligence = lazy(() => import("./pages/OsirisIntelligence"));
 
 const queryClient = new QueryClient();
 
@@ -257,6 +258,21 @@ function App() {
                           ]}
                         >
                           <CommunityDashboard />
+                        </PermissionRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/osiris"
+                      element={
+                        <PermissionRoute
+                          anyOf={[
+                            "alerts.dispatch",
+                            "incidents.respond",
+                            "reports.verify",
+                          ]}
+                        >
+                          <OsirisIntelligence />
                         </PermissionRoute>
                       }
                     />

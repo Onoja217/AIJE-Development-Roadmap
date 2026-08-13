@@ -54,6 +54,8 @@ import type { IncidentFilters } from "../types/incident";
 import type { EnrichedIncident } from "../types/enrichedIncident";
 import type { EmergencyResource } from "../types/resource";
 import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 function formatIntegrationState(
   state: string | undefined
@@ -763,6 +765,9 @@ export function CommunityDashboard() {
                           {osirisHealth.lastError}
                         </p>
                       )}
+                      <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+                        <Link to="/osiris">Open intelligence workspace</Link>
+                      </Button>
                     </div>
                   </div>
                 </section>
