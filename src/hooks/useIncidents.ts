@@ -1,170 +1,154 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
-
-import type { EnrichedIncident } from "@/types/enrichedIncident";
-import type { IncidentStatus, TimelineEvent } from "@/types/incident";
+import { useAccess } from "@/features/access/AccessProvider";
+import { enrichIncidents } from "@/services/intelligenceEngine";
 import {
-  canTransitionIncident,
-  createStatusTimelineEvent,
-} from "@/lib/incidentLifecycle";
+  fetchOrganizationIncidents,
+  mapIncidentReport,
+  transitionIncident,
+} from "@/services/incidentOperations";
+import type { EnrichedIncident } from "@/types/enrichedIncident";
+import type { IncidentStatus } from "@/types/incident";
 
-interface IncidentOverride {
-  status?: IncidentStatus;
-  assignedResponder?: string;
-  responseNotes?: string;
-  timeline: TimelineEvent[];
+export type MutationPhase = "idle" | "saving" | "persisted" | "error";
+
+export interface IncidentMutationState {
+  phase: MutationPhase;
+  message?: string;
 }
 
 interface UseIncidentsResult {
   incidents: EnrichedIncident[];
   isLoading: boolean;
-
+  sourceError: string | null;
+  mutationByIncident: Record<string, IncidentMutationState>;
   updateIncidentStatus: (
     id: string,
     status: IncidentStatus,
     note?: string,
-  ) => void;
-
-  assignResponder: (id: string, responder: string) => void;
+  ) => Promise<boolean>;
+  refreshIncidents: () => Promise<void>;
 }
 
 export function useIncidents(): UseIncidentsResult {
-  const { snapshot, isLoading } = useCommunityIntegration();
+  const { snapshot, isLoading: integrationLoading } = useCommunityIntegration();
+  const { activeOrganization } = useAccess();
+  const [canonicalIncidents, setCanonicalIncidents] = useState<
+    EnrichedIncident[]
+  >([]);
+  const [databaseLoading, setDatabaseLoading] = useState(false);
+  const [sourceError, setSourceError] = useState<string | null>(null);
+  const [mutationByIncident, setMutationByIncident] = useState<
+    Record<string, IncidentMutationState>
+  >({});
 
-  /**
-   * Temporary UI overrides.
-   * These remain until SafeBenue mutation endpoints
-   * become available.
-   */
-  const [overrides, setOverrides] = useState<Record<string, IncidentOverride>>(
-    {},
+  const loadCanonicalIncidents = useCallback(async () => {
+    if (!activeOrganization) {
+      setCanonicalIncidents([]);
+      return;
+    }
+    setDatabaseLoading(true);
+    setSourceError(null);
+    try {
+      const rows = await fetchOrganizationIncidents(activeOrganization.id);
+      const incidents = rows.map(mapIncidentReport);
+      setCanonicalIncidents(
+        enrichIncidents(
+          incidents,
+          snapshot?.osiris.assessments ?? [],
+          snapshot?.osiris.hotspots ?? [],
+        ),
+      );
+    } catch (error) {
+      setSourceError(
+        error instanceof Error
+          ? error.message
+          : "Incident records could not be synchronized",
+      );
+    } finally {
+      setDatabaseLoading(false);
+    }
+  }, [
+    activeOrganization,
+    snapshot?.osiris.assessments,
+    snapshot?.osiris.hotspots,
+  ]);
+
+  useEffect(() => {
+    void loadCanonicalIncidents();
+  }, [loadCanonicalIncidents]);
+
+  const externalIncidents = useMemo(
+    () => snapshot?.intelligence.enrichedIncidents ?? [],
+    [snapshot],
   );
 
-  /**
-   * Incidents are already enriched by the
-   * Intelligence Engine.
-   */
-  const synchronizedIncidents = useMemo<EnrichedIncident[]>(() => {
-    return snapshot?.intelligence.enrichedIncidents ?? [];
-  }, [snapshot]);
-
-  /**
-   * Remove overrides for incidents that no
-   * longer exist.
-   */
-  useEffect(() => {
-    const ids = new Set(synchronizedIncidents.map((incident) => incident.id));
-
-    setOverrides((current) => {
-      const filtered = Object.fromEntries(
-        Object.entries(current).filter(([id]) => ids.has(id)),
-      );
-
-      return Object.keys(filtered).length === Object.keys(current).length
-        ? current
-        : filtered;
-    });
-  }, [synchronizedIncidents]);
-
-  const incidents = useMemo<EnrichedIncident[]>(() => {
-    return synchronizedIncidents.map((incident) => {
-      const override = overrides[incident.id];
-
-      if (!override) {
-        return incident;
-      }
-
-      return {
-        ...incident,
-
-        status: override.status ?? incident.status,
-
-        assignedResponder:
-          override.assignedResponder ?? incident.assignedResponder,
-
-        responseNotes: override.responseNotes ?? incident.responseNotes,
-
-        timeline: [...incident.timeline, ...override.timeline],
-      };
-    });
-  }, [synchronizedIncidents, overrides]);
+  const incidents = useMemo(() => {
+    const canonicalIds = new Set(
+      canonicalIncidents.map((incident) => incident.id),
+    );
+    return [
+      ...canonicalIncidents,
+      ...externalIncidents.filter((incident) => !canonicalIds.has(incident.id)),
+    ];
+  }, [canonicalIncidents, externalIncidents]);
 
   const updateIncidentStatus = useCallback(
-    (id: string, status: IncidentStatus, note?: string) => {
-      setOverrides((current) => {
-        const existing = current[id];
-        const sourceIncident = incidents.find((incident) => incident.id === id);
-        const currentStatus = existing?.status ?? sourceIncident?.status;
-
-        if (!currentStatus || !canTransitionIncident(currentStatus, status)) {
-          return current;
-        }
-
-        const timelineEvent = createStatusTimelineEvent({ status, note });
-
-        return {
+    async (
+      id: string,
+      status: IncidentStatus,
+      note?: string,
+    ): Promise<boolean> => {
+      if (!canonicalIncidents.some((incident) => incident.id === id)) {
+        setMutationByIncident((current) => ({
           ...current,
-
           [id]: {
-            status,
-
-            assignedResponder: existing?.assignedResponder,
-
-            responseNotes: note ?? existing?.responseNotes,
-
-            timeline: [...(existing?.timeline ?? []), timelineEvent],
+            phase: "error",
+            message:
+              "External and demo incidents are read-only until their provider exposes a mutation API.",
           },
-        };
-      });
+        }));
+        return false;
+      }
 
-      /**
-       * TODO
-       * Replace with SafeBenue mutation API.
-       */
-    },
-    [incidents],
-  );
-
-  const assignResponder = useCallback((id: string, responder: string) => {
-    const timelineEvent: TimelineEvent = {
-      id: crypto.randomUUID(),
-
-      label: "team_notified",
-
-      timestamp: new Date().toISOString(),
-
-      note: `Assigned to ${responder}`,
-    };
-
-    setOverrides((current) => {
-      const existing = current[id];
-
-      return {
+      setMutationByIncident((current) => ({
         ...current,
-
-        [id]: {
-          status: existing?.status,
-
-          assignedResponder: responder,
-
-          responseNotes: existing?.responseNotes,
-
-          timeline: [...(existing?.timeline ?? []), timelineEvent],
-        },
-      };
-    });
-
-    /**
-     * TODO
-     * Replace with SafeBenue mutation API.
-     */
-  }, []);
+        [id]: { phase: "saving", message: "Saving and writing audit history…" },
+      }));
+      try {
+        await transitionIncident({ incidentId: id, status, note });
+        await loadCanonicalIncidents();
+        setMutationByIncident((current) => ({
+          ...current,
+          [id]: {
+            phase: "persisted",
+            message: "Saved to the operational record and audit history.",
+          },
+        }));
+        return true;
+      } catch (error) {
+        setMutationByIncident((current) => ({
+          ...current,
+          [id]: {
+            phase: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "The lifecycle update could not be saved.",
+          },
+        }));
+        return false;
+      }
+    },
+    [canonicalIncidents, loadCanonicalIncidents],
+  );
 
   return {
     incidents,
-    isLoading,
+    isLoading: integrationLoading || databaseLoading,
+    sourceError,
+    mutationByIncident,
     updateIncidentStatus,
-    assignResponder,
+    refreshIncidents: loadCanonicalIncidents,
   };
 }

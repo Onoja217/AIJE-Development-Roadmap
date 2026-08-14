@@ -27,9 +27,9 @@ export function IncidentTimeline({ incident }: IncidentTimelineProps) {
             {new Date(event.timestamp).toLocaleString()}
           </p>
           {event.note && <p className="text-xs mt-0.5">{event.note}</p>}
-          {event.actorName && (
+          {(event.actorName || event.actorId) && (
             <p className="mt-0.5 text-xs text-muted-foreground">
-              By {event.actorName}
+              By {event.actorName ?? event.actorId}
             </p>
           )}
         </li>

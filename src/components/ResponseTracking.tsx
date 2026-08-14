@@ -1,16 +1,21 @@
 // components/ResponseTracking.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { Incident, IncidentStatus } from "../types/incident";
 import { getNextIncidentStatus } from "@/lib/incidentLifecycle";
+import type { IncidentMutationState } from "@/hooks/useIncidents";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 interface ResponseTrackingProps {
   incident: Incident;
-  onUpdateStatus: (id: string, status: IncidentStatus, note?: string) => void;
-  onAssignResponder: (id: string, responder: string) => void;
+  onUpdateStatus: (
+    id: string,
+    status: IncidentStatus,
+    note?: string,
+  ) => Promise<boolean>;
+  mutationState?: IncidentMutationState;
 }
 
 const NEXT_STATUS_LABEL: Record<IncidentStatus, string> = {
@@ -25,40 +30,24 @@ const NEXT_STATUS_LABEL: Record<IncidentStatus, string> = {
 export function ResponseTracking({
   incident,
   onUpdateStatus,
-  onAssignResponder,
+  mutationState,
 }: ResponseTrackingProps) {
-  const [responder, setResponder] = useState(incident.assignedResponder ?? "");
   const [note, setNote] = useState("");
 
   const nextStatus = getNextIncidentStatus(incident.status);
 
-  function handleAssign() {
-    if (responder.trim()) onAssignResponder(incident.id, responder.trim());
-  }
-
-  function handleAdvanceStatus() {
-    if (nextStatus)
-      onUpdateStatus(incident.id, nextStatus, note.trim() || undefined);
-    setNote("");
+  async function handleAdvanceStatus() {
+    if (!nextStatus) return;
+    const saved = await onUpdateStatus(
+      incident.id,
+      nextStatus,
+      note.trim() || undefined,
+    );
+    if (saved) setNote("");
   }
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="responder">Assigned responder / team</Label>
-        <div className="flex gap-2">
-          <Input
-            id="responder"
-            value={responder}
-            onChange={(e) => setResponder(e.target.value)}
-            placeholder="e.g. Vigilante Team Alpha"
-          />
-          <Button variant="outline" onClick={handleAssign}>
-            Assign
-          </Button>
-        </div>
-      </div>
-
       <div className="space-y-1.5">
         <Label htmlFor="note">Response note</Label>
         <Textarea
@@ -73,10 +62,45 @@ export function ResponseTracking({
       <Button
         className="w-full"
         onClick={handleAdvanceStatus}
-        disabled={!nextStatus}
+        disabled={
+          !nextStatus ||
+          mutationState?.phase === "saving" ||
+          incident.origin !== "database"
+        }
       >
-        {NEXT_STATUS_LABEL[incident.status]}
+        {mutationState?.phase === "saving" ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
+          </>
+        ) : (
+          NEXT_STATUS_LABEL[incident.status]
+        )}
       </Button>
+
+      {incident.origin !== "database" && (
+        <p className="text-xs text-muted-foreground">
+          Read-only integration record. Lifecycle changes require a canonical
+          organization incident.
+        </p>
+      )}
+
+      {mutationState?.message && (
+        <div
+          role={mutationState.phase === "error" ? "alert" : "status"}
+          className={`flex items-start gap-2 rounded-md border p-2 text-xs ${
+            mutationState.phase === "error"
+              ? "border-destructive/40 text-destructive"
+              : "border-green-500/30 text-green-700 dark:text-green-300"
+          }`}
+        >
+          {mutationState.phase === "error" ? (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          ) : (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          )}
+          {mutationState.message}
+        </div>
+      )}
 
       {incident.responseNotes && (
         <div className="text-xs text-muted-foreground border-t pt-2">
