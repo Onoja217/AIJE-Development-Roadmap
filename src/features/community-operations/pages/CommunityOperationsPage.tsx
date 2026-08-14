@@ -46,6 +46,9 @@ import { Button } from "@/components/ui/button";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
 import { IntegrationTrustBanner } from "@/components/IntegrationTrustBanner";
 import { IncidentAuditHistory } from "@/components/IncidentAuditHistory";
+import { IncidentTeamAssignment } from "@/components/IncidentTeamAssignment";
+import { OperationalRiskPanel } from "@/components/OperationalRiskPanel";
+import { SyncStatusPanel } from "@/components/SyncStatusPanel";
 
 function formatIntegrationState(state: string | undefined): string {
   if (!state) {
@@ -113,6 +116,7 @@ export default function CommunityOperationsPage() {
     sourceError,
     mutationByIncident,
     updateIncidentStatus,
+    refreshIncidents,
   } = useIncidents();
 
   const { resources, isLoading: resourcesLoading } = useResources();
@@ -295,6 +299,17 @@ export default function CommunityOperationsPage() {
         isLoading={incidentsLoading || syncLoading}
       />
 
+      <OperationalRiskPanel
+        incidents={incidents}
+        failedTransitions={
+          Object.values(mutationByIncident).filter(
+            (mutation) => mutation.phase === "error",
+          ).length
+        }
+      />
+
+      <SyncStatusPanel />
+
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           <Tabs defaultValue="feed">
@@ -386,6 +401,11 @@ export default function CommunityOperationsPage() {
 
                   <IncidentTimeline incident={selectedLiveIncident} />
                 </div>
+
+                <IncidentTeamAssignment
+                  incident={selectedLiveIncident}
+                  onSaved={refreshIncidents}
+                />
 
                 <div>
                   <h3 className="mb-2 text-sm font-semibold">Response</h3>

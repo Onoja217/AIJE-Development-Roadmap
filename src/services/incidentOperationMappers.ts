@@ -67,6 +67,8 @@ export function mapIncidentReport(row: IncidentReportRow): Incident {
     ],
     imageUrls: [],
     origin: "database",
+    operationalUpdatedAt: row.updated_at,
+    assignedTeamId: row.assigned_team_id ?? undefined,
   };
 }
 
@@ -90,6 +92,7 @@ export function mapAuditRow(row: IncidentAuditRow): TimelineEvent {
     timestamp: row.created_at,
     note: row.note ?? row.reason ?? undefined,
     actorId: row.actor_id ?? undefined,
+    actorName: row.actor_display_name ?? undefined,
     action: row.action as TimelineEvent["action"] | undefined,
   };
 }
