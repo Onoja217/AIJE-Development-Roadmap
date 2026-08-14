@@ -18,8 +18,8 @@ export function osirisPercentage(value: number) {
 export function sortOsirisAssessments(assessments: OsirisThreatAssessment[]) {
   return [...assessments].sort(
     (a, b) =>
-      OSIRIS_THREAT_ORDER[b.threatLevel] -
-        OSIRIS_THREAT_ORDER[a.threatLevel] || b.threatScore - a.threatScore,
+      OSIRIS_THREAT_ORDER[b.threatLevel] - OSIRIS_THREAT_ORDER[a.threatLevel] ||
+      b.threatScore - a.threatScore,
   );
 }
 

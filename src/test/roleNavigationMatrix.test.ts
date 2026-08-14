@@ -17,19 +17,50 @@ const visiblePaths = (permissions: Permission[], platformAdmin = false) =>
     .map((item) => item.path);
 
 describe("role navigation boundaries", () => {
-  it.each(
+  it.each([
     [
-    ["resident", ["incidents.create"], [APP_PATHS.safety], [APP_PATHS.operations, APP_PATHS.intelligence]],
-    ["security operator", ["cameras.view", "incidents.respond"], [APP_PATHS.cameras], [APP_PATHS.operations, APP_PATHS.intelligence]],
-    ["responder", ["incidents.respond", "intelligence.view"], [APP_PATHS.community, APP_PATHS.intelligence], [APP_PATHS.sites]],
-    ["community leader", ["alerts.dispatch", "reports.verify", "intelligence.view", "intelligence.refresh"], [APP_PATHS.community, APP_PATHS.intelligence], [APP_PATHS.platform]],
-    ["organization admin", ["organization.manage", "sites.manage", "intelligence.view"], [APP_PATHS.organization, APP_PATHS.sites, APP_PATHS.intelligence], [APP_PATHS.platform]],
-    ] as Array<[string, Permission[], string[], string[]]>,
-  )("shows only authorized workspaces for %s", (_role, permissions, allowed, denied) => {
+      "resident",
+      ["incidents.create"],
+      [APP_PATHS.safety],
+      [APP_PATHS.operations, APP_PATHS.intelligence],
+    ],
+    [
+      "security operator",
+      ["cameras.view", "incidents.respond"],
+      [APP_PATHS.cameras],
+      [APP_PATHS.operations, APP_PATHS.intelligence],
+    ],
+    [
+      "responder",
+      ["incidents.respond", "intelligence.view"],
+      [APP_PATHS.community, APP_PATHS.intelligence],
+      [APP_PATHS.sites],
+    ],
+    [
+      "community leader",
+      [
+        "alerts.dispatch",
+        "reports.verify",
+        "intelligence.view",
+        "intelligence.refresh",
+      ],
+      [APP_PATHS.community, APP_PATHS.intelligence],
+      [APP_PATHS.platform],
+    ],
+    [
+      "organization admin",
+      ["organization.manage", "sites.manage", "intelligence.view"],
+      [APP_PATHS.organization, APP_PATHS.sites, APP_PATHS.intelligence],
+      [APP_PATHS.platform],
+    ],
+  ] as Array<[string, Permission[], string[], string[]]>)(
+    "shows only authorized workspaces for %s",
+    (_role, permissions, allowed, denied) => {
       const paths = visiblePaths(permissions);
       allowed.forEach((path) => expect(paths).toContain(path));
       denied.forEach((path) => expect(paths).not.toContain(path));
-    });
+    },
+  );
 
   it("gives a platform administrator platform and source-management access", () => {
     const paths = visiblePaths(["intelligence.manage_sources"], true);

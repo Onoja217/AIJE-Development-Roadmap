@@ -22,6 +22,8 @@ describe("Osiris intelligence utilities", () => {
       ...item,
       expiresAt: index === 0 ? "2026-01-01T00:00:00.000Z" : undefined,
     }));
-    expect(countExpiredAssessments(assessments, new Date("2026-01-02"))).toBe(1);
+    expect(countExpiredAssessments(assessments, new Date("2026-01-02"))).toBe(
+      1,
+    );
   });
 });
