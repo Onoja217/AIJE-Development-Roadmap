@@ -64,6 +64,8 @@ export interface Incident {
   responseNotes?: string;
   imageUrls?: string[];
   origin?: "database" | "integration" | "demo";
+  operationalUpdatedAt?: string;
+  assignedTeamId?: string;
 }
 
 // Aggregate counts for the Emergency Status Board.

@@ -612,6 +612,7 @@ export type Database = {
         Row: {
           action: string | null
           actor_id: string | null
+          actor_display_name: string | null
           correlation_id: string
           created_at: string
           from_status: string | null
@@ -629,6 +630,7 @@ export type Database = {
         Insert: {
           action?: string | null
           actor_id?: string | null
+          actor_display_name?: string | null
           correlation_id?: string
           created_at?: string
           from_status?: string | null
@@ -646,6 +648,7 @@ export type Database = {
         Update: {
           action?: string | null
           actor_id?: string | null
+          actor_display_name?: string | null
           correlation_id?: string
           created_at?: string
           from_status?: string | null
@@ -660,6 +663,12 @@ export type Database = {
           reason?: string | null
           to_status?: string | null
         }
+        Relationships: []
+      }
+      teams: {
+        Row: { created_at: string; id: string; name: string; organization_id: string; team_type: string }
+        Insert: { created_at?: string; id?: string; name: string; organization_id: string; team_type?: string }
+        Update: { created_at?: string; id?: string; name?: string; organization_id?: string; team_type?: string }
         Relationships: []
       }
       incident_reports: {
@@ -1331,6 +1340,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      assign_incident_team: {
+        Args: { _incident_id: string; _note?: string | null; _team_id: string }
+        Returns: Database["public"]["Tables"]["incident_reports"]["Row"]
+      }
+      get_incident_actor_names: {
+        Args: { _actor_ids: string[]; _organization_id: string }
+        Returns: { display_name: string; user_id: string }[]
       }
       purge_face_audit: { Args: never; Returns: number }
       transition_incident: {

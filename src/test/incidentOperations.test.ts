@@ -45,6 +45,7 @@ describe("incident operations mapping", () => {
       incident_report_id: "incident-1",
       organization_id: "org-1",
       actor_id: "operator-1",
+      actor_display_name: null,
       action: "response.acknowledged",
       previous_status: "dispatched",
       new_status: "acknowledged",

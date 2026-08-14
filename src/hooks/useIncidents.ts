@@ -4,7 +4,11 @@ import { useAccess } from "@/features/access/AccessProvider";
 import { enrichIncidents } from "@/services/intelligenceEngine";
 import {
   fetchOrganizationIncidents,
+  fetchOrganizationIncidentAudit,
+  mapAuditRow,
   mapIncidentReport,
+  queueIncidentTransition,
+  registerIncidentLifecycleSync,
   transitionIncident,
 } from "@/services/incidentOperations";
 import type { EnrichedIncident } from "@/types/enrichedIncident";
@@ -32,7 +36,7 @@ interface UseIncidentsResult {
 
 export function useIncidents(): UseIncidentsResult {
   const { snapshot, isLoading: integrationLoading } = useCommunityIntegration();
-  const { activeOrganization } = useAccess();
+  const { activeOrganization, hasPermission } = useAccess();
   const [canonicalIncidents, setCanonicalIncidents] = useState<
     EnrichedIncident[]
   >([]);
@@ -50,8 +54,28 @@ export function useIncidents(): UseIncidentsResult {
     setDatabaseLoading(true);
     setSourceError(null);
     try {
-      const rows = await fetchOrganizationIncidents(activeOrganization.id);
-      const incidents = rows.map(mapIncidentReport);
+      const [rows, auditRows] = await Promise.all([
+        fetchOrganizationIncidents(activeOrganization.id),
+        hasPermission("audit.view")
+          ? fetchOrganizationIncidentAudit(activeOrganization.id)
+          : Promise.resolve([]),
+      ]);
+      const incidents = rows.map((row) => {
+        const incident = mapIncidentReport(row);
+        return {
+          ...incident,
+          timeline: [
+            ...incident.timeline,
+            ...auditRows
+              .filter(
+                (audit) =>
+                  audit.incident_report_id === row.id ||
+                  audit.incident_id === row.id,
+              )
+              .map(mapAuditRow),
+          ],
+        };
+      });
       setCanonicalIncidents(
         enrichIncidents(
           incidents,
@@ -72,7 +96,12 @@ export function useIncidents(): UseIncidentsResult {
     activeOrganization,
     snapshot?.osiris.assessments,
     snapshot?.osiris.hotspots,
+    hasPermission,
   ]);
+
+  useEffect(() => {
+    registerIncidentLifecycleSync();
+  }, []);
 
   useEffect(() => {
     void loadCanonicalIncidents();
@@ -115,6 +144,19 @@ export function useIncidents(): UseIncidentsResult {
         ...current,
         [id]: { phase: "saving", message: "Saving and writing audit history…" },
       }));
+
+      if (!navigator.onLine) {
+        await queueIncidentTransition({ incidentId: id, status, note });
+        setMutationByIncident((current) => ({
+          ...current,
+          [id]: {
+            phase: "saving",
+            message:
+              "Queued securely on this device. It will retry when connectivity returns.",
+          },
+        }));
+        return true;
+      }
       try {
         await transitionIncident({ incidentId: id, status, note });
         await loadCanonicalIncidents();
@@ -127,6 +169,19 @@ export function useIncidents(): UseIncidentsResult {
         }));
         return true;
       } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        if (/fetch|network|offline|timeout|connection/i.test(message)) {
+          await queueIncidentTransition({ incidentId: id, status, note });
+          setMutationByIncident((current) => ({
+            ...current,
+            [id]: {
+              phase: "saving",
+              message:
+                "Connection dropped. The update is queued and will retry automatically.",
+            },
+          }));
+          return true;
+        }
         setMutationByIncident((current) => ({
           ...current,
           [id]: {

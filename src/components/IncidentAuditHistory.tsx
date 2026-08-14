@@ -3,6 +3,7 @@ import { History, Loader2 } from "lucide-react";
 import { useAccess } from "@/features/access/AccessProvider";
 import {
   fetchIncidentAudit,
+  fetchActorNames,
   mapAuditRow,
   type IncidentAuditRow,
 } from "@/services/incidentOperations";
@@ -36,8 +37,22 @@ export function IncidentAuditHistory({
       incidentId: incident.id,
       organizationId: activeOrganization.id,
     })
-      .then((data) => {
-        if (active) setRows(data);
+      .then(async (data) => {
+        const actorIds = [
+          ...new Set(data.map((row) => row.actor_id).filter(Boolean)),
+        ] as string[];
+        const names = await fetchActorNames(activeOrganization.id, actorIds);
+        if (active) {
+          setRows(
+            data.map((row) => ({
+              ...row,
+              actor_display_name:
+                row.actor_display_name ??
+                (row.actor_id ? names[row.actor_id] : null) ??
+                "System",
+            })),
+          );
+        }
       })
       .catch((auditError: unknown) => {
         if (active)
