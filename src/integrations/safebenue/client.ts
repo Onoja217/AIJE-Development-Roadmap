@@ -16,7 +16,7 @@ const emptyPayload: SafeBenuePayload = {
 };
 
 const createHealth = (
-  overrides: Partial<IntegrationHealth> = {}
+  overrides: Partial<IntegrationHealth> = {},
 ): IntegrationHealth => ({
   provider: "safebenue",
   state: "not_configured",
@@ -24,6 +24,7 @@ const createHealth = (
   lastSuccessfulSyncAt: null,
   lastError: null,
   recordsReceived: 0,
+  dataSource: "none",
   ...overrides,
 });
 
@@ -47,6 +48,7 @@ export async function fetchSafeBenueData(): Promise<
         lastSyncAt: startedAt,
         lastSuccessfulSyncAt: startedAt,
         recordsReceived: countRecords(safeBenueDemoPayload),
+        dataSource: "demo",
       }),
     };
   }
@@ -69,17 +71,11 @@ export async function fetchSafeBenueData(): Promise<
 
   try {
     const [incidents, resources, missingPersons] = await Promise.all([
-      fetchIntegrationJson<SafeBenuePayload["incidents"]>(
-        config,
-        "/incidents"
-      ),
-      fetchIntegrationJson<SafeBenuePayload["resources"]>(
-        config,
-        "/resources"
-      ),
+      fetchIntegrationJson<SafeBenuePayload["incidents"]>(config, "/incidents"),
+      fetchIntegrationJson<SafeBenuePayload["resources"]>(config, "/resources"),
       fetchIntegrationJson<SafeBenuePayload["missingPersons"]>(
         config,
-        "/missing-persons"
+        "/missing-persons",
       ).catch(() => [] as SafeBenuePayload["missingPersons"]),
     ]);
 
@@ -96,6 +92,7 @@ export async function fetchSafeBenueData(): Promise<
         lastSyncAt: startedAt,
         lastSuccessfulSyncAt: new Date().toISOString(),
         recordsReceived: countRecords(data),
+        dataSource: "live",
       }),
     };
   } catch (error) {
@@ -113,6 +110,7 @@ export async function fetchSafeBenueData(): Promise<
         lastSyncAt: startedAt,
         lastError: `${message} — falling back to demo dataset`,
         recordsReceived: countRecords(safeBenueDemoPayload),
+        dataSource: "demo",
       }),
     };
   }

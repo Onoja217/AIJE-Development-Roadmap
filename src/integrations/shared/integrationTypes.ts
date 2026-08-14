@@ -31,6 +31,7 @@ export interface IntegrationHealth {
   lastSuccessfulSyncAt: string | null;
   lastError: string | null;
   recordsReceived: number;
+  dataSource: "live" | "demo" | "none";
 }
 
 export interface IntegrationResult<TData> {
