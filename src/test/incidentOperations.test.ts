@@ -4,7 +4,7 @@ import {
   mapIncidentReport,
   type IncidentAuditRow,
   type IncidentReportRow,
-} from "@/services/incidentOperations";
+} from "@/services/incidentOperationMappers";
 
 describe("incident operations mapping", () => {
   it("maps canonical organization reports into durable incidents", () => {
