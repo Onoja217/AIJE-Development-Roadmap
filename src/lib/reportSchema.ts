@@ -46,6 +46,7 @@ export const reportSchema = z.object({
     .object({
       lat: z.number().optional(),
       lng: z.number().optional(),
+      accuracyMetres: z.number().nonnegative().optional(),
       address: z.string().optional(),
       manualEntry: z.string().trim().optional(),
     })

@@ -39,10 +39,14 @@ interface EmergencyReportFormProps {
   onSubmitReport: (report: EmergencyReport) => Promise<void>;
 }
 
-export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps) {
+export function EmergencyReportForm({
+  onSubmitReport,
+}: EmergencyReportFormProps) {
   const [images, setImages] = useState<ReportImage[]>([]);
   const [isProcessingImages, setIsProcessingImages] = useState(false);
-  const [submitState, setSubmitState] = useState<"idle" | "submitting" | "saved" | "error">("idle");
+  const [submitState, setSubmitState] = useState<
+    "idle" | "submitting" | "saved" | "error"
+  >("idle");
 
   const geo = useGeolocation();
 
@@ -60,7 +64,8 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
 
   // Keep the GPS result inside the form state so validation can see it.
   useEffect(() => {
-    if (geo.location.lat === undefined || geo.location.lng === undefined) return;
+    if (geo.location.lat === undefined || geo.location.lng === undefined)
+      return;
     const current = form.getValues("location") ?? {};
     form.setValue(
       "location",
@@ -68,13 +73,18 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
         ...current,
         lat: geo.location.lat,
         lng: geo.location.lng,
+        accuracyMetres: geo.location.accuracyMetres,
         address: geo.location.address ?? current.address,
       },
-      { shouldValidate: true }
+      { shouldValidate: true },
     );
-  }, [geo.location.lat, geo.location.lng, geo.location.address, form]);
-
-
+  }, [
+    geo.location.lat,
+    geo.location.lng,
+    geo.location.accuracyMetres,
+    geo.location.address,
+    form,
+  ]);
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -131,8 +141,8 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
           <div className="text-4xl">✅</div>
           <h2 className="text-lg font-semibold">Report saved</h2>
           <p className="text-sm text-muted-foreground">
-            Your report is stored and will be sent automatically as soon as a connection
-            is available. You don't need to stay on this screen.
+            Your report is stored and will be sent automatically as soon as a
+            connection is available. You don't need to stay on this screen.
           </p>
           <Button onClick={() => setSubmitState("idle")} className="w-full">
             Submit another report
@@ -147,7 +157,6 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-
             {/* Category — visual buttons, not a dropdown, for speed under stress */}
             <FormField
               control={form.control}
@@ -166,7 +175,7 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                             "flex flex-col items-center gap-1 rounded-lg border p-3 text-xs font-medium transition-colors",
                             field.value === cat.id
                               ? "border-primary bg-primary/10"
-                              : "border-border hover:bg-muted"
+                              : "border-border hover:bg-muted",
                           )}
                         >
                           <span className="text-2xl">{cat.icon}</span>
@@ -187,7 +196,10 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                 <FormItem>
                   <FormLabel>Short title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Armed men entering Ochekwu village" {...field} />
+                    <Input
+                      placeholder="e.g. Armed men entering Ochekwu village"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -201,7 +213,11 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                 <FormItem>
                   <FormLabel>What's happening — describe briefly</FormLabel>
                   <FormControl>
-                    <Textarea rows={4} placeholder="Describe what you see or know" {...field} />
+                    <Textarea
+                      rows={4}
+                      placeholder="Describe what you see or know"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -219,13 +235,36 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                   onClick={geo.requestLocation}
                   disabled={geo.status === "requesting"}
                 >
-                  {geo.status === "requesting" ? "Getting location…" : "📍 Use my current location"}
+                  {geo.status === "requesting"
+                    ? "Getting location…"
+                    : "📍 Use my current location"}
                 </Button>
 
                 {geo.status === "granted" && (
-                  <p className="text-xs text-muted-foreground">
-                    Captured: {geo.location.address ?? `${geo.location.lat?.toFixed(4)}, ${geo.location.lng?.toFixed(4)}`}
-                  </p>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p>
+                      Captured:{" "}
+                      {geo.location.address ?? "Address lookup unavailable"}
+                    </p>
+                    <p>
+                      Coordinates: {geo.location.lat?.toFixed(5)},{" "}
+                      {geo.location.lng?.toFixed(5)}
+                      {geo.location.accuracyMetres !== undefined
+                        ? ` (accuracy ±${Math.round(geo.location.accuracyMetres)} m)`
+                        : ""}
+                    </p>
+                    {geo.location.accuracyMetres !== undefined &&
+                      geo.location.accuracyMetres > 500 && (
+                        <p
+                          role="alert"
+                          className="text-amber-600 dark:text-amber-400"
+                        >
+                          This device supplied an approximate location. Enable
+                          Precise Location/GPS and try again, or enter a nearby
+                          landmark below.
+                        </p>
+                      )}
+                  </div>
                 )}
 
                 <FormField
@@ -253,7 +292,6 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
               </div>
             </div>
 
-
             {/* Images */}
             <div className="space-y-2">
               <Label>Photos (optional, up to 5)</Label>
@@ -267,7 +305,9 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
                   disabled={isProcessingImages || images.length >= 5}
                 />
                 {isProcessingImages && (
-                  <p className="text-xs text-muted-foreground">Compressing images…</p>
+                  <p className="text-xs text-muted-foreground">
+                    Compressing images…
+                  </p>
                 )}
                 {images.length > 0 && (
                   <div className="grid grid-cols-3 gap-2">
@@ -292,7 +332,6 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
               </div>
             </div>
 
-
             <FormField
               control={form.control}
               name="contact"
@@ -313,7 +352,12 @@ export function EmergencyReportForm({ onSubmitReport }: EmergencyReportFormProps
               </p>
             )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={submitState === "submitting"}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={submitState === "submitting"}
+            >
               {submitState === "submitting" ? "Saving…" : "Send Report"}
             </Button>
           </form>
