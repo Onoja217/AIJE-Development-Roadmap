@@ -1,5 +1,5 @@
 // hooks/useGeolocation.ts
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ReportLocation } from "../types/report";
 
 type GeoStatus = "idle" | "requesting" | "granted" | "denied" | "unavailable";
@@ -11,11 +11,14 @@ interface UseGeolocationResult {
   setManualLocation: (text: string) => void;
 }
 
-async function reverseGeocode(lat: number, lng: number): Promise<string | undefined> {
+async function reverseGeocode(
+  lat: number,
+  lng: number,
+): Promise<string | undefined> {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-      { headers: { Accept: "application/json" } }
+      { headers: { Accept: "application/json" } },
     );
     if (!res.ok) return undefined;
     const data = await res.json();
@@ -28,8 +31,10 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | undefi
 export function useGeolocation(): UseGeolocationResult {
   const [status, setStatus] = useState<GeoStatus>("idle");
   const [location, setLocation] = useState<ReportLocation>({});
+  const requestIdRef = useRef(0);
 
   const requestLocation = useCallback(() => {
+    const requestId = ++requestIdRef.current;
     if (!("geolocation" in navigator)) {
       setStatus("unavailable");
       return;
@@ -39,19 +44,24 @@ export function useGeolocation(): UseGeolocationResult {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        if (requestId !== requestIdRef.current) return;
+        const { latitude, longitude, accuracy } = position.coords;
         setStatus("granted");
-        setLocation({ lat: latitude, lng: longitude });
+        setLocation({
+          lat: latitude,
+          lng: longitude,
+          accuracyMetres: accuracy,
+        });
 
         const address = await reverseGeocode(latitude, longitude);
-        if (address) {
+        if (address && requestId === requestIdRef.current) {
           setLocation((prev) => ({ ...prev, address }));
         }
       },
       () => {
-        setStatus("denied");
+        if (requestId === requestIdRef.current) setStatus("denied");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   }, []);
 
