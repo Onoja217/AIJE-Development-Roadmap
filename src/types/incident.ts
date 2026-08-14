@@ -63,6 +63,7 @@ export interface Incident {
   assignedResponder?: string;
   responseNotes?: string;
   imageUrls?: string[];
+  origin?: "database" | "integration" | "demo";
 }
 
 // Aggregate counts for the Emergency Status Board.

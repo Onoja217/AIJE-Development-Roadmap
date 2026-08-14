@@ -45,6 +45,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
 import { IntegrationTrustBanner } from "@/components/IntegrationTrustBanner";
+import { IncidentAuditHistory } from "@/components/IncidentAuditHistory";
 
 function formatIntegrationState(state: string | undefined): string {
   if (!state) {
@@ -109,8 +110,9 @@ export default function CommunityOperationsPage() {
   const {
     incidents,
     isLoading: incidentsLoading,
+    sourceError,
+    mutationByIncident,
     updateIncidentStatus,
-    assignResponder,
   } = useIncidents();
 
   const { resources, isLoading: resourcesLoading } = useResources();
@@ -275,6 +277,19 @@ export default function CommunityOperationsPage() {
         </div>
       )}
 
+      {sourceError && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-medium">Operational records unavailable</p>
+            <p className="mt-1 text-xs">{sourceError}</p>
+          </div>
+        </div>
+      )}
+
       <EmergencyStatusBoard
         stats={stats}
         isLoading={incidentsLoading || syncLoading}
@@ -378,9 +393,16 @@ export default function CommunityOperationsPage() {
                   <ResponseTracking
                     incident={selectedLiveIncident}
                     onUpdateStatus={updateIncidentStatus}
-                    onAssignResponder={assignResponder}
+                    mutationState={mutationByIncident[selectedLiveIncident.id]}
                   />
                 </div>
+
+                <IncidentAuditHistory
+                  incident={selectedLiveIncident}
+                  refreshKey={
+                    mutationByIncident[selectedLiveIncident.id]?.phase
+                  }
+                />
               </CardContent>
             </Card>
           ) : selectedLiveResource ? (

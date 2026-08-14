@@ -608,6 +608,60 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_audit_log: {
+        Row: {
+          action: string | null
+          actor_id: string | null
+          correlation_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          incident_id: string
+          incident_report_id: string | null
+          metadata: Json
+          new_status: string
+          note: string | null
+          organization_id: string | null
+          previous_status: string | null
+          reason: string | null
+          to_status: string | null
+        }
+        Insert: {
+          action?: string | null
+          actor_id?: string | null
+          correlation_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          incident_id: string
+          incident_report_id?: string | null
+          metadata?: Json
+          new_status: string
+          note?: string | null
+          organization_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          action?: string | null
+          actor_id?: string | null
+          correlation_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          incident_id?: string
+          incident_report_id?: string | null
+          metadata?: Json
+          new_status?: string
+          note?: string | null
+          organization_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          to_status?: string | null
+        }
+        Relationships: []
+      }
       incident_reports: {
         Row: {
           address: string | null
@@ -1279,6 +1333,14 @@ export type Database = {
         Returns: boolean
       }
       purge_face_audit: { Args: never; Returns: number }
+      transition_incident: {
+        Args: {
+          _incident_id: string
+          _note?: string | null
+          _to_status: string
+        }
+        Returns: Database["public"]["Tables"]["incident_reports"]["Row"]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -4,11 +4,7 @@ import type {
   SafeBenueResource,
 } from "./types";
 
-import type {
-  Incident,
-  IncidentStatus,
-  TimelineEvent,
-} from "@/types/incident";
+import type { Incident, IncidentStatus, TimelineEvent } from "@/types/incident";
 
 import type {
   EmergencyResource,
@@ -21,9 +17,7 @@ import type {
  * Converts a SafeBenue incident status into the status contract
  * used by the AIJE Community Dashboard.
  */
-function mapIncidentStatus(
-  status: SafeBenueIncidentStatus
-): IncidentStatus {
+function mapIncidentStatus(status: SafeBenueIncidentStatus): IncidentStatus {
   switch (status) {
     case "reported":
       return "pending";
@@ -49,9 +43,7 @@ function mapIncidentStatus(
  * a complete status-history array. These entries therefore represent
  * the minimum timeline AIJE can safely derive from that status.
  */
-function buildIncidentTimeline(
-  incident: SafeBenueIncident
-): TimelineEvent[] {
+function buildIncidentTimeline(incident: SafeBenueIncident): TimelineEvent[] {
   const timeline: TimelineEvent[] = [
     {
       id: `${incident.id}-report-received`,
@@ -72,10 +64,7 @@ function buildIncidentTimeline(
     });
   }
 
-  if (
-    incident.status === "responding" ||
-    incident.status === "resolved"
-  ) {
+  if (incident.status === "responding" || incident.status === "resolved") {
     timeline.push({
       id: `${incident.id}-response-started`,
       label: "response_started",
@@ -100,9 +89,7 @@ function buildIncidentTimeline(
  * The rest of AIJE should consume this internal type rather than reading
  * SafeBenue payload fields directly.
  */
-export function mapSafeBenueIncident(
-  incident: SafeBenueIncident
-): Incident {
+export function mapSafeBenueIncident(incident: SafeBenueIncident): Incident {
   return {
     id: `safebenue-${incident.id}`,
     title: incident.title,
@@ -114,8 +101,7 @@ export function mapSafeBenueIncident(
       lng: incident.location.longitude,
       address: incident.location.address,
       manualEntry:
-        incident.location.community ??
-        incident.location.localGovernment,
+        incident.location.community ?? incident.location.localGovernment,
     },
 
     reportedAt: incident.reportedAt,
@@ -126,6 +112,7 @@ export function mapSafeBenueIncident(
     assignedResponder: undefined,
     responseNotes: undefined,
     imageUrls: [],
+    origin: "integration",
   };
 }
 
@@ -133,7 +120,7 @@ export function mapSafeBenueIncident(
  * Maps SafeBenue resource categories to AIJE's resource taxonomy.
  */
 function mapResourceCategory(
-  category: SafeBenueResource["category"]
+  category: SafeBenueResource["category"],
 ): ResourceCategory {
   switch (category) {
     case "hospital":
@@ -166,7 +153,7 @@ function mapResourceCategory(
  * Converts SafeBenue availability values into AIJE operational statuses.
  */
 function mapResourceStatus(
-  availability: SafeBenueResource["availability"]
+  availability: SafeBenueResource["availability"],
 ): ResourceStatus {
   switch (availability) {
     case "available":
@@ -187,15 +174,11 @@ function mapResourceStatus(
  * Generates service capabilities from each external resource category.
  */
 function mapResourceServices(
-  category: SafeBenueResource["category"]
+  category: SafeBenueResource["category"],
 ): ResourceService[] {
   switch (category) {
     case "hospital":
-      return [
-        "emergency_medical_care",
-        "general_medical_care",
-        "medicine",
-      ];
+      return ["emergency_medical_care", "general_medical_care", "medicine"];
 
     case "police":
       return ["security"];
@@ -204,23 +187,13 @@ function mapResourceServices(
       return ["fire_response", "search_and_rescue"];
 
     case "shelter":
-      return [
-        "shelter",
-        "water",
-        "sanitation",
-        "psychosocial_support",
-      ];
+      return ["shelter", "water", "sanitation", "psychosocial_support"];
 
     case "warehouse":
       return ["food", "water", "medicine"];
 
     case "ngo":
-      return [
-        "food",
-        "water",
-        "shelter",
-        "psychosocial_support",
-      ];
+      return ["food", "water", "shelter", "psychosocial_support"];
 
     case "community_leader":
       return ["security", "search_and_rescue"];
@@ -234,7 +207,7 @@ function mapResourceServices(
  * Converts a SafeBenue resource into AIJE's EmergencyResource contract.
  */
 export function mapSafeBenueResource(
-  resource: SafeBenueResource
+  resource: SafeBenueResource,
 ): EmergencyResource {
   return {
     id: `safebenue-${resource.id}`,

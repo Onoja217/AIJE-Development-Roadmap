@@ -41,6 +41,14 @@ Configure only the providers enabled for that environment:
 6. Back up production, apply migrations, deploy functions, then deploy the UI.
 7. Smoke-test production with non-sensitive test records and monitor failures.
 
+## Authenticated lifecycle verification
+
+The manually dispatched `Incident Lifecycle E2E` workflow targets a staging
+operator with verification, dispatch, response, and audit permissions. Configure
+`E2E_OPERATOR_EMAIL`, `E2E_OPERATOR_PASSWORD`, `E2E_ORGANIZATION_ID`, and
+`E2E_OTHER_ORGANIZATION_ID` as GitHub Actions secrets. The two organizations
+must be distinct, and the operator must not belong to the second organization.
+
 ## Branch protection
 
 Protect `main`; require pull requests, at least one approval, resolved review
