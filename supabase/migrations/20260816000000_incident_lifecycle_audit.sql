@@ -26,6 +26,20 @@ CREATE TABLE IF NOT EXISTS public.incident_audit_log (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Some production environments provisioned a generic incident_audit_log
+-- before this canonical migration existed. Preserve those rows and extend the
+-- table with the lifecycle columns rather than replacing it.
+ALTER TABLE public.incident_audit_log
+  ADD COLUMN IF NOT EXISTS organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS incident_report_id uuid REFERENCES public.incident_reports(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS actor_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS action text,
+  ADD COLUMN IF NOT EXISTS from_status text,
+  ADD COLUMN IF NOT EXISTS to_status text,
+  ADD COLUMN IF NOT EXISTS note text,
+  ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
+
 CREATE INDEX IF NOT EXISTS incident_audit_incident_created_idx
   ON public.incident_audit_log(incident_report_id, created_at);
 CREATE INDEX IF NOT EXISTS incident_audit_organization_created_idx
