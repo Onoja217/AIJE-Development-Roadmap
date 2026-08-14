@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- exported access matrix is regression-tested */
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -23,12 +24,7 @@ import type { Permission } from "@/features/access/types";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
 import { SyncStatusPanel } from "@/components/SyncStatusPanel";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ModuleStatus = "Active" | "Development";
 
@@ -42,7 +38,7 @@ interface ModuleItem {
   platformOnly?: boolean;
 }
 
-const modules: ModuleItem[] = [
+export const controlPanelModules: ModuleItem[] = [
   {
     title: "SafeBenue",
     description:
@@ -59,7 +55,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.community,
     icon: Users,
     status: "Active",
-    anyOf: ["alerts.dispatch"],
+    anyOf: ["alerts.dispatch", "incidents.respond", "reports.verify"],
   },
   {
     title: "Community Alert System",
@@ -68,7 +64,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.communityAlerts,
     icon: Megaphone,
     status: "Active",
-    anyOf: ["cameras.view", "cameras.manage"],
+    anyOf: ["alerts.dispatch"],
   },
   {
     title: "Emergency Resources",
@@ -77,7 +73,6 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.emergencyResources,
     icon: Hospital,
     status: "Active",
-    anyOf: ["cameras.view"],
   },
   {
     title: "Citizen Incident Reporting",
@@ -86,7 +81,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.incidentReport,
     icon: FileWarning,
     status: "Active",
-    anyOf: ["cameras.view", "cameras.manage"],
+    anyOf: ["incidents.create"],
   },
   {
     title: "Camera Management",
@@ -113,6 +108,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.sensors,
     icon: RadioTower,
     status: "Active",
+    anyOf: ["cameras.view", "cameras.manage"],
   },
   {
     title: "Face Recognition",
@@ -121,6 +117,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.faces,
     icon: ScanFace,
     status: "Active",
+    anyOf: ["cameras.manage"],
   },
   {
     title: "Deployments",
@@ -129,6 +126,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.sites,
     icon: Database,
     status: "Active",
+    anyOf: ["sites.manage"],
   },
   {
     title: "Administration",
@@ -137,6 +135,7 @@ const modules: ModuleItem[] = [
     path: APP_PATHS.webhooks,
     icon: Settings,
     status: "Active",
+    platformOnly: true,
   },
   {
     title: "Notifications",
@@ -148,12 +147,24 @@ const modules: ModuleItem[] = [
   },
 ];
 
-export default function ControlPanel() {
-  const { platformAdmin, hasPermission } = useAccess();
-  const visibleModules = modules.filter((module) => {
+export function getVisibleControlPanelModules(
+  platformAdmin: boolean,
+  hasPermission: (permission: Permission) => boolean,
+) {
+  return controlPanelModules.filter((module) => {
     if (module.platformOnly) return platformAdmin;
-    return !module.anyOf || module.anyOf.some((permission) => hasPermission(permission));
+    return !module.anyOf || module.anyOf.some(hasPermission);
   });
+}
+
+export default function ControlPanel() {
+  const { platformAdmin, hasPermission, activeOrganization } = useAccess();
+  const isHousehold =
+    activeOrganization?.roles.includes("household_owner") ?? false;
+  const visibleModules = getVisibleControlPanelModules(
+    platformAdmin,
+    hasPermission,
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -165,23 +176,27 @@ export default function ControlPanel() {
             <Activity className="h-4 w-4" aria-hidden="true" />
 
             <p className="text-sm font-medium uppercase tracking-[0.18em]">
-              AIJE Operations
+              {isHousehold ? "Household security" : "AIJE Operations"}
             </p>
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Control Panel
+            {isHousehold ? "Home Security" : "Control Panel"}
           </h1>
 
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-            Access and manage every operational module connected to the AIJE
-            Community Shield platform.
+            {isHousehold
+              ? "Manage only the home-security and personal-safety modules authorized for your household."
+              : "Access and manage the operational modules authorized for your active role."}
           </p>
         </section>
 
         <RoleResourceLinks />
 
-        <section className="max-w-md" aria-label="Offline synchronisation status">
+        <section
+          className="max-w-md"
+          aria-label="Offline synchronisation status"
+        >
           <SyncStatusPanel />
         </section>
 
