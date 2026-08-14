@@ -3,15 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { Header } from "@/components/dashboard/Header";
 import { cn } from "@/lib/utils";
 import { useAccess } from "@/features/access/AccessProvider";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const tabs = [
-  { label: "Overview", path: "/safebenue" },
-  { label: "Dashboard", path: "/safebenue/dashboard" },
-  { label: "Reports", path: "/safebenue/reports" },
-  { label: "Resources", path: "/safebenue/resources" },
-  { label: "Community Watch", path: "/safebenue/community-watch" },
-  { label: "Family", path: "/safebenue/family" },
-  { label: "Admin", path: "/safebenue/admin", admin: true },
+  { label: "Overview", path: APP_PATHS.safeBenue },
+  { label: "Dashboard", path: APP_PATHS.safeBenueDashboard },
+  { label: "Reports", path: APP_PATHS.safeBenueReports },
+  { label: "Resources", path: APP_PATHS.safeBenueResources },
+  { label: "Community Watch", path: APP_PATHS.safeBenueWatch },
+  { label: "Family", path: APP_PATHS.safeBenueFamily },
+  { label: "Admin", path: APP_PATHS.safeBenueAdmin, admin: true },
 ];
 
 interface SafeBenueLayoutProps {

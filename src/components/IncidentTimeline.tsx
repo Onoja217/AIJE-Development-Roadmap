@@ -8,7 +8,7 @@ interface IncidentTimelineProps {
 
 export function IncidentTimeline({ incident }: IncidentTimelineProps) {
   const sorted = [...incident.timeline].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
 
   return (
@@ -20,11 +20,18 @@ export function IncidentTimeline({ incident }: IncidentTimelineProps) {
               idx === sorted.length - 1 ? "bg-primary" : "bg-muted-foreground"
             }`}
           />
-          <p className="text-sm font-medium">{TIMELINE_LABELS[event.label] ?? event.label}</p>
+          <p className="text-sm font-medium">
+            {TIMELINE_LABELS[event.label] ?? event.label}
+          </p>
           <p className="text-xs text-muted-foreground">
             {new Date(event.timestamp).toLocaleString()}
           </p>
           {event.note && <p className="text-xs mt-0.5">{event.note}</p>}
+          {event.actorName && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              By {event.actorName}
+            </p>
+          )}
         </li>
       ))}
     </ol>

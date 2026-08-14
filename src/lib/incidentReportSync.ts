@@ -8,6 +8,7 @@ import { enqueue, registerSyncHandler } from "./syncEngine";
 import { createNotification } from "./notificationService";
 import type { EmergencyReport } from "@/types/report";
 import { getStoredActiveOrganizationId } from "@/features/access/accessStorage";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 export const INCIDENT_REPORT_COLLECTION = "incident_reports";
 
@@ -64,7 +65,7 @@ export function registerIncidentReportSync() {
         body: `Category: ${report.category}. ${
           report.location?.address ?? "No address provided"
         }`,
-        link: "/incident-report",
+        link: APP_PATHS.incidentReport,
         metadata: { client_id: report.id, category: report.category },
       });
     },

@@ -4,6 +4,7 @@ import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 export default function BillingCallback() {
   const [params] = useSearchParams();
@@ -43,7 +44,7 @@ export default function BillingCallback() {
             </p>
             <div className="flex gap-2 mt-6">
               <Button asChild className="flex-1">
-                <Link to="/deployments">Manage deployments</Link>
+                <Link to={APP_PATHS.sites}>Manage deployments</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1">
                 <Link to="/">Dashboard</Link>
@@ -58,7 +59,7 @@ export default function BillingCallback() {
             <p className="text-muted-foreground text-sm mt-2">
               We couldn't confirm your payment. If you were charged, contact support with your payment reference.
             </p>
-            <Button className="mt-6 w-full" onClick={() => navigate("/pricing")}>
+            <Button className="mt-6 w-full" onClick={() => navigate(APP_PATHS.billing)}>
               Try again
             </Button>
           </>

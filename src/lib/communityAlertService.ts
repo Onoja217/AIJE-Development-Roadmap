@@ -3,6 +3,7 @@ import { createNotification } from "@/lib/notificationService";
 import { enqueue, processQueue, registerSyncHandler } from "@/lib/syncEngine";
 import type { AlertDispatchResult, AlertDraft } from "@/types/communityAlert";
 import { getStoredActiveOrganizationId } from "@/features/access/accessStorage";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const LEGACY_QUEUE_KEY = "aije-community-alert-outbox";
 const ALERT_COLLECTION = "community_alerts";
@@ -67,7 +68,7 @@ async function notifyCommunityAlert(draft: AlertDraft, queued: boolean) {
     priority: draft.threatLevel === "critical" ? "critical" : "high",
     title: `${queued ? "Queued" : "Dispatched"} community alert: ${draft.incidentType}`,
     body: `${draft.summary} — ${draft.location}`,
-    link: "/community-alerts",
+    link: APP_PATHS.communityAlerts,
     metadata: { threatLevel: draft.threatLevel, queued },
   });
 }

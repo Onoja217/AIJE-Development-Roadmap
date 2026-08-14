@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 import {
   ArrowLeft,
   Building2,
@@ -103,7 +104,7 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -225,7 +226,7 @@ export default function Auth() {
 
             <button
               type="button"
-              onClick={() => navigate("/incident-report")}
+              onClick={() => navigate(APP_PATHS.incidentReport)}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
             >
               <HeartHandshake

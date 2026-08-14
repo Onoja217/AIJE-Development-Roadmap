@@ -59,7 +59,7 @@ SELECT cron.schedule(
   '*/5 * * * *',
   $$
   SELECT net.http_post(
-    url := 'https://evsginbpruyykvwallck.supabase.co/functions/v1/webhook-alerts-monitor',
+    url := 'https://sznafsdzdwiwhcgrfzcb.supabase.co/functions/v1/webhook-alerts-monitor',
     headers := '{"Content-Type":"application/json"}'::jsonb,
     body := '{}'::jsonb
   );

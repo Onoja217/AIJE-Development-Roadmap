@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useNetworkStatus } from "./useNetworkStatus";
 import { createNotification } from "@/lib/notificationService";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const DB_NAME = "aegis-offline";
 const STORE = "alert-queue";
@@ -112,7 +113,7 @@ export function useOfflineQueue(user: User | null) {
               : "normal",
         title: `${alert.sensor_type} alert`,
         body: alert.message,
-        link: "/detection",
+        link: APP_PATHS.detection,
         metadata: {
           sensor_type: alert.sensor_type,
           severity: alert.severity,

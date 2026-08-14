@@ -3,6 +3,11 @@
 Use separate Supabase projects and provider accounts for development, staging,
 and production. Never point a local build at production by default.
 
+The canonical production Supabase project is `sznafsdzdwiwhcgrfzcb` at
+`https://sznafsdzdwiwhcgrfzcb.supabase.co`. Production frontend variables,
+migrations, and Edge Function deployments must all be verified against that
+project before release.
+
 ## Frontend variables
 
 Copy `.env.example` to an ignored `.env` and configure the environment's
@@ -15,7 +20,9 @@ Configure only the providers enabled for that environment:
 
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `PAYSTACK_SECRET_KEY`
-- `ALLOWED_CALLBACK_ORIGINS` as a comma-separated exact origin allowlist
+- `ALLOWED_CALLBACK_ORIGINS` as a comma-separated exact origin allowlist for
+  additional domains. The canonical production origin
+  `https://guardian-pulse-one.vercel.app` is allowed by default.
 - `SMS_PROVIDER` (`termii` or `twilio`)
 - `TERMII_API_KEY`, `TERMII_SENDER_ID`
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`,

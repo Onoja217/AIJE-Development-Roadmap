@@ -15,8 +15,19 @@ export type IncidentPriority = "low" | "medium" | "high" | "critical";
 export type IncidentStatus =
   | "pending" // just received, not yet verified
   | "verified" // AI/human confirmed it's real
-  | "responding" // a team has been dispatched
+  | "dispatched" // a response team has been notified
+  | "acknowledged" // the assigned team accepted the dispatch
+  | "responding" // the assigned team is actively responding
   | "resolved";
+
+export type IncidentAuditAction =
+  | "report.created"
+  | "report.verified"
+  | "response.dispatched"
+  | "response.acknowledged"
+  | "response.started"
+  | "incident.resolved"
+  | "responder.assigned";
 
 export interface TimelineEvent {
   id: string;
@@ -24,10 +35,14 @@ export interface TimelineEvent {
     | "report_received"
     | "verification_completed"
     | "team_notified"
+    | "dispatch_acknowledged"
     | "response_started"
     | "incident_resolved";
   timestamp: string; // ISO 8601
   note?: string;
+  actorId?: string;
+  actorName?: string;
+  action?: IncidentAuditAction;
 }
 
 export interface Incident {

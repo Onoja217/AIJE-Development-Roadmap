@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { useDeployments } from "@/hooks/useDeployments";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 export default function Deployments() {
   const { deployments, loading, create, remove } = useDeployments();
@@ -67,7 +68,7 @@ export default function Deployments() {
             </div>
           </div>
           <Button variant="outline" asChild>
-            <Link to="/pricing">{isActive ? "Change plan" : "Choose a plan"}</Link>
+            <Link to={APP_PATHS.billing}>{isActive ? "Change plan" : "Choose a plan"}</Link>
           </Button>
         </Card>
 
@@ -125,7 +126,7 @@ export default function Deployments() {
         {atLimit && isActive && (
           <p className="text-sm text-muted-foreground">
             You've reached your plan's deployment limit.{" "}
-            <Link to="/pricing" className="text-primary underline">Upgrade</Link> to add more.
+            <Link to={APP_PATHS.billing} className="text-primary underline">Upgrade</Link> to add more.
           </p>
         )}
 

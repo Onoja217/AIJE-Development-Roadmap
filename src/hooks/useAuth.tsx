@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notificationService";
 import type { User } from "@supabase/supabase-js";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 /** One sign-in notification per browser session, per user. */
 function notifySignInOnce(user: User) {
@@ -18,7 +19,7 @@ function notifySignInOnce(user: User) {
     priority: "low",
     title: "New sign-in to AIJE",
     body: `Signed in as ${user.email ?? user.id} on ${new Date().toLocaleString()}.`,
-    link: "/profile",
+    link: APP_PATHS.profile,
   });
 }
 

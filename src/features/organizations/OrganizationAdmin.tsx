@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
+import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ import {
   fetchOrganizationSites,
   inviteMember,
   setMemberRoles,
+  setMemberStatus,
 } from "@/features/access/accessApi";
 import {
   ORGANIZATION_ROLES,
@@ -211,6 +213,11 @@ export default function OrganizationAdmin() {
     role: OrganizationRole,
   ) {
     if (!activeOrganization) return;
+    if (
+      !window.confirm(
+        `Change this member's role to ${ROLE_LABELS[role]}? This changes their access immediately.`,
+      )
+    ) return;
     setSubmitting(`role-${membershipId}`);
     try {
       await setMemberRoles({
@@ -231,10 +238,39 @@ export default function OrganizationAdmin() {
     }
   }
 
+  async function handleStatusChange(member: OrganizationMember) {
+    if (!activeOrganization) return;
+    const nextStatus = member.status === "active" ? "suspended" : "active";
+    if (
+      !window.confirm(
+        `${nextStatus === "suspended" ? "Suspend" : "Reactivate"} this membership? Access changes immediately and the action is audited.`,
+      )
+    ) return;
+    setSubmitting(`status-${member.id}`);
+    try {
+      await setMemberStatus({
+        organizationId: activeOrganization.id,
+        membershipId: member.id,
+        status: nextStatus,
+      });
+      await Promise.all([refreshOrganization(), refreshAccess()]);
+      toast({ title: `Membership ${nextStatus}` });
+    } catch (error) {
+      toast({
+        title: "Could not update membership",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-6">
       <Header />
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
+        <RoleResourceLinks />
         <header>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
             Organization Administration
@@ -252,7 +288,9 @@ export default function OrganizationAdmin() {
             <CardContent className="flex items-center gap-3 p-5">
               <Users className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-2xl font-bold">{members.length}</p>
+                <p className="text-2xl font-bold">
+                  {members.filter((member) => member.status === "active").length}
+                </p>
                 <p className="text-sm text-muted-foreground">Active members</p>
               </div>
             </CardContent>
@@ -469,7 +507,10 @@ export default function OrganizationAdmin() {
                               value as OrganizationRole,
                             )
                           }
-                          disabled={submitting === `role-${member.id}`}
+                          disabled={
+                            member.status !== "active" ||
+                            submitting === `role-${member.id}`
+                          }
                         >
                           <SelectTrigger className="h-8 w-[11rem]">
                             <SelectValue />
@@ -482,6 +523,17 @@ export default function OrganizationAdmin() {
                             ))}
                           </SelectContent>
                         </Select>
+                      ) : null}
+                      {canAssignRoles ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={member.status === "active" ? "destructive" : "outline"}
+                          disabled={submitting === `status-${member.id}`}
+                          onClick={() => void handleStatusChange(member)}
+                        >
+                          {member.status === "active" ? "Suspend" : "Reactivate"}
+                        </Button>
                       ) : null}
                       <Badge
                         variant={

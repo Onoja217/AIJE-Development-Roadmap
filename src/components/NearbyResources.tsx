@@ -15,6 +15,7 @@ import {
 
 import { useResources, useUserLocation } from "@/hooks/useResources";
 import { sortByDistance } from "@/lib/resourceUtils";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 import { Button } from "@/components/ui/button";
 
@@ -94,7 +95,7 @@ export function NearbyResources() {
           size="sm"
           variant="outline"
         >
-          <Link to="/resources">View All</Link>
+          <Link to={APP_PATHS.emergencyResources}>View All</Link>
         </Button>
       </CardHeader>
 
@@ -214,7 +215,7 @@ export function NearbyResources() {
                     size="sm"
                     variant="ghost"
                   >
-                    <Link to="/resources">
+                    <Link to={APP_PATHS.emergencyResources}>
                       Open
                     </Link>
                   </Button>

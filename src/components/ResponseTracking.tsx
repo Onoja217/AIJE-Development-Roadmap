@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { Incident, IncidentStatus } from "../types/incident";
+import { getNextIncidentStatus } from "@/lib/incidentLifecycle";
 
 interface ResponseTrackingProps {
   incident: Incident;
@@ -12,32 +13,32 @@ interface ResponseTrackingProps {
   onAssignResponder: (id: string, responder: string) => void;
 }
 
-const NEXT_STATUS: Record<IncidentStatus, IncidentStatus | null> = {
-  pending: "verified",
-  verified: "responding",
-  responding: "resolved",
-  resolved: null,
-};
-
 const NEXT_STATUS_LABEL: Record<IncidentStatus, string> = {
   pending: "Mark Verified",
-  verified: "Mark Responding",
+  verified: "Dispatch Response",
+  dispatched: "Acknowledge Dispatch",
+  acknowledged: "Start Response",
   responding: "Mark Resolved",
   resolved: "Resolved",
 };
 
-export function ResponseTracking({ incident, onUpdateStatus, onAssignResponder }: ResponseTrackingProps) {
+export function ResponseTracking({
+  incident,
+  onUpdateStatus,
+  onAssignResponder,
+}: ResponseTrackingProps) {
   const [responder, setResponder] = useState(incident.assignedResponder ?? "");
   const [note, setNote] = useState("");
 
-  const nextStatus = NEXT_STATUS[incident.status];
+  const nextStatus = getNextIncidentStatus(incident.status);
 
   function handleAssign() {
     if (responder.trim()) onAssignResponder(incident.id, responder.trim());
   }
 
   function handleAdvanceStatus() {
-    if (nextStatus) onUpdateStatus(incident.id, nextStatus, note.trim() || undefined);
+    if (nextStatus)
+      onUpdateStatus(incident.id, nextStatus, note.trim() || undefined);
     setNote("");
   }
 
@@ -52,7 +53,9 @@ export function ResponseTracking({ incident, onUpdateStatus, onAssignResponder }
             onChange={(e) => setResponder(e.target.value)}
             placeholder="e.g. Vigilante Team Alpha"
           />
-          <Button variant="outline" onClick={handleAssign}>Assign</Button>
+          <Button variant="outline" onClick={handleAssign}>
+            Assign
+          </Button>
         </div>
       </div>
 

@@ -1,8 +1,15 @@
 # AIJE Community Shield
 
+Community emergency coordination infrastructure for reporting, verifying,
+dispatching, acknowledging, and resolving incidents—even where connectivity is
+poor or intermittent.
+
 ## Overview
 
-AIJE Community Shield is an AI-powered community early warning and emergency response platform developed for the Idoma Centenary Plus Hackathon 2026.
+AIJE Community Shield connects residents, verified community operators, and
+response teams in one accountable emergency workflow. AI-assisted detection and
+threat assessment support human decisions; they do not replace verification or
+response ownership.
 
 The platform empowers communities to report emergencies, receive timely alerts, coordinate local response teams, and monitor incidents through an intelligent dashboard, even in areas with poor or intermittent internet connectivity.
 
@@ -14,9 +21,18 @@ To build a safer and more resilient community through AI-powered emergency commu
 
 ---
 
-## Core Features
+## Flagship Workflow
 
-- AI Human Detection & Threat Assessment
+1. A resident or authorized integration reports an incident.
+2. An authorized operator verifies the report.
+3. A response is dispatched to an accountable team.
+4. The team acknowledges the dispatch.
+5. Responders record active response and resolution.
+6. Every transition is attributed in an immutable, organization-scoped audit log.
+
+## Supporting Capabilities
+
+- AI-assisted human detection and threat assessment
 - Citizen Incident Reporting
 - Offline-First Reporting
 - Automatic Data Synchronization
@@ -80,7 +96,7 @@ Collaborators
 - Samuel Omafu
 - Zedick Otokpa
 - Okpe Emmanuel
-- Jireh 
+- Jireh
 - Pius John
 - Owoicho Favour
 - King-Solomon Onoja
@@ -101,7 +117,8 @@ Every contributor should:
 
 ## Current Status
 
-Project is actively under development for the Idoma Centenary Plus Hackathon 2026.
+The platform is in active beta. Demo, staging, stale, unavailable, and verified
+live data are explicitly distinguished in operational views.
 
 ---
 

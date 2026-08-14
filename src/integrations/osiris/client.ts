@@ -15,7 +15,7 @@ const emptyPayload: OsirisIntelligencePayload = {
 };
 
 const createHealth = (
-  overrides: Partial<IntegrationHealth> = {}
+  overrides: Partial<IntegrationHealth> = {},
 ): IntegrationHealth => ({
   provider: "osiris",
   state: "not_configured",
@@ -23,6 +23,7 @@ const createHealth = (
   lastSuccessfulSyncAt: null,
   lastError: null,
   recordsReceived: 0,
+  dataSource: "none",
   ...overrides,
 });
 
@@ -43,6 +44,7 @@ export async function fetchOsirisIntelligence(): Promise<
         lastSyncAt: startedAt,
         lastSuccessfulSyncAt: startedAt,
         recordsReceived: countRecords(osirisDemoPayload),
+        dataSource: "demo",
       }),
     };
   }
@@ -67,11 +69,11 @@ export async function fetchOsirisIntelligence(): Promise<
     const [assessments, hotspots] = await Promise.all([
       fetchIntegrationJson<OsirisIntelligencePayload["assessments"]>(
         config,
-        "/threat-assessments"
+        "/threat-assessments",
       ),
       fetchIntegrationJson<OsirisIntelligencePayload["hotspots"]>(
         config,
-        "/hotspots"
+        "/hotspots",
       ).catch(() => [] as OsirisIntelligencePayload["hotspots"]),
     ]);
 
@@ -87,6 +89,7 @@ export async function fetchOsirisIntelligence(): Promise<
         lastSyncAt: startedAt,
         lastSuccessfulSyncAt: new Date().toISOString(),
         recordsReceived: countRecords(data),
+        dataSource: "live",
       }),
     };
   } catch (error) {
@@ -95,15 +98,13 @@ export async function fetchOsirisIntelligence(): Promise<
         ? error.message
         : "Unknown Osiris integration error";
 
-    // Graceful degradation: fall back to the local demo intelligence set so
-    // downstream panels keep rendering.
     return {
-      data: osirisDemoPayload,
+      data: emptyPayload,
       health: createHealth({
         state: "degraded",
         lastSyncAt: startedAt,
-        lastError: `${message} — falling back to demo dataset`,
-        recordsReceived: countRecords(osirisDemoPayload),
+        lastError: `${message} — live intelligence is unavailable`,
+        recordsReceived: 0,
       }),
     };
   }

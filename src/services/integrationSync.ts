@@ -28,14 +28,11 @@ export interface CommunityIntegrationSnapshot {
   synchronizedAt: string;
 }
 
-export async function synchronizeCommunityIntegrations(): Promise<
-  CommunityIntegrationSnapshot
-> {
-  const [safeBenueResult, osirisResult] =
-    await Promise.allSettled([
-      fetchSafeBenueData(),
-      fetchOsirisIntelligence(),
-    ]);
+export async function synchronizeCommunityIntegrations(): Promise<CommunityIntegrationSnapshot> {
+  const [safeBenueResult, osirisResult] = await Promise.allSettled([
+    fetchSafeBenueData(),
+    fetchOsirisIntelligence(),
+  ]);
 
   const safeBenue =
     safeBenueResult.status === "fulfilled"
@@ -56,6 +53,7 @@ export async function synchronizeCommunityIntegrations(): Promise<
                 ? safeBenueResult.reason.message
                 : "SafeBenue synchronisation failed",
             recordsReceived: 0,
+            dataSource: "none" as const,
           },
         };
 
@@ -77,18 +75,16 @@ export async function synchronizeCommunityIntegrations(): Promise<
                 ? osirisResult.reason.message
                 : "Osiris synchronisation failed",
             recordsReceived: 0,
+            dataSource: "none" as const,
           },
         };
 
-  const mappedIncidents =
-    safeBenue.data.incidents.map(
-      mapSafeBenueIncident
-    );
+  const mappedIncidents = safeBenue.data.incidents.map(mapSafeBenueIncident);
 
   const enrichedIncidents = enrichIncidents(
     mappedIncidents,
     osiris.data.assessments,
-    osiris.data.hotspots
+    osiris.data.hotspots,
   );
 
   return {

@@ -89,6 +89,22 @@ export async function setMemberRoles(input: {
   if (error) throw error;
 }
 
+export async function setMemberStatus(input: {
+  organizationId: string;
+  membershipId: string;
+  status: "active" | "suspended";
+}) {
+  const { error } = await accessClient.rpc(
+    "set_organization_membership_status",
+    {
+      _organization_id: input.organizationId,
+      _membership_id: input.membershipId,
+      _status: input.status,
+    },
+  );
+  if (error) throw error;
+}
+
 export async function fetchOrganizationSites(
   organizationId: string,
 ): Promise<OrganizationSite[]> {

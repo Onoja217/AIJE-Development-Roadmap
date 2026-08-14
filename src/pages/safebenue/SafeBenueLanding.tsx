@@ -3,6 +3,7 @@ import { Bell, CloudOff, HeartHandshake, Siren } from "lucide-react";
 import { SafeBenueLayout } from "@/components/safebenue/SafeBenueLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APP_PATHS } from "@/features/navigation/navigationConfig";
 
 const pillars = [
   {
@@ -58,10 +59,10 @@ export default function SafeBenueLanding() {
 
       <section className="flex flex-wrap gap-3" aria-label="SafeBenue quick links">
         <Button asChild>
-          <Link to="/safebenue/dashboard">Open SafeBenue dashboard</Link>
+          <Link to={APP_PATHS.safeBenueDashboard}>Open SafeBenue dashboard</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link to="/safebenue/reports">Submit a report</Link>
+          <Link to={APP_PATHS.safeBenueReports}>Submit a report</Link>
         </Button>
       </section>
     </SafeBenueLayout>

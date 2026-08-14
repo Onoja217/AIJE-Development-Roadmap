@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlans, useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { cn, getErrorMessage } from "@/lib/utils";
+import { cn, getFunctionErrorMessage } from "@/lib/utils";
 
 function formatNGN(kobo: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -26,7 +26,7 @@ export default function Pricing() {
 
   const subscribe = async (planId: string, isCustom: boolean) => {
     if (isCustom) {
-      window.location.href = "mailto:sales@aegis.app?subject=Enterprise%20plan%20inquiry";
+      toast.info("Contact your AIJE platform administrator for an Enterprise plan quote.");
       return;
     }
     if (!user) {
@@ -38,7 +38,7 @@ export default function Pricing() {
       const { data, error } = await supabase.functions.invoke("paystack-initialize", {
         body: {
           plan_id: planId,
-          callback_url: `${window.location.origin}/billing/callback`,
+          callback_url: `${window.location.origin}/account/billing/callback`,
         },
       });
       if (error) throw error;
@@ -50,7 +50,7 @@ export default function Pricing() {
       }
       window.location.href = data.authorization_url;
     } catch (e: unknown) {
-      toast.error(getErrorMessage(e, "Could not start checkout"));
+      toast.error(await getFunctionErrorMessage(e, "Could not start checkout"));
       setPending(null);
     }
   };
@@ -64,7 +64,7 @@ export default function Pricing() {
           </Link>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-semibold tracking-tight">AEGIS Billing</span>
+            <span className="font-semibold tracking-tight">AIJE Billing</span>
           </div>
         </div>
       </header>

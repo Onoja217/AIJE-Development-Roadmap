@@ -30,3 +30,7 @@ supabase/.temp/
 .env.local
 .env.*.local
 *.tar.gz
+
+.vercel
+.env*
+.vercel-prod-audit.env
