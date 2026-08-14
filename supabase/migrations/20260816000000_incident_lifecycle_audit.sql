@@ -9,7 +9,7 @@ ALTER TABLE public.incident_reports
     status IN ('pending', 'verified', 'dispatched', 'acknowledged', 'responding', 'resolved')
   );
 
-CREATE TABLE public.incident_audit_log (
+CREATE TABLE IF NOT EXISTS public.incident_audit_log (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   incident_report_id uuid NOT NULL REFERENCES public.incident_reports(id) ON DELETE CASCADE,
@@ -26,12 +26,13 @@ CREATE TABLE public.incident_audit_log (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX incident_audit_incident_created_idx
+CREATE INDEX IF NOT EXISTS incident_audit_incident_created_idx
   ON public.incident_audit_log(incident_report_id, created_at);
-CREATE INDEX incident_audit_organization_created_idx
+CREATE INDEX IF NOT EXISTS incident_audit_organization_created_idx
   ON public.incident_audit_log(organization_id, created_at DESC);
 
 ALTER TABLE public.incident_audit_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "organization members view incident audit" ON public.incident_audit_log;
 CREATE POLICY "organization members view incident audit"
   ON public.incident_audit_log FOR SELECT TO authenticated
   USING (public.is_organization_member(organization_id));
@@ -45,6 +46,7 @@ BEGIN
 END
 $$;
 
+DROP TRIGGER IF EXISTS incident_audit_immutable ON public.incident_audit_log;
 CREATE TRIGGER incident_audit_immutable
   BEFORE UPDATE OR DELETE ON public.incident_audit_log
   FOR EACH ROW EXECUTE FUNCTION public.prevent_incident_audit_mutation();
