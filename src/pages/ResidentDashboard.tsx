@@ -20,21 +20,24 @@ import { APP_PATHS } from "@/features/navigation/navigationConfig";
 const safetyActions = [
   {
     title: "Report an incident",
-    description: "Send a safety report, including your location and supporting details.",
+    description:
+      "Send a safety report, including your location and supporting details.",
     path: APP_PATHS.incidentReport,
     label: "Create report",
     icon: RadioTower,
   },
   {
     title: "Emergency contacts",
-    description: "Maintain the people and services you may need during an emergency.",
+    description:
+      "Maintain the people and services you may need during an emergency.",
     path: APP_PATHS.emergencyContacts,
     label: "Manage contacts",
     icon: ContactRound,
   },
   {
     title: "Nearby resources",
-    description: "Find verified emergency resources and services near your location.",
+    description:
+      "Find verified emergency resources and services near your location.",
     path: APP_PATHS.emergencyResources,
     label: "View resources",
     icon: MapPinned,
@@ -48,7 +51,8 @@ const safetyActions = [
   },
   {
     title: "My sites",
-    description: "View and manage the personal sites covered by your subscription.",
+    description:
+      "View and manage the personal sites covered by your subscription.",
     path: APP_PATHS.sites,
     label: "Manage sites",
     icon: Server,
@@ -64,6 +68,10 @@ const safetyActions = [
 
 export default function ResidentDashboard() {
   const { activeOrganization } = useAccess();
+  const isHousehold =
+    activeOrganization?.roles.includes("household_owner") ?? false;
+  const accessLabel = isHousehold ? "Household access" : "Resident access";
+  const heading = isHousehold ? "Household Safety" : "My Safety";
 
   return (
     <MuteProvider>
@@ -77,12 +85,16 @@ export default function ResidentDashboard() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                  Resident access
+                  {accessLabel}
                 </p>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight">My Safety</h1>
+                <h1 className="mt-1 text-3xl font-bold tracking-tight">
+                  {heading}
+                </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Use your personal safety tools, report incidents, and manage the information
-                  connected to {activeOrganization?.name ?? "your workspace"}.
+                  {isHousehold
+                    ? "Manage household safety, protected sites, cameras, incidents and emergency information connected to "
+                    : "Use your personal safety tools, report incidents, and manage the information connected to "}
+                  {activeOrganization?.name ?? "your workspace"}.
                 </p>
               </div>
             </div>
@@ -91,14 +103,23 @@ export default function ResidentDashboard() {
           <RoleResourceLinks />
 
           <section aria-labelledby="safety-actions-title">
-            <h2 id="safety-actions-title" className="mb-4 text-xl font-semibold">
+            <h2
+              id="safety-actions-title"
+              className="mb-4 text-xl font-semibold"
+            >
               Safety tools
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {safetyActions.map((action) => (
-                <Card key={action.path} className="flex h-full flex-col border-border">
+                <Card
+                  key={action.path}
+                  className="flex h-full flex-col border-border"
+                >
                   <CardHeader>
-                    <action.icon className="mb-2 h-6 w-6 text-primary" aria-hidden="true" />
+                    <action.icon
+                      className="mb-2 h-6 w-6 text-primary"
+                      aria-hidden="true"
+                    />
                     <CardTitle className="text-lg">{action.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col gap-5">
