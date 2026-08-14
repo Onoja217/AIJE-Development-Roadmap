@@ -96,7 +96,7 @@ Collaborators
 - Samuel Omafu
 - Zedick Otokpa
 - Okpe Emmanuel
-- Jireh 
+- Jireh
 - Pius John
 - Owoicho Favour
 - King-Solomon Onoja
