@@ -66,7 +66,7 @@ export function LeafletMap({
   return (
     <div
       className={[
-        "relative h-80 w-full overflow-hidden rounded-md border bg-muted",
+        "relative z-0 h-80 w-full overflow-hidden rounded-md border bg-muted",
         className,
       ]
         .filter(Boolean)
