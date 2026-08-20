@@ -108,6 +108,7 @@ export function EmergencyResourceMap() {
         <TabsContent value="map">
           <ResourceMap
             resources={displayed}
+            userLocation={location}
             onSelect={setSelected}
           />
         </TabsContent>

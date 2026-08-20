@@ -15,36 +15,84 @@ const RESOURCE_STYLES: Record<
   }
 > = {
   hospital: {
-    color: "#2563eb",
-    label: "Hospital",
-  },
-  hospitals: {
-    color: "#2563eb",
-    label: "Hospital",
-  },
-  police: {
-    color: "#4f46e5",
-    label: "Police",
-  },
-  fire: {
     color: "#dc2626",
+    label: "Hospital",
+  },
+  clinic: {
+    color: "#e11d48",
+    label: "Clinic",
+  },
+  police_station: {
+    color: "#4f46e5",
+    label: "Police Station",
+  },
+  military_base: {
+    color: "#334155",
+    label: "Military Base",
+  },
+  civil_defence: {
+    color: "#4338ca",
+    label: "Civil Defence",
+  },
+  fire_service: {
+    color: "#ea580c",
     label: "Fire Service",
   },
-  shelter: {
+  ambulance_service: {
+    color: "#ef4444",
+    label: "Ambulance",
+  },
+  safe_shelter: {
     color: "#16a34a",
-    label: "Shelter",
+    label: "Safe Shelter",
   },
-  shelters: {
-    color: "#16a34a",
-    label: "Shelter",
+  idp_camp: {
+    color: "#ca8a04",
+    label: "IDP Camp",
   },
-  warehouse: {
-    color: "#ea580c",
-    label: "Warehouse",
+  food_distribution: {
+    color: "#d97706",
+    label: "Food Centre",
   },
-  warehouses: {
-    color: "#ea580c",
-    label: "Warehouse",
+  water_point: {
+    color: "#0891b2",
+    label: "Water Point",
+  },
+  relief_warehouse: {
+    color: "#57534e",
+    label: "Relief Warehouse",
+  },
+  community_hall: {
+    color: "#0d9488",
+    label: "Community Hall",
+  },
+  lg_emergency_office: {
+    color: "#9333ea",
+    label: "LG Emergency Office",
+  },
+  blood_bank: {
+    color: "#b91c1c",
+    label: "Blood Bank",
+  },
+  pharmacy: {
+    color: "#059669",
+    label: "Pharmacy",
+  },
+  rescue_station: {
+    color: "#0284c7",
+    label: "Rescue Station",
+  },
+  evacuation_point: {
+    color: "#4d7c0f",
+    label: "Evacuation Point",
+  },
+  watch_group_base: {
+    color: "#3f3f46",
+    label: "Watch Group Base",
+  },
+  command_centre: {
+    color: "#7e22ce",
+    label: "Command Centre",
   },
 };
 

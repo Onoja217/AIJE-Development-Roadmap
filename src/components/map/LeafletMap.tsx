@@ -4,7 +4,9 @@ import type {
   LatLngExpression,
 } from "leaflet";
 import {
+  CircleMarker,
   MapContainer,
+  Popup,
   TileLayer,
   useMap,
 } from "react-leaflet";
@@ -26,6 +28,7 @@ interface LeafletMapProps {
   center?: LatLngExpression;
   zoom?: number;
   className?: string;
+  userLocation?: { lat: number; lng: number } | null;
   onSelectIncident?: (incident: Incident) => void;
   onSelectResource?: (resource: EmergencyResource) => void;
 }
@@ -56,6 +59,7 @@ export function LeafletMap({
   center = BENUE_STATE_CENTER,
   zoom = 8,
   className = "",
+  userLocation,
   onSelectIncident,
   onSelectResource,
 }: LeafletMapProps) {
@@ -91,6 +95,26 @@ export function LeafletMap({
           resources={resources}
           onSelect={onSelectResource}
         />
+
+        {userLocation && (
+          <CircleMarker
+            center={[userLocation.lat, userLocation.lng]}
+            radius={9}
+            pathOptions={{
+              color: "#ffffff",
+              weight: 3,
+              fillColor: "#2563eb",
+              fillOpacity: 1,
+            }}
+          >
+            <Popup>
+              <p className="font-semibold">Your location</p>
+              <p className="text-xs text-gray-500">
+                Used only to find nearby emergency resources.
+              </p>
+            </Popup>
+          </CircleMarker>
+        )}
 
         {/* Auto Zoom */}
         <FitMapBounds bounds={bounds} />
