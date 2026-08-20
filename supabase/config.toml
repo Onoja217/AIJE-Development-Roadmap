@@ -3,6 +3,9 @@ project_id = "sznafsdzdwiwhcgrfzcb"
 [functions.paystack-webhook]
 verify_jwt = false
 
+[functions.sensor-gateway]
+verify_jwt = false
+
 [functions.paystack-initialize]
 verify_jwt = true
 
@@ -23,4 +26,3 @@ verify_jwt = true
 
 [functions.escalate-community-alerts]
 verify_jwt = false
-

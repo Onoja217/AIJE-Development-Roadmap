@@ -7,7 +7,6 @@
 //   3. the subscriptions row for the user becomes "active"
 //   4. a webhook_deliveries "ok" entry is recorded
 
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
   assert,
@@ -83,9 +82,20 @@ Deno.test({
       deadLetterId = dl.id;
 
       // 2) Trigger the retry worker.
+      const { data: cronSecret, error: cronSecretError } = await admin
+        .from("internal_cron_secrets")
+        .select("secret")
+        .eq("name", "scheduled_functions")
+        .single();
+      if (cronSecretError) throw cronSecretError;
+
       const runRes = await fetch(`${FN_BASE}/paystack-webhook-retry`, {
         method: "POST",
-        headers: { apikey: ANON, "Content-Type": "application/json" },
+        headers: {
+          apikey: ANON,
+          "Content-Type": "application/json",
+          "x-cron-secret": cronSecret.secret,
+        },
       });
       const runJson = await runRes.json();
       assertEquals(

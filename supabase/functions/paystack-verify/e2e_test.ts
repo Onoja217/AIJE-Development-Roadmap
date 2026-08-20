@@ -11,7 +11,6 @@
 // Requires (all available in edge-function env):
 //   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PAYSTACK_SECRET_KEY
 
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { createHmac } from "node:crypto";
 import {
@@ -77,7 +76,8 @@ Deno.test({
         },
         body: JSON.stringify({
           plan_id: plan.id,
-          callback_url: "https://example.com/billing/callback",
+          callback_url:
+            "https://guardian-pulse-one.vercel.app/billing/callback",
         }),
       });
       const initJson = await initRes.json();
