@@ -1,11 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { createHmac } from "node:crypto";
 import { processPaystackEvent } from "../_shared/paystack-handler.ts";
 import { logJson, recordDelivery } from "../_shared/structured-log.ts";
 import {
   loadPaystackSecretKey,
   logPaystackMode,
 } from "../_shared/paystack-key.ts";
+import {
+  isValidPaystackSignature,
+  MAX_PAYSTACK_WEBHOOK_BYTES,
+} from "../_shared/paystack-signature.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +19,18 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST")
+    return new Response("method not allowed", {
+      status: 405,
+      headers: { ...corsHeaders, Allow: "POST" },
+    });
+
+  const contentLength = Number(req.headers.get("content-length") ?? "0");
+  if (contentLength > MAX_PAYSTACK_WEBHOOK_BYTES)
+    return new Response("request too large", {
+      status: 413,
+      headers: corsHeaders,
+    });
 
   const started = Date.now();
   let keyInfo;
@@ -38,36 +53,22 @@ Deno.serve(async (req) => {
   );
 
   const raw = await req.text();
+  if (new TextEncoder().encode(raw).byteLength > MAX_PAYSTACK_WEBHOOK_BYTES)
+    return new Response("request too large", {
+      status: 413,
+      headers: corsHeaders,
+    });
   const sig = req.headers.get("x-paystack-signature") ?? "";
-  const computed = createHmac("sha512", PAYSTACK_SECRET_KEY)
-    .update(raw)
-    .digest("hex");
-
-  if (computed !== sig) {
+  const signatureValid = isValidPaystackSignature(
+    raw,
+    sig,
+    PAYSTACK_SECRET_KEY,
+  );
+  if (!signatureValid) {
     const latency = Date.now() - started;
     logJson("warn", "paystack.webhook.invalid_signature", {
       source: "paystack",
       latency_ms: latency,
-    });
-    await admin.from("webhook_dead_letter").insert({
-      source: "paystack",
-      event_type: null,
-      reference: null,
-      payload: safeJson(raw),
-      signature: sig,
-      error: "invalid signature",
-      status: "abandoned",
-      attempts: 1,
-      last_attempt_at: new Date().toISOString(),
-    });
-    await recordDelivery(admin, {
-      source: "paystack",
-      event_type: null,
-      reference: null,
-      attempt: 1,
-      status: "invalid_signature",
-      latency_ms: latency,
-      error: "invalid signature",
     });
     return new Response("invalid signature", { status: 401 });
   }
@@ -127,7 +128,7 @@ Deno.serve(async (req) => {
       event_type: evt?.event ?? null,
       reference: evt?.data?.reference ?? null,
       payload: evt,
-      signature: sig,
+      signature: null,
       error: msg,
       status: "pending",
       attempts: 1,
@@ -150,11 +151,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-
-function safeJson(s: string) {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return { raw: s.slice(0, 4000) };
-  }
-}
