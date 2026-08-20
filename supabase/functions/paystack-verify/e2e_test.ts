@@ -76,7 +76,8 @@ Deno.test({
         },
         body: JSON.stringify({
           plan_id: plan.id,
-          callback_url: "https://example.com/billing/callback",
+          callback_url:
+            "https://guardian-pulse-one.vercel.app/billing/callback",
         }),
       });
       const initJson = await initRes.json();
