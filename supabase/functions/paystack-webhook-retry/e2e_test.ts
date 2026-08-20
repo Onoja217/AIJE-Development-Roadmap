@@ -7,7 +7,6 @@
 //   3. the subscriptions row for the user becomes "active"
 //   4. a webhook_deliveries "ok" entry is recorded
 
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
   assert,
