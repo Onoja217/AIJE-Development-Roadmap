@@ -25,9 +25,15 @@ describe("role navigation boundaries", () => {
       [APP_PATHS.operations, APP_PATHS.intelligence],
     ],
     [
+      "household owner",
+      ["incidents.create", "sensors.view", "sensors.manage"],
+      [APP_PATHS.safety, APP_PATHS.householdSensors],
+      [APP_PATHS.operations, APP_PATHS.platform],
+    ],
+    [
       "security operator",
-      ["cameras.view", "incidents.respond"],
-      [APP_PATHS.cameras],
+      ["cameras.view", "sensors.view", "incidents.respond"],
+      [APP_PATHS.cameras, APP_PATHS.householdSensors],
       [APP_PATHS.operations, APP_PATHS.intelligence],
     ],
     [

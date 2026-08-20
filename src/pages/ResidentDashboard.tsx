@@ -16,6 +16,7 @@ import { useAccess } from "@/features/access/AccessProvider";
 import { RoleResourceLinks } from "@/features/access/RoleResourceLinks";
 import { MuteProvider } from "@/hooks/useMute";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
+import { HouseholdSensorSummary } from "@/features/household-sensors/HouseholdSensorSummary";
 
 const safetyActions = [
   {
@@ -101,6 +102,10 @@ export default function ResidentDashboard() {
           </section>
 
           <RoleResourceLinks />
+
+          {isHousehold && activeOrganization ? (
+            <HouseholdSensorSummary organizationId={activeOrganization.id} />
+          ) : null}
 
           <section aria-labelledby="safety-actions-title">
             <h2

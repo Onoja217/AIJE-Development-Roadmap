@@ -36,6 +36,7 @@ export const APP_PATHS = {
   operations: "/operations",
   cameras: "/operations/cameras",
   sensors: "/operations/sensors",
+  householdSensors: "/safety/sensors",
   detection: "/operations/detection",
   faces: "/operations/faces",
   intelligence: "/intelligence/osiris",
@@ -80,55 +81,132 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     domain: "Personal safety",
     items: [
       { title: "My Safety", path: APP_PATHS.safety, icon: ShieldCheck },
-      { title: "Report incident", path: APP_PATHS.incidentReport, icon: FileWarning },
-      { title: "Emergency contacts", path: APP_PATHS.emergencyContacts, icon: ContactRound },
-      { title: "Emergency resources", path: APP_PATHS.emergencyResources, icon: MapPinned },
+      {
+        title: "Report incident",
+        path: APP_PATHS.incidentReport,
+        icon: FileWarning,
+      },
+      {
+        title: "Emergency contacts",
+        path: APP_PATHS.emergencyContacts,
+        icon: ContactRound,
+      },
+      {
+        title: "Emergency resources",
+        path: APP_PATHS.emergencyResources,
+        icon: MapPinned,
+      },
       { title: "Notifications", path: APP_PATHS.notifications, icon: Bell },
+      {
+        title: "Sensor hub",
+        path: APP_PATHS.householdSensors,
+        icon: RadioTower,
+        anyOf: ["sensors.view", "sensors.manage"],
+      },
     ],
   },
   {
     domain: "Security operations",
     items: [
-      { title: "Operations", path: APP_PATHS.operations, icon: Settings, anyOf: ["cameras.manage"] },
-      { title: "Cameras", path: APP_PATHS.cameras, icon: Camera, anyOf: ["cameras.view", "cameras.manage"] },
-      { title: "Sensors", path: APP_PATHS.sensors, icon: RadioTower, anyOf: ["cameras.view", "cameras.manage"] },
-      { title: "Detection", path: APP_PATHS.detection, icon: ScanEye, anyOf: ["cameras.view"] },
-      { title: "Recognized persons", path: APP_PATHS.faces, icon: ScanFace, anyOf: ["cameras.manage"] },
+      {
+        title: "Operations",
+        path: APP_PATHS.operations,
+        icon: Settings,
+        anyOf: ["cameras.manage"],
+      },
+      {
+        title: "Cameras",
+        path: APP_PATHS.cameras,
+        icon: Camera,
+        anyOf: ["cameras.view", "cameras.manage"],
+      },
+      {
+        title: "Detection",
+        path: APP_PATHS.detection,
+        icon: ScanEye,
+        anyOf: ["cameras.view"],
+      },
+      {
+        title: "Recognized persons",
+        path: APP_PATHS.faces,
+        icon: ScanFace,
+        anyOf: ["cameras.manage"],
+      },
     ],
   },
   {
     domain: "Intelligence",
     items: [
-      { title: "Osiris Intelligence", path: APP_PATHS.intelligence, icon: BrainCircuit, anyOf: ["intelligence.view"] },
+      {
+        title: "Osiris Intelligence",
+        path: APP_PATHS.intelligence,
+        icon: BrainCircuit,
+        anyOf: ["intelligence.view"],
+      },
     ],
   },
   {
     domain: "Community safety",
     items: [
-      { title: "Community operations", path: APP_PATHS.community, icon: Users, anyOf: ["alerts.dispatch", "incidents.respond", "reports.verify"] },
-      { title: "Community alerts", path: APP_PATHS.communityAlerts, icon: BellRing, anyOf: ["alerts.dispatch"] },
+      {
+        title: "Community operations",
+        path: APP_PATHS.community,
+        icon: Users,
+        anyOf: ["alerts.dispatch", "incidents.respond", "reports.verify"],
+      },
+      {
+        title: "Community alerts",
+        path: APP_PATHS.communityAlerts,
+        icon: BellRing,
+        anyOf: ["alerts.dispatch"],
+      },
       { title: "SafeBenue", path: APP_PATHS.safeBenue, icon: LifeBuoy },
     ],
   },
   {
     domain: "Organization",
     items: [
-      { title: "Organization administration", path: APP_PATHS.organization, icon: Building2, anyOf: ["organization.manage"] },
+      {
+        title: "Organization administration",
+        path: APP_PATHS.organization,
+        icon: Building2,
+        anyOf: ["organization.manage"],
+      },
     ],
   },
   {
     domain: "Platform",
     items: [
-      { title: "Platform administration", path: APP_PATHS.platform, icon: ShieldCheck, platformOnly: true },
-      { title: "Webhook observability", path: APP_PATHS.webhooks, icon: Webhook, platformOnly: true },
+      {
+        title: "Platform administration",
+        path: APP_PATHS.platform,
+        icon: ShieldCheck,
+        platformOnly: true,
+      },
+      {
+        title: "Webhook observability",
+        path: APP_PATHS.webhooks,
+        icon: Webhook,
+        platformOnly: true,
+      },
     ],
   },
   {
     domain: "Account",
     items: [
       { title: "My profile", path: APP_PATHS.profile, icon: CircleUserRound },
-      { title: "Sites and deployments", path: APP_PATHS.sites, icon: Server, anyOf: ["sites.manage"] },
-      { title: "Plans and billing", path: APP_PATHS.billing, icon: CreditCard, anyOf: ["billing.manage"] },
+      {
+        title: "Sites and deployments",
+        path: APP_PATHS.sites,
+        icon: Server,
+        anyOf: ["sites.manage"],
+      },
+      {
+        title: "Plans and billing",
+        path: APP_PATHS.billing,
+        icon: CreditCard,
+        anyOf: ["billing.manage"],
+      },
     ],
   },
 ];

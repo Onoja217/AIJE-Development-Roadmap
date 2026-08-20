@@ -5,6 +5,8 @@ export const PERMISSIONS = [
   "sites.manage",
   "cameras.view",
   "cameras.manage",
+  "sensors.view",
+  "sensors.manage",
   "alerts.dispatch",
   "alerts.resolve",
   "incidents.create",
