@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 export const MAX_PAYSTACK_WEBHOOK_BYTES = 1_000_000;
 
