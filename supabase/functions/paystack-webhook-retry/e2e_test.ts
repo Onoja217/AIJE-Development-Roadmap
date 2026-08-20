@@ -82,9 +82,20 @@ Deno.test({
       deadLetterId = dl.id;
 
       // 2) Trigger the retry worker.
+      const { data: cronSecret, error: cronSecretError } = await admin
+        .from("internal_cron_secrets")
+        .select("secret")
+        .eq("name", "scheduled_functions")
+        .single();
+      if (cronSecretError) throw cronSecretError;
+
       const runRes = await fetch(`${FN_BASE}/paystack-webhook-retry`, {
         method: "POST",
-        headers: { apikey: ANON, "Content-Type": "application/json" },
+        headers: {
+          apikey: ANON,
+          "Content-Type": "application/json",
+          "x-cron-secret": cronSecret.secret,
+        },
       });
       const runJson = await runRes.json();
       assertEquals(
