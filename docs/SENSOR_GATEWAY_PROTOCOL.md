@@ -1,5 +1,5 @@
 # AIJE Sensor Gateway Protocol v1
-
+ 
 Physical household gateways enroll once, then authenticate every message with an Ed25519 signature. Private keys remain on the gateway; AIJE stores only the public key.
 
 ## Enrollment
