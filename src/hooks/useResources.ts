@@ -6,12 +6,14 @@ import {
 
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
 import { mapSafeBenueResource } from "@/integrations/safebenue/mapper";
+import { mapOsirisHotspotToResource } from "@/integrations/osiris/mapper";
 
 import type { EmergencyResource } from "@/types/resource";
 
 interface UseResourcesResult {
   resources: EmergencyResource[];
   isLoading: boolean;
+  source: "safebenue" | "osiris" | "none";
 }
 
 export function useResources(): UseResourcesResult {
@@ -20,19 +22,34 @@ export function useResources(): UseResourcesResult {
     isLoading,
   } = useCommunityIntegration();
 
-  const resources = useMemo<EmergencyResource[]>(() => {
+  const { resources, source } = useMemo<
+    Pick<UseResourcesResult, "resources" | "source">
+  >(() => {
     if (!snapshot) {
-      return [];
+      return { resources: [], source: "none" };
     }
 
-    return snapshot.safeBenue.resources.map(
-      mapSafeBenueResource
-    );
+    if (snapshot.safeBenue.resources.length > 0) {
+      return {
+        resources: snapshot.safeBenue.resources.map(mapSafeBenueResource),
+        source: "safebenue",
+      };
+    }
+
+    if (snapshot.osiris.hotspots.length > 0) {
+      return {
+        resources: snapshot.osiris.hotspots.map(mapOsirisHotspotToResource),
+        source: "osiris",
+      };
+    }
+
+    return { resources: [], source: "none" };
   }, [snapshot]);
 
   return {
     resources,
     isLoading,
+    source,
   };
 }
 
