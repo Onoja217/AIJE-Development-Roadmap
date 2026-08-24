@@ -1,8 +1,11 @@
-import type { LatLngBoundsExpression } from "leaflet";
-import { LocateFixed, MapPin } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 
 import { LeafletMap } from "@/components/map/LeafletMap";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  IDOMA_LAND_CENTER,
+  getIdomaFocusedMapBounds,
+} from "@/lib/idomaLand";
 import type { EmergencyResource } from "@/types/resource";
 
 interface UserLocation {
@@ -16,49 +19,12 @@ interface ResourceMapProps {
   onSelect: (resource: EmergencyResource) => void;
 }
 
-function getMapBounds(
-  resources: EmergencyResource[],
-  userLocation?: UserLocation | null,
-): LatLngBoundsExpression | undefined {
-  const points = resources
-    .filter(
-      (resource) =>
-        Number.isFinite(resource.lat) && Number.isFinite(resource.lng),
-    )
-    .map((resource) => [resource.lat, resource.lng] as [number, number]);
-
-  if (userLocation) {
-    points.push([userLocation.lat, userLocation.lng]);
-  }
-
-  return points.length > 0 ? points : undefined;
-}
-
 export function ResourceMap({
   resources,
   userLocation,
   onSelect,
 }: ResourceMapProps) {
-  const bounds = getMapBounds(resources, userLocation);
-
-  if (!bounds) {
-    return (
-      <Card>
-        <CardContent className="px-6 py-12 text-center">
-          <MapPin
-            className="mx-auto h-8 w-8 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <p className="mt-3 text-sm font-medium">
-            No mapped resources found
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Change the filters or share your location to open the map.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const bounds = getIdomaFocusedMapBounds(resources, userLocation);
 
   return (
     <Card className="overflow-hidden">
@@ -68,6 +34,8 @@ export function ResourceMap({
             resources={resources}
             userLocation={userLocation}
             bounds={bounds}
+            center={IDOMA_LAND_CENTER}
+            zoom={9}
             className="h-[28rem] rounded-none border-0"
             onSelectResource={onSelect}
           />
@@ -77,7 +45,7 @@ export function ResourceMap({
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Live resource map
+            Idoma land resource focus · Benue State
           </div>
 
           {userLocation && (

@@ -52,7 +52,7 @@ export function EmergencyResourceMap() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-bold">
-          Emergency Resource Map
+          Idoma Land Emergency Resource Map
         </h1>
 
         <Button
@@ -68,6 +68,11 @@ export function EmergencyResourceMap() {
             : "📍 Show nearest to me"}
         </Button>
       </div>
+
+      <p className="text-sm text-muted-foreground">
+        Prioritising emergency facilities and risk intelligence across Idoma
+        communities in southern Benue State.
+      </p>
 
       {source === "osiris" && (
         <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
