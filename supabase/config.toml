@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.escalate-community-alerts]
 verify_jwt = false
+
+[functions.osiris-adapter]
+verify_jwt = false
