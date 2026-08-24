@@ -21,7 +21,7 @@ import type {
 } from "../types/resource";
 
 export function EmergencyResourceMap() {
-  const { resources, isLoading } = useResources();
+  const { resources, isLoading, source } = useResources();
   const {
     location,
     status: locationStatus,
@@ -68,6 +68,14 @@ export function EmergencyResourceMap() {
             : "📍 Show nearest to me"}
         </Button>
       </div>
+
+      {source === "osiris" && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          SafeBenue facilities are currently unavailable. The map is showing
+          Osiris risk hotspots for situational awareness; these markers are not
+          emergency facilities.
+        </div>
+      )}
 
       {/* Statistics Dashboard */}
       <ResourceStats resources={resources} />
