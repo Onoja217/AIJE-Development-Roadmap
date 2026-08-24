@@ -59,6 +59,7 @@ const LOGIN_CATEGORIES = [
     title: "Platform Admin",
     description: "Platform operations, moderation, health and security audit",
     icon: ShieldCheck,
+    invitationOnly: true,
   },
 ] as const;
 
@@ -106,6 +107,11 @@ export default function Auth() {
         if (error) throw error;
         navigate("/", { replace: true });
       } else {
+        if (category === "platform_admin") {
+          throw new Error(
+            "Platform Administrator access is invitation-only. Sign in with an assigned account or contact the platform owner.",
+          );
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -389,9 +395,12 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setMode("signup")}
+                    disabled={category === "platform_admin"}
                     className="text-primary hover:underline"
                   >
-                    Sign up
+                    {category === "platform_admin"
+                      ? "Invitation required"
+                      : "Sign up"}
                   </button>
                 </>
               ) : (

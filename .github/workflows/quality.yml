@@ -12,6 +12,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      VITE_DEPLOYMENT_ENV: staging
+      VITE_COMMUNITY_SYNC_MODE: demo
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

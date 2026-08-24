@@ -4,7 +4,7 @@ import { APP_PATHS } from "@/features/navigation/navigationConfig";
 export const ROLE_HOME_PATHS = {
   resident: APP_PATHS.safety,
   household_owner: APP_PATHS.safety,
-  security_operator: APP_PATHS.operations,
+  security_operator: APP_PATHS.cameras,
   community_leader: APP_PATHS.community,
   responder: APP_PATHS.community,
   moderator: APP_PATHS.community,

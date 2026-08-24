@@ -72,6 +72,24 @@ describe("hasOrganizationPermission", () => {
 });
 
 describe("getPostLoginPath", () => {
+  it.each([
+    ["resident", APP_PATHS.safety],
+    ["household_owner", APP_PATHS.safety],
+    ["security_operator", APP_PATHS.cameras],
+    ["community_leader", APP_PATHS.community],
+    ["responder", APP_PATHS.community],
+    ["moderator", APP_PATHS.community],
+    ["organization_admin", APP_PATHS.organization],
+  ])("routes %s to an authorized landing page", (role, expectedPath) => {
+    const organization: OrganizationAccess = {
+      ...organizations[0],
+      roles: [role],
+    };
+    expect(getPostLoginPath(false, [organization], organization.id)).toBe(
+      expectedPath,
+    );
+  });
+
   it("always routes platform administrators to platform administration", () => {
     expect(getPostLoginPath(true, organizations, "org-operations")).toBe(
       APP_PATHS.platform,
@@ -80,7 +98,7 @@ describe("getPostLoginPath", () => {
 
   it("routes an active security operator to operations", () => {
     expect(getPostLoginPath(false, organizations, "org-operations")).toBe(
-      APP_PATHS.operations,
+      APP_PATHS.cameras,
     );
   });
 
