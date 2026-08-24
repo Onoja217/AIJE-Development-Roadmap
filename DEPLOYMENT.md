@@ -43,11 +43,11 @@ Configure only the providers enabled for that environment:
 
 ## Authenticated lifecycle verification
 
-The manually dispatched `Incident Lifecycle E2E` workflow targets a staging
-operator with verification, dispatch, response, and audit permissions. Configure
-`E2E_OPERATOR_EMAIL`, `E2E_OPERATOR_PASSWORD`, `E2E_ORGANIZATION_ID`, and
-`E2E_OTHER_ORGANIZATION_ID` as GitHub Actions secrets. The two organizations
-must be distinct, and the operator must not belong to the second organization.
+The `Incident Lifecycle E2E` workflow starts an ephemeral local Supabase stack,
+applies every migration, and creates temporary operator and isolation tenants.
+It verifies the complete lifecycle and cross-tenant audit isolation without
+hosted staging resources or persistent test credentials. The stack and fixture
+accounts are destroyed when the job finishes.
 
 ## Branch protection
 
