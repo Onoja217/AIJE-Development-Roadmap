@@ -102,9 +102,9 @@ export default function OsirisIntelligence() {
                 <BrainCircuit className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold md:text-3xl">Osiris Intelligence</h1>
+                <h1 className="text-2xl font-bold md:text-3xl">Osiris Intelligence — Idoma Zone C</h1>
                 <p className="text-sm text-muted-foreground">
-                  Prioritized threat assessments, indicators, hotspots and recommended actions.
+                  Localized threat assessments and hotspots for Benue South, centred on Idoma communities.
                 </p>
               </div>
             </div>
@@ -173,7 +173,7 @@ export default function OsirisIntelligence() {
             {isLoading ? (
               <Card><CardContent className="p-8 text-center text-muted-foreground">Loading intelligence…</CardContent></Card>
             ) : filtered.length === 0 ? (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">No assessments match this filter.</CardContent></Card>
+              <Card><CardContent className="p-8 text-center text-muted-foreground">No matching Zone C assessments are currently reported.</CardContent></Card>
             ) : filtered.map((assessment) => (
               <Card key={assessment.id} className="overflow-hidden">
                 <CardHeader className="gap-3 md:flex-row md:items-start md:justify-between">
@@ -201,7 +201,7 @@ export default function OsirisIntelligence() {
           </TabsContent>
 
           <TabsContent value="hotspots" className="grid gap-4 pt-2 md:grid-cols-2">
-            {hotspots.length === 0 ? <Card className="md:col-span-2"><CardContent className="p-8 text-center text-muted-foreground">No active hotspots reported.</CardContent></Card> : hotspots.map((hotspot) => (
+            {hotspots.length === 0 ? <Card className="md:col-span-2"><CardContent className="p-8 text-center text-muted-foreground">No active Zone C hotspots are currently reported.</CardContent></Card> : hotspots.map((hotspot) => (
               <Card key={hotspot.id}>
                 <CardHeader className="flex-row items-start justify-between gap-3"><div><Badge variant="outline" className={THREAT_STYLES[hotspot.threatLevel]}>{hotspot.threatLevel}</Badge><CardTitle className="mt-2 text-lg">{hotspot.name}</CardTitle></div><div className="text-right"><p className="text-2xl font-bold">{hotspot.riskScore}</p><p className="text-xs text-muted-foreground">Risk score</p></div></CardHeader>
                 <CardContent className="space-y-3"><Progress value={hotspot.riskScore} className="h-2" /><div className="grid grid-cols-3 gap-2 text-center text-sm"><div><p className="font-semibold">{hotspot.incidentCount}</p><p className="text-xs text-muted-foreground">Incidents</p></div><div><p className="font-semibold">{(hotspot.radiusMetres / 1000).toFixed(1)} km</p><p className="text-xs text-muted-foreground">Radius</p></div><div><p className="font-semibold">{hotspot.location.community ?? "Mapped"}</p><p className="text-xs text-muted-foreground">Area</p></div></div><p className="text-xs text-muted-foreground">Updated {formatDate(hotspot.updatedAt)}</p></CardContent>
