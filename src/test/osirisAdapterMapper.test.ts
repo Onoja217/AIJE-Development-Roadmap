@@ -4,7 +4,7 @@ import { mapOsirisFeeds } from "../../supabase/functions/osiris-adapter/mapper";
 const now = "2026-08-24T12:00:00.000Z";
 
 describe("OSIRIS adapter mapper", () => {
-  it("maps only supported regional country-risk records", () => {
+  it("does not present national country risk as Zone C intelligence", () => {
     const result = mapOsirisFeeds({
       now,
       countryRisk: {
@@ -20,13 +20,7 @@ describe("OSIRIS adapter mapper", () => {
         ],
       },
     });
-    expect(result.assessments).toHaveLength(1);
-    expect(result.assessments[0]).toMatchObject({
-      id: "osiris-country-ng",
-      threatLevel: "high",
-      threatScore: 72,
-      indicators: ["civil_unrest"],
-    });
+    expect(result.assessments).toEqual([]);
   });
 
   it("maps regional conflict zones to assessments and hotspots", () => {
@@ -44,11 +38,18 @@ describe("OSIRIS adapter mapper", () => {
             eventCount: 2,
           },
           {
-            id: "outside",
-            label: "OUTSIDE",
+            id: "sahel",
+            label: "SAHEL INSTABILITY",
+            severity: "high",
+            lat: 14,
+            lng: 5,
+          },
+          {
+            id: "outside-zone-c",
+            label: "NORTHERN NIGERIA",
             severity: "war",
-            lat: 48.5,
-            lng: 31.2,
+            lat: 12.5,
+            lng: 9.9,
           },
         ],
       },
@@ -77,6 +78,13 @@ describe("OSIRIS adapter mapper", () => {
             type: "weather",
           },
           { id: "event-2", lat: "7.7", lng: 8.5, name: "Invalid" },
+          {
+            id: "event-3",
+            lat: 12.529,
+            lng: 9.895,
+            name: "Northern Nigeria flood",
+            type: "weather",
+          },
         ],
       },
     });

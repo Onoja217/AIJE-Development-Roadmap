@@ -37,17 +37,9 @@ export interface OsirisHotspot {
 
 type UnknownRecord = Record<string, unknown>;
 
-const REGION = { minLat: 2, maxLat: 16, minLng: 2, maxLng: 15 };
-const COUNTRY_CENTRES: Record<
-  string,
-  { name: string; latitude: number; longitude: number }
-> = {
-  NG: { name: "Nigeria", latitude: 9.082, longitude: 8.6753 },
-  BJ: { name: "Benin", latitude: 9.3077, longitude: 2.3158 },
-  NE: { name: "Niger", latitude: 17.6078, longitude: 8.0817 },
-  TD: { name: "Chad", latitude: 15.4542, longitude: 18.7322 },
-  CM: { name: "Cameroon", latitude: 7.3697, longitude: 12.3547 },
-};
+// Operational focus: Benue South Senatorial District (Zone C). This bounding
+// envelope covers its nine LGAs while rejecting broad Nigeria/Sahel signals.
+const REGION = { minLat: 6.45, maxLat: 8.05, minLng: 7.45, maxLng: 8.95 };
 
 const record = (value: unknown): UnknownRecord | null =>
   value !== null && typeof value === "object" && !Array.isArray(value)
@@ -72,9 +64,6 @@ const timestamp = (value: unknown, fallback: string) => {
     : fallback;
 };
 
-const clampScore = (value: number) =>
-  Math.max(0, Math.min(100, Math.round(value)));
-
 const levelFromScore = (score: number): ThreatLevel => {
   if (score >= 85) return "critical";
   if (score >= 70) return "high";
@@ -94,23 +83,6 @@ const stripHtml = (value: string) =>
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-
-const riskLevel = (value: unknown, score: number): ThreatLevel => {
-  switch (text(value).toUpperCase()) {
-    case "CRITICAL":
-      return "critical";
-    case "HIGH":
-      return "high";
-    case "ELEVATED":
-      return "elevated";
-    case "GUARDED":
-      return "guarded";
-    case "LOW":
-      return "low";
-    default:
-      return levelFromScore(score);
-  }
-};
 
 const severityScore = (value: unknown) => {
   switch (text(value).toLowerCase()) {
@@ -158,38 +130,9 @@ export function mapOsirisFeeds(input: MapInput): {
   const assessments: OsirisAssessment[] = [];
   const hotspots: OsirisHotspot[] = [];
 
-  const countryPayload = record(input.countryRisk);
-  for (const country of records(countryPayload?.countries)) {
-    const code = text(country.code).toUpperCase();
-    const centre = COUNTRY_CENTRES[code];
-    if (!centre) continue;
-    const score = clampScore(number(country.risk_score) ?? 0);
-    const indicators = Array.isArray(country.tags)
-      ? country.tags.map((tag) => text(tag)).filter(Boolean)
-      : [];
-    const generatedAt = timestamp(countryPayload?.timestamp, now);
-    assessments.push({
-      id: `osiris-country-${code.toLowerCase()}`,
-      title: `${centre.name} country risk`,
-      summary: indicators.length
-        ? `OSIRIS country-risk indicators: ${indicators.join(", ")}.`
-        : "OSIRIS country-risk assessment.",
-      threatLevel: riskLevel(country.risk_level, score),
-      threatScore: score,
-      confidence: 0.8,
-      location: {
-        latitude: centre.latitude,
-        longitude: centre.longitude,
-        address: centre.name,
-      },
-      indicators,
-      recommendations: [
-        "Confirm material changes with local authorities and a second intelligence source.",
-      ],
-      generatedAt,
-      expiresAt,
-    });
-  }
+  // Country-risk records have no Zone C coordinates. Presenting a Nigeria-wide
+  // score as local intelligence would be misleading, so only geolocated feeds
+  // are eligible for the operational snapshot.
 
   const conflictPayload = record(input.conflicts);
   for (const zone of records(conflictPayload?.zones)) {
