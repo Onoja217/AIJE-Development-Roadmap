@@ -7,6 +7,7 @@ import {
 import { useCommunityIntegration } from "@/contexts/CommunityIntegrationContext";
 import { mapSafeBenueResource } from "@/integrations/safebenue/mapper";
 import { mapOsirisHotspotToResource } from "@/integrations/osiris/mapper";
+import { VERIFIED_IDOMA_RESOURCES } from "@/data/verifiedIdomaResources";
 
 import type { EmergencyResource } from "@/types/resource";
 
@@ -26,24 +27,30 @@ export function useResources(): UseResourcesResult {
     Pick<UseResourcesResult, "resources" | "source">
   >(() => {
     if (!snapshot) {
-      return { resources: [], source: "none" };
+      return { resources: VERIFIED_IDOMA_RESOURCES, source: "none" };
     }
 
     if (snapshot.safeBenue.resources.length > 0) {
       return {
-        resources: snapshot.safeBenue.resources.map(mapSafeBenueResource),
+        resources: [
+          ...VERIFIED_IDOMA_RESOURCES,
+          ...snapshot.safeBenue.resources.map(mapSafeBenueResource),
+        ],
         source: "safebenue",
       };
     }
 
     if (snapshot.osiris.hotspots.length > 0) {
       return {
-        resources: snapshot.osiris.hotspots.map(mapOsirisHotspotToResource),
+        resources: [
+          ...VERIFIED_IDOMA_RESOURCES,
+          ...snapshot.osiris.hotspots.map(mapOsirisHotspotToResource),
+        ],
         source: "osiris",
       };
     }
 
-    return { resources: [], source: "none" };
+    return { resources: VERIFIED_IDOMA_RESOURCES, source: "none" };
   }, [snapshot]);
 
   return {

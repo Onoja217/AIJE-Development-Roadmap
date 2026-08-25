@@ -1,5 +1,5 @@
 import { integrationConfig } from "../shared/integrationConfig";
-import { fetchIntegrationJson } from "../shared/integrationHttp";
+import { supabase } from "@/integrations/supabase/client";
 
 import type {
   IntegrationHealth,
@@ -57,32 +57,24 @@ export async function fetchSafeBenueData(): Promise<
     return { data: emptyPayload, health: createHealth() };
   }
 
-  if (!config.baseUrl) {
-    return {
-      data: emptyPayload,
-      health: createHealth({
-        state: "not_configured",
-        lastSyncAt: startedAt,
-        lastError:
-          "SafeBenue is enabled but VITE_SAFEBENUE_BASE_URL is missing or invalid.",
-      }),
-    };
-  }
-
   try {
-    const [incidents, resources, missingPersons] = await Promise.all([
-      fetchIntegrationJson<SafeBenuePayload["incidents"]>(config, "/incidents"),
-      fetchIntegrationJson<SafeBenuePayload["resources"]>(config, "/resources"),
-      fetchIntegrationJson<SafeBenuePayload["missingPersons"]>(
-        config,
-        "/missing-persons",
-      ).catch(() => [] as SafeBenuePayload["missingPersons"]),
-    ]);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Sign in is required for live SafeBenue data");
+    }
+
+    const { data: response, error } = await supabase.functions.invoke(
+      "safebenue-adapter",
+      { method: "GET" },
+    );
+    if (error) throw error;
 
     const data: SafeBenuePayload = {
-      incidents: Array.isArray(incidents) ? incidents : [],
-      resources: Array.isArray(resources) ? resources : [],
-      missingPersons: Array.isArray(missingPersons) ? missingPersons : [],
+      incidents: Array.isArray(response?.incidents) ? response.incidents : [],
+      resources: Array.isArray(response?.resources) ? response.resources : [],
+      missingPersons: Array.isArray(response?.missingPersons)
+        ? response.missingPersons
+        : [],
     };
 
     return {

@@ -28,6 +28,13 @@ Configure only the providers enabled for that environment:
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`,
   `TWILIO_WHATSAPP_FROM`
 - `CRON_SECRET` and `ALERT_CRON_SECRET`
+- `OSIRIS_UPSTREAM_BASE_URL`, optional `OSIRIS_UPSTREAM_TOKEN`, and
+  `OSIRIS_ADAPTER_ALLOWED_ORIGINS`. The
+  `osiris-adapter` requires a valid Supabase user JWT; do not create a browser
+  token or expose the upstream URL through a `VITE_` variable.
+- `SAFEBENUE_UPSTREAM_BASE_URL`, optional `SAFEBENUE_UPSTREAM_TOKEN`, and
+  `SAFEBENUE_ADAPTER_ALLOWED_ORIGINS`. The `safebenue-adapter` also requires a
+  valid Supabase user JWT. Keep incident and missing-person feeds private.
 
 ## Release sequence
 

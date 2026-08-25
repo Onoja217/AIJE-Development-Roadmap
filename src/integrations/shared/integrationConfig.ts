@@ -14,29 +14,11 @@ const parseMode = (value: string | undefined): IntegrationMode => {
 
 const parseBoolean = (
   value: string | undefined,
-  fallback: boolean
+  fallback: boolean,
 ): boolean => {
   if (value === "true") return true;
   if (value === "false") return false;
   return fallback;
-};
-
-const parseUrl = (value: string | undefined): string | null => {
-  const trimmed = value?.trim();
-  if (!trimmed) return null;
-
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    return trimmed.replace(/\/+$/, "");
-  } catch {
-    return null;
-  }
-};
-
-const parseToken = (value: string | undefined): string | null => {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : null;
 };
 
 const parsePollingInterval = (value: string | undefined): number => {
@@ -51,14 +33,14 @@ const parsePollingInterval = (value: string | undefined): number => {
 
 const safeBenue: IntegrationEndpointConfig = {
   enabled: parseBoolean(import.meta.env.VITE_SAFEBENUE_ENABLED, false),
-  baseUrl: parseUrl(import.meta.env.VITE_SAFEBENUE_BASE_URL),
-  publicToken: parseToken(import.meta.env.VITE_SAFEBENUE_PUBLIC_TOKEN),
+  baseUrl: null,
+  publicToken: null,
 };
 
 const osiris: IntegrationEndpointConfig = {
   enabled: parseBoolean(import.meta.env.VITE_OSIRIS_ENABLED, false),
-  baseUrl: parseUrl(import.meta.env.VITE_OSIRIS_BASE_URL),
-  publicToken: parseToken(import.meta.env.VITE_OSIRIS_PUBLIC_TOKEN),
+  baseUrl: null,
+  publicToken: null,
 };
 
 export const integrationConfig: IntegrationConfiguration = {
@@ -66,7 +48,7 @@ export const integrationConfig: IntegrationConfiguration = {
   safeBenueEnabled: safeBenue.enabled,
   osirisEnabled: osiris.enabled,
   pollingIntervalMs: parsePollingInterval(
-    import.meta.env.VITE_COMMUNITY_SYNC_INTERVAL_MS
+    import.meta.env.VITE_COMMUNITY_SYNC_INTERVAL_MS,
   ),
   safeBenue,
   osiris,

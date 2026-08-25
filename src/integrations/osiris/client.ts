@@ -1,5 +1,5 @@
 import { integrationConfig } from "../shared/integrationConfig";
-import { fetchIntegrationJson } from "../shared/integrationHttp";
+import { supabase } from "@/integrations/supabase/client";
 
 import type {
   IntegrationHealth,
@@ -53,33 +53,23 @@ export async function fetchOsirisIntelligence(): Promise<
     return { data: emptyPayload, health: createHealth() };
   }
 
-  if (!config.baseUrl) {
-    return {
-      data: emptyPayload,
-      health: createHealth({
-        state: "not_configured",
-        lastSyncAt: startedAt,
-        lastError:
-          "Osiris is enabled but VITE_OSIRIS_BASE_URL is missing or invalid.",
-      }),
-    };
-  }
-
   try {
-    const [assessments, hotspots] = await Promise.all([
-      fetchIntegrationJson<OsirisIntelligencePayload["assessments"]>(
-        config,
-        "/threat-assessments",
-      ),
-      fetchIntegrationJson<OsirisIntelligencePayload["hotspots"]>(
-        config,
-        "/hotspots",
-      ).catch(() => [] as OsirisIntelligencePayload["hotspots"]),
-    ]);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Sign in is required for live Osiris intelligence");
+    }
+
+    const { data: response, error } = await supabase.functions.invoke(
+      "osiris-adapter",
+      { method: "GET" },
+    );
+    if (error) throw error;
 
     const data: OsirisIntelligencePayload = {
-      assessments: Array.isArray(assessments) ? assessments : [],
-      hotspots: Array.isArray(hotspots) ? hotspots : [],
+      assessments: Array.isArray(response?.assessments)
+        ? response.assessments
+        : [],
+      hotspots: Array.isArray(response?.hotspots) ? response.hotspots : [],
     };
 
     return {

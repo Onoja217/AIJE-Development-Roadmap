@@ -28,4 +28,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.osiris-adapter]
-verify_jwt = false
+verify_jwt = true
+
+[functions.safebenue-adapter]
+verify_jwt = true
