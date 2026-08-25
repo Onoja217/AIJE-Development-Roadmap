@@ -111,6 +111,8 @@ export interface EmergencyResource {
   updatedBy?: string;
   verifiedBy?: string;
   lastVerifiedAt?: string;
+  verificationSourceUrl?: string;
+  verificationSourceRecordId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
