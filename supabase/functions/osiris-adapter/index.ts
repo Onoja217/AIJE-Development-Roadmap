@@ -26,7 +26,8 @@ const corsHeaders = (request: Request) => {
     origin && allowed.includes(origin) ? origin : (allowed[0] ?? "null");
   return {
     "Access-Control-Allow-Origin": selected,
-    "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+    "Access-Control-Allow-Headers":
+      "authorization, apikey, content-type, x-client-info",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     Vary: "Origin",
   };
