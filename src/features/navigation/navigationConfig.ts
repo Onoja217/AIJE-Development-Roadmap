@@ -34,6 +34,7 @@ export const APP_PATHS = {
   billing: "/account/billing",
   billingCallback: "/account/billing/callback",
   operations: "/operations",
+  alertDashboard: "/operations/alerts",
   cameras: "/operations/cameras",
   sensors: "/operations/sensors",
   householdSensors: "/safety/sensors",
@@ -113,6 +114,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         path: APP_PATHS.operations,
         icon: Settings,
         anyOf: ["cameras.manage"],
+      },
+      {
+        title: "Intelligent alert dashboard",
+        path: APP_PATHS.alertDashboard,
+        icon: Bell,
+        anyOf: ["cameras.view", "cameras.manage"],
       },
       {
         title: "Cameras",

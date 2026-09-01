@@ -3,6 +3,7 @@ import { Route } from "react-router-dom";
 import { PermissionRoute } from "@/features/access/PermissionRoute";
 import { APP_PATHS } from "@/features/navigation/navigationConfig";
 const ControlPanel = lazy(() => import("@/pages/ControlPanel"));
+const AlertDashboard = lazy(() => import("@/pages/AlertDashboard"));
 const CameraManagement = lazy(() => import("@/pages/CameraManagement"));
 const SensorManagement = lazy(() => import("@/pages/SensorManagement"));
 const DetectionManager = lazy(() => import("@/pages/DetectionManager"));
@@ -15,6 +16,14 @@ export function OperationsRoutes() {
         element={
           <PermissionRoute anyOf={["cameras.manage"]}>
             <ControlPanel />
+          </PermissionRoute>
+        }
+      />
+      <Route
+        path={APP_PATHS.alertDashboard}
+        element={
+          <PermissionRoute anyOf={["cameras.view", "cameras.manage"]}>
+            <AlertDashboard />
           </PermissionRoute>
         }
       />
