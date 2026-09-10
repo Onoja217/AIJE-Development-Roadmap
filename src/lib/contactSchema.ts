@@ -25,7 +25,7 @@ export const contactSchema = z.object({
     .regex(/^\+?[0-9\s()-]{7,20}$/, "Enter a valid phone number"),
 
   role: z.enum(CONTACT_ROLE_VALUES, {
-    required_error: "Select a role",
+    error: "Select a role",
   }),
 
   community: z
@@ -35,7 +35,7 @@ export const contactSchema = z.object({
     .max(100, "Community name is too long"),
 
   status: z.enum(["active", "inactive"], {
-    required_error: "Select a status",
+    error: "Select a status",
   }),
 });
 
