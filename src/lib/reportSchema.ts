@@ -24,7 +24,7 @@ export const reportSchema = z.object({
     .max(100, "Title is too long"),
 
   category: z.enum(CATEGORY_IDS, {
-    required_error: "Select an emergency category",
+    error: "Select an emergency category",
   }),
 
   description: z
