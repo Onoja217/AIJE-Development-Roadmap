@@ -4,6 +4,20 @@ export interface SafeBenueSnapshot {
   missingPersons: Record<string, unknown>[];
 }
 
+interface IncidentReportRow {
+  id?: unknown;
+  title?: unknown;
+  description?: unknown;
+  category?: unknown;
+  status?: unknown;
+  occurred_at?: unknown;
+  updated_at?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+  address?: unknown;
+  manual_location?: unknown;
+}
+
 type UnknownRecord = Record<string, unknown>;
 
 const MAX_RECORDS_PER_FEED = 500;
@@ -43,6 +57,56 @@ const RESOURCE_CATEGORIES = new Set([
 ]);
 const AVAILABILITY = new Set(["available", "limited", "unavailable"]);
 const MISSING_STATUSES = new Set(["missing", "located", "reunited"]);
+
+const mapReportCategory = (value: unknown): string => {
+  switch (text(value)) {
+    case "attack":
+    case "kidnapping":
+    case "crime":
+      return "security";
+    case "medical":
+    case "fire":
+    case "flood":
+    case "missing_person":
+      return text(value) as string;
+    case "building_collapse":
+    case "road_damage":
+    case "power_outage":
+    case "water_issue":
+      return "infrastructure";
+    default:
+      return "other";
+  }
+};
+
+const mapReportStatus = (value: unknown): string => {
+  switch (text(value)) {
+    case "verified":
+      return "verified";
+    case "dispatched":
+    case "acknowledged":
+    case "responding":
+      return "responding";
+    case "resolved":
+      return "resolved";
+    default:
+      return "reported";
+  }
+};
+
+const mapReportSeverity = (value: unknown): string => {
+  switch (text(value)) {
+    case "attack":
+    case "kidnapping":
+      return "critical";
+    case "medical":
+    case "fire":
+    case "flood":
+      return "high";
+    default:
+      return "medium";
+  }
+};
 
 const record = (value: unknown): UnknownRecord | null =>
   value !== null && typeof value === "object" && !Array.isArray(value)
@@ -107,6 +171,57 @@ const location = (value: unknown): UnknownRecord | null => {
       : {}),
   };
 };
+
+/**
+ * Converts organization-scoped AIJE incident rows into the SafeBenue feed
+ * contract. The caller must fetch these rows with the user's JWT so database
+ * RLS remains the source of truth for tenant isolation.
+ */
+export function mapIncidentReportsToSafeBenue(
+  value: unknown,
+): SafeBenueSnapshot {
+  const reportRows = Array.isArray(value)
+    ? value.slice(0, MAX_RECORDS_PER_FEED)
+    : [];
+  const incidents = reportRows.flatMap((candidate) => {
+    const row = record(candidate) as IncidentReportRow | null;
+    if (!row) return [];
+    const latitude = row.latitude;
+    const longitude = row.longitude;
+    const reportedAt = timestamp(row.occurred_at);
+    const updatedAt = timestamp(row.updated_at) ?? reportedAt;
+    const safeLocation = location({
+      latitude,
+      longitude,
+      address: text(row.address) ?? text(row.manual_location),
+    });
+    if (
+      !text(row.id, true) ||
+      !text(row.title, true) ||
+      !text(row.description, true) ||
+      !reportedAt ||
+      !updatedAt ||
+      !safeLocation
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: text(row.id, true),
+        title: text(row.title, true),
+        description: text(row.description, true),
+        category: mapReportCategory(row.category),
+        status: mapReportStatus(row.status),
+        severity: mapReportSeverity(row.category),
+        source: "citizen",
+        reportedAt,
+        updatedAt,
+        location: safeLocation,
+      },
+    ];
+  });
+  return { incidents, resources: [], missingPersons: [] };
+}
 
 export function mapSafeBenueFeeds(input: {
   incidents?: unknown;
