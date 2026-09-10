@@ -1,0 +1,11 @@
+[context.production.environment]
+  VITE_DEPLOYMENT_ENV = "production"
+  VITE_COMMUNITY_SYNC_MODE = "live"
+
+[context.deploy-preview.environment]
+  VITE_DEPLOYMENT_ENV = "preview"
+  VITE_COMMUNITY_SYNC_MODE = "demo"
+
+[context.branch-deploy.environment]
+  VITE_DEPLOYMENT_ENV = "preview"
+  VITE_COMMUNITY_SYNC_MODE = "demo"
