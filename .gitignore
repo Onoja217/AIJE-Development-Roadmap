@@ -33,4 +33,5 @@ supabase/.temp/
 
 .vercel
 .env*
+!.env.production
 .vercel-prod-audit.env
