@@ -1,0 +1,2 @@
+# Cloudflare Pages SPA fallback. Keep this last if more-specific rules are added.
+/* /index.html 200
