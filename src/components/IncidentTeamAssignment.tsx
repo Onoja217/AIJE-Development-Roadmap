@@ -25,6 +25,7 @@ export function IncidentTeamAssignment({
 }) {
   const { activeOrganization, hasPermission } = useAccess();
   const [teams, setTeams] = useState<ResponseTeam[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamId, setTeamId] = useState(incident.assignedTeamId ?? "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -35,9 +36,19 @@ export function IncidentTeamAssignment({
 
   useEffect(() => {
     if (!activeOrganization || !hasPermission("incidents.assign")) return;
+    setLoadingTeams(true);
+    setMessage(null);
     void fetchResponseTeams(activeOrganization.id)
-      .then(setTeams)
-      .catch(() => setMessage("Response teams could not be loaded."));
+      .then((responseTeams) => {
+        setTeams(responseTeams);
+        if (responseTeams.length === 0) {
+          setMessage(
+            "No response teams are available for this organization yet.",
+          );
+        }
+      })
+      .catch(() => setMessage("Response teams could not be loaded."))
+      .finally(() => setLoadingTeams(false));
   }, [activeOrganization, hasPermission]);
 
   if (incident.origin !== "database" || !hasPermission("incidents.assign"))
@@ -69,9 +80,21 @@ export function IncidentTeamAssignment({
         <Users className="h-4 w-4" /> Assigned response team
       </p>
       <div className="flex gap-2">
-        <Select value={teamId} onValueChange={setTeamId}>
+        <Select
+          value={teamId}
+          onValueChange={setTeamId}
+          disabled={loadingTeams || teams.length === 0}
+        >
           <SelectTrigger>
-            <SelectValue placeholder="Select a team" />
+            <SelectValue
+              placeholder={
+                loadingTeams
+                  ? "Loading teams…"
+                  : teams.length === 0
+                    ? "No teams available"
+                    : "Select a team"
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {teams.map((team) => (
@@ -81,7 +104,10 @@ export function IncidentTeamAssignment({
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={() => void save()} disabled={!teamId || saving}>
+        <Button
+          onClick={() => void save()}
+          disabled={!teamId || saving || loadingTeams}
+        >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Assign"}
         </Button>
       </div>
