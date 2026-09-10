@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { mapSafeBenueFeeds } from "../../supabase/functions/safebenue-adapter/mapper";
+import {
+  mapIncidentReportsToSafeBenue,
+  mapSafeBenueFeeds,
+} from "../../supabase/functions/safebenue-adapter/mapper";
 
 const location = {
   latitude: 7.19,
@@ -98,5 +101,34 @@ describe("SafeBenue adapter mapper", () => {
         reportedAt: "2026-08-25T00:00:00.000Z",
       },
     ]);
+  });
+
+  it("maps RLS-scoped incident reports into the SafeBenue contract", () => {
+    const result = mapIncidentReportsToSafeBenue([
+      {
+        id: "report-1",
+        title: "Community fire",
+        description: "Fire reported near the market",
+        category: "fire",
+        status: "dispatched",
+        occurred_at: "2026-09-10T10:00:00.000Z",
+        updated_at: "2026-09-10T10:05:00.000Z",
+        latitude: 7.19,
+        longitude: 8.13,
+        address: "Otukpo market",
+      },
+    ]);
+
+    expect(result.incidents).toEqual([
+      expect.objectContaining({
+        id: "report-1",
+        category: "fire",
+        status: "responding",
+        severity: "high",
+        source: "citizen",
+      }),
+    ]);
+    expect(result.resources).toEqual([]);
+    expect(result.missingPersons).toEqual([]);
   });
 });
